@@ -13,6 +13,7 @@ import UserInfo from '../UserInfo/UserInfo';
 import SideBarNavigation from './SideBarNavigation';
 import { SIDEBAR_WIDTH } from '../../routes/Layout/PrivateLayout';
 import { LinkToPage } from '../../utils/type';
+import { useHistory } from 'react-router';
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -59,6 +60,8 @@ const SideBar: React.FC<Props> = ({ anchor, className, open, variant, items, onC
   const [state, dispatch] = useAppStore();
   const classes = useStyles();
 
+  const history = useHistory();
+
   const handleSwitchDarkMode = useCallback(() => {
     dispatch({
       type: 'DARK_MODE',
@@ -70,7 +73,8 @@ const SideBar: React.FC<Props> = ({ anchor, className, open, variant, items, onC
   const handleOnLogout = useCallback(async () => {
     // await api.auth.logout();
     dispatch({ type: 'LOG_OUT' });
-  }, [dispatch]);
+    history.push('/');
+  }, [dispatch,history]);
 
   const handleAfterLinkClick = useCallback(
     (event: React.MouseEvent) => {

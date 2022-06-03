@@ -13,9 +13,7 @@ const remove = async (id: object) => await api.delete('/class-groups/' + id);
 
 const update = async (id: string, data: object) => await api.put('/class-groups/' + id, data);
 
-const getById = async (id: object) => await api.get('/class-groups/' + id);
-
-
+const getById = async (id: string) => await api.get('/class-groups/' + id);
 
 export const classGroupsService = {
   getAll,

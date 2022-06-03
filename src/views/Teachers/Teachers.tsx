@@ -1,4 +1,4 @@
-import { Card, CardActions, CardContent, CardHeader, Grid , CircularProgress} from '@mui/material';
+import { Card, CardActions, CardContent, CardHeader, Grid, CircularProgress } from '@mui/material';
 import { useCallback, useEffect, useState } from 'react';
 import { AppButton, AppLink } from '../../components';
 import { teachersService } from '../../services/teachers.service';
@@ -25,9 +25,23 @@ const TeachersView = () => {
 
   useEffect(() => {
     loadTeacherList();
-  }, []);
+  }, [loadTeacherList]);
 
-  if (loading) return <CircularProgress />;
+  if (loading)
+    return (
+      <Grid
+        container
+        spacing={0}
+        direction="column"
+        alignItems="center"
+        justifyContent="center"
+        style={{ minHeight: '100vh', minWidth: '100%' }}
+      >
+        <Grid item xs={3}>
+          <CircularProgress />
+        </Grid>
+      </Grid>
+    );
 
   return (
     <Grid container spacing={3}>

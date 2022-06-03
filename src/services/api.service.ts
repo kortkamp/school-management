@@ -1,9 +1,9 @@
 import axios, { AxiosRequestConfig } from 'axios';
+import { useHistory } from 'react-router';
 import { localStorageGet } from '../utils/localStorage';
 
-export const URLFiles = 'https://app-api.sinclairpharma.com.br/files/';
-
 const api = () => {
+
   const defaultOptions = {
     baseURL: 'http://localhost:3003',
     headers: {
@@ -32,8 +32,14 @@ const api = () => {
     },
     function (error) {
       // let status = error?.response?.status;
-
-      return Promise.reject(error);
+      if (error.response.status === 403 ){
+        // redirect to 403 page
+        return Promise.reject({ redirectTo: '/no-access' });
+      }
+      if (error.response.status === 401 ){
+        return Promise.reject({ redirectTo: '/login' });
+      }
+      Promise.reject(error)
     }
   );
 

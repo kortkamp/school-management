@@ -1,71 +1,51 @@
 import { Card, CardActions, CardContent, CardHeader, Grid, CircularProgress, Button } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { useCallback, useEffect, useState } from 'react';
-import { useHistory } from 'react-router';
-import { AppButton, AppLink } from '../../components';
+import { useHistory, useParams } from 'react-router';
+import { AppButton, AppLoading } from '../../components';
 import { classGroupsService } from '../../services/classGroups.service';
 
 /**
  * Renders "ClassGroups" view
  * url: /professores/*
  */
-const ClassGroupsView = () => {
-  const [classGroups, setClassGroups] = useState<any[]>([]);
+const ClassView = () => {
+  const { id } = useParams<{ id: string }>();
+
+  const [classGroup, setClassGroup] = useState<any>();
   const [loading, setLoading] = useState(true);
 
   const history = useHistory();
 
   const loadClassGroupsList = useCallback(async () => {
     // try{
-    const response = await classGroupsService.getAll();
-    setClassGroups(response.data.classGroups);
+    const response = await classGroupsService.getById(id);
+    setClassGroup(response.data.classGroup);
     setLoading(false);
 
     // } catch(err:any){
     //     throw new Error('err')
     //   }
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     loadClassGroupsList();
   }, [loadClassGroupsList]);
 
-  if (loading)
-    return (
-      <Grid
-        container
-        spacing={0}
-        direction="column"
-        alignItems="center"
-        justifyContent="center"
-        style={{ minHeight: '100vh', minWidth: '100%' }}
-      >
-        <Grid item xs={3}>
-          <CircularProgress />
-          <h1>Carregando...</h1>
-        </Grid>
-      </Grid>
-    );
+  if (loading) return <AppLoading />;
 
   const columns = [
     { field: 'name', headerName: 'Nome', width: 150 },
-    {
-      field: 'grade',
-      headerName: 'Ano',
-      width: 150,
-      valueGetter: (params: any) => {
-        return params.row.grade?.name;
-      },
-    },
-    {
-      field: 'segment',
-      headerName: 'Segmento',
-      width: 150,
-      valueGetter: (params: any) => {
-        return params.row.grade?.segment?.name;
-      },
-    },
-    { field: 'students_count', headerName: 'Alunos', width: 150 },
+
+    // {
+    //   field: 'segment',
+    //   headerName: 'Segmento',
+    //   width: 150,
+    //   valueGetter: (params: any) => {
+    //     return params.row.grade?.segment?.name
+    //   },
+    // },
+    { field: 'email', headerName: 'Email', width: 200 },
     {
       field: 'action',
       headerName: 'Action',
@@ -85,11 +65,11 @@ const ClassGroupsView = () => {
     <Grid container spacing={3}>
       <Grid item xs={12} md={12}>
         <Card>
-          <CardHeader style={{ textAlign: 'center' }} title="Turmas" subheader="Lista de turmas" />
-          <CardContent>Detailed description of the application here...</CardContent>
+          <CardHeader style={{ textAlign: 'center' }} title="Turma" subheader={classGroup.name} />
+          <CardContent>Alunos</CardContent>
 
           <DataGrid
-            rows={classGroups}
+            rows={classGroup.users}
             columns={columns}
             pageSize={5}
             rowsPerPageOptions={[5]}
@@ -102,4 +82,4 @@ const ClassGroupsView = () => {
   );
 };
 
-export default ClassGroupsView;
+export default ClassView;
