@@ -7,13 +7,13 @@ const getAll = async (per_page = 10, page = 1, filterBy = '', filterValue = '', 
     }`
   );
 
-const create = async (data: object) => api.post('/users', data);
+const create = async (data: object) => api.post('/exams', data);
 
-const remove = async (id: object) => api.delete(`/users/${id}`);
+const remove = async (id: string) => api.delete(`/exams/${id}`);
 
-const update = async (id: string, data: object) => api.put(`/users/${id}`, data);
+const update = async (id: string, data: object) => api.put(`/exams/${id}`, data);
 
-const getById = async (id: string) => api.get(`/users/${id}`);
+const getById = async (id: string) => api.get(`/exams/${id}`);
 
 export const examsService = {
   getAll,

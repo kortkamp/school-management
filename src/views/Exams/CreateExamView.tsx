@@ -6,6 +6,7 @@ import { AppButton, AppAlert, AppForm } from '../../components';
 import { useAppForm, SHARED_CONTROL_PROPS, eventPreventDefault } from '../../utils/form';
 import { classGroupsService } from '../../services/classGroups.service';
 import { subjectsService } from '../../services/subjects.service';
+import { examsService } from '../../services/exams.service';
 
 const VALIDATE_FORM_SIGNUP = {
   value: {
@@ -27,10 +28,10 @@ const VALIDATE_FORM_SIGNUP = {
 interface FormStateValues {
   type: string;
   subject_id: string;
-  class_group_id: string;
+  class_id: string;
   value: number;
   weight: number;
-  date: Date;
+  date: Date | undefined;
 }
 
 /**
@@ -48,10 +49,10 @@ function CreateExamView() {
     initialValues: {
       type: '',
       subject_id: '',
-      class_group_id: '',
+      class_id: '',
       value: 0,
       weight: 0,
-      date: new Date(),
+      date: undefined,
     } as FormStateValues,
   });
   const [classGroups, setClassGroups] = useState<any[]>([]);
@@ -71,7 +72,6 @@ function CreateExamView() {
         setClassGroups(response.data.classGroups);
 
         const subjectsResponse = await subjectsService.getAll();
-        console.log(subjectsResponse.data.subjects);
         setSubjects(subjectsResponse.data.subjects);
       } catch (err: any) {
         console.log(err);
@@ -94,17 +94,16 @@ function CreateExamView() {
     async (event: SyntheticEvent) => {
       event.preventDefault();
 
-      const apiResult = true; // await api.auth.signup(values);
+      const apiResult = await examsService.create(values);
 
       if (!apiResult) {
-        setError('Can not create user for given email, if you already have account please sign in');
-        return; // Unsuccessful signup
+        setError('Não foi possível criar o exame');
+        return;
       }
 
-      dispatch({ type: 'SIGN_UP' });
-      history.replace('/');
+      history.replace('/exames');
     },
-    [dispatch, /* values, */ history]
+    [dispatch, values, history]
   );
 
   const handleCloseError = useCallback(() => setError(undefined), []);
@@ -153,10 +152,8 @@ function CreateExamView() {
             required
             select
             label="Turma"
-            name="class_group_id"
-            value={values.class_group_id}
-            error={fieldHasError('phone')}
-            helperText={fieldGetError('phone') || ' '}
+            name="class_id"
+            value={values.class_id}
             onChange={onFieldChange}
             {...SHARED_CONTROL_PROPS}
           >
@@ -192,13 +189,11 @@ function CreateExamView() {
           />
           <TextField
             required
-            type="Date"
+            type="date"
             InputLabelProps={{ shrink: true }}
             label="Data"
             name="date"
             value={values.date}
-            error={fieldHasError('date')}
-            helperText={fieldGetError('date') || ' '}
             onChange={onFieldChange}
             {...SHARED_CONTROL_PROPS}
           />

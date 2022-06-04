@@ -80,8 +80,18 @@ const SIDE_BAR_PRIVATE_ITEMS: Array<LinkToPage> = [
     icon: 'group',
   },
   {
+    title: 'Criar Turmas',
+    path: '/turmas/criar',
+    icon: 'group',
+  },
+  {
     title: 'Provas',
     path: '/exames',
+    icon: 'exams',
+  },
+  {
+    title: 'Criar Provas',
+    path: '/exames/criar',
     icon: 'exams',
   },
   {

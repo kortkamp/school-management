@@ -16,10 +16,24 @@ function ExamListView() {
 
   const history = useHistory();
 
+  const handleDeleteExam = useCallback(
+    async (id: string) => {
+      const apiResult = await examsService.remove(id);
+
+      if (!apiResult) {
+        // setError('Não foi possível excluir o exame');
+        return;
+      }
+
+      // setExams(exams.filter((exam) => exam.id !== id));
+      loadClassGroupsList();
+    },
+    [history]
+  );
+
   const loadClassGroupsList = useCallback(async () => {
     // try{
     const response = await examsService.getAll();
-    console.log(response.data);
     setExams(response.data.exams.result);
     setLoading(false);
 
@@ -73,6 +87,22 @@ function ExamListView() {
         };
 
         return <Button onClick={onClick}>Mostrar</Button>;
+      },
+    },
+    {
+      field: 'cancelar',
+      headerName: 'cancelar',
+      sortable: false,
+      renderCell: (params: any) => {
+        return (
+          <Button
+            onClick={() => {
+              handleDeleteExam(params.row.id);
+            }}
+          >
+            CANCELAR
+          </Button>
+        );
       },
     },
   ];
