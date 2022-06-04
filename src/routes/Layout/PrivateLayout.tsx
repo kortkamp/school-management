@@ -81,7 +81,7 @@ const SIDE_BAR_PRIVATE_ITEMS: Array<LinkToPage> = [
   },
   {
     title: 'Provas',
-    path: '/provas',
+    path: '/exames',
     icon: 'search',
   },
   {

@@ -74,7 +74,7 @@ const SideBar: React.FC<Props> = ({ anchor, className, open, variant, items, onC
     // await api.auth.logout();
     dispatch({ type: 'LOG_OUT' });
     history.push('/');
-  }, [dispatch,history]);
+  }, [dispatch, history]);
 
   const handleAfterLinkClick = useCallback(
     (event: React.MouseEvent) => {

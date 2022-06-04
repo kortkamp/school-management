@@ -1,9 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios';
-import { useHistory } from 'react-router';
 import { localStorageGet } from '../utils/localStorage';
 
 const api = () => {
-
   const defaultOptions = {
     baseURL: 'http://localhost:3003',
     headers: {
@@ -13,12 +11,13 @@ const api = () => {
     },
   };
 
-  let instance = axios.create(defaultOptions);
+  const instance = axios.create(defaultOptions);
 
   instance.interceptors.request.use(function (config: AxiosRequestConfig | undefined) {
     const sessionParsed = localStorageGet('user') as any;
     if (sessionParsed) {
       if (sessionParsed?.token && config?.headers) {
+        // eslint-disable-next-line no-param-reassign
         config.headers.Authorization = `Bearer ${sessionParsed.token}`;
       }
     }
@@ -32,14 +31,14 @@ const api = () => {
     },
     function (error) {
       // let status = error?.response?.status;
-      if (error.response.status === 403 ){
+      if (error.response.status === 403) {
         // redirect to 403 page
         return Promise.reject({ redirectTo: '/no-access' });
       }
-      if (error.response.status === 401 ){
+      if (error.response.status === 401) {
         return Promise.reject({ redirectTo: '/login' });
       }
-      Promise.reject(error)
+      Promise.reject(error);
     }
   );
 

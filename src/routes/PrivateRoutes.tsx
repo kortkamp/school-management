@@ -1,5 +1,5 @@
 import { Route, Switch } from 'react-router-dom';
-import { Welcome, About, NotFound, Teachers, ClassGroups } from '../views';
+import { Welcome, About, NotFound, Teachers, ClassGroups, Students, Exams } from '../views';
 import { PrivateLayout } from './Layout';
 
 /**
@@ -15,6 +15,8 @@ const PrivateRoutes = () => {
         <Route path="/about" component={About} />,
         <Route path="/professores" component={Teachers} />,
         <Route path="/turmas" component={ClassGroups} />,
+        <Route path="/alunos" component={Students} />,
+        <Route path="/exames" component={Exams} />,
         <Route component={NotFound} />
       </Switch>
     </PrivateLayout>
