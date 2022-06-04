@@ -1,6 +1,7 @@
 import { Route, Switch } from 'react-router-dom';
 import ClassGroupsView from './ClassGroups';
 import ClassView from './ClassView';
+import CreateClassView from './CreateClassView';
 
 /**
  * Routes for "ClassGroups" view
@@ -9,6 +10,7 @@ import ClassView from './ClassView';
 const ClassGroupsRoutes = () => {
   return (
     <Switch>
+      <Route path="/turmas/criar" component={CreateClassView} />
       <Route path="/turmas/:id" component={ClassView} />
       <Route component={ClassGroupsView} />
     </Switch>
