@@ -77,12 +77,12 @@ const SIDE_BAR_PRIVATE_ITEMS: Array<LinkToPage> = [
   {
     title: 'Turmas',
     path: '/turmas',
-    icon: 'search',
+    icon: 'group',
   },
   {
     title: 'Provas',
     path: '/exames',
-    icon: 'search',
+    icon: 'exams',
   },
   {
     title: 'About',

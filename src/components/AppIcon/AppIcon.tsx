@@ -19,6 +19,8 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import PersonIcon from '@mui/icons-material/Person';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import NotificationsIcon from '@mui/icons-material/NotificationsOutlined';
+import ListAltIcon from '@mui/icons-material/ListAlt';
+import GroupsIcon from '@mui/icons-material/Groups';
 
 /**
  * How to use:
@@ -51,6 +53,8 @@ const ICONS: Record<string, React.ComponentType> = {
   login: PersonIcon,
   logout: ExitToAppIcon,
   notifications: NotificationsIcon,
+  exams: ListAltIcon,
+  group: GroupsIcon,
 };
 
 /**
