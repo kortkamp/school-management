@@ -37,6 +37,7 @@ function ExamListView() {
             <div>Turma: {exam.class_group.name}</div>
             <br />
             <div>Data: {Moment(exam.date).format('DD-MM-YYYY')}</div>
+            <h2>Todas a notas serão apagadas</h2>
           </>
         }
         confirmButtonText="Confirmar a exclusão"
