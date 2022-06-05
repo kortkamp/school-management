@@ -62,7 +62,7 @@ const SideBarCollapse: React.FC<Props> = ({ className, item, showIcons = false, 
   const classes = useStyles();
   return (
     <>
-      <ListItem key={`${item.title}-${item.path}`} className={className} disableGutters>
+      <ListItem key={`${item.title}`} className={className} disableGutters>
         <ListItemButton className={classes.button} onClick={handleClick}>
           <div className={classes.iconOrMargin}>{showIcons && item.icon ? <AppIcon icon={item.icon} /> : null}</div>
           {item.title}

@@ -63,7 +63,13 @@ const SideBarNavigation: React.FC<Props> = ({
       <List className={classRoot} {...restOfProps}>
         {items.map((link) =>
           link.subMenus ? (
-            <SideBarCollapse className={classes.item} item={link} showIcons afterLinkClick={afterLinkClick} />
+            <SideBarCollapse
+              key={`${link.title}`}
+              className={classes.item}
+              item={link}
+              showIcons
+              afterLinkClick={afterLinkClick}
+            />
           ) : (
             <ListItem key={`${link.title}-${link.path}`} className={classes.item} disableGutters>
               <Button
