@@ -1,10 +1,11 @@
 import { Card, CardContent, CardHeader, Grid, CircularProgress, Button } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import { useCallback, useEffect, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
 import Moment from 'moment';
 import { AppButton, AppLoading } from '../../components';
 import { examsService } from '../../services/exams.service';
+import { CommonDialog } from '../../components/dialogs';
 
 /**
  * Renders "ExamsListView" view
@@ -13,8 +14,43 @@ import { examsService } from '../../services/exams.service';
 function ExamListView() {
   const [exams, setExams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [modal, setModal] = useState<ReactNode | null>(null);
 
   const history = useHistory();
+
+  const onDialogClose = useCallback(() => {
+    setModal(null);
+  }, []);
+
+  const onConfirmDeleteExamOpen = (exam: any) => {
+    setModal(
+      <CommonDialog
+        open
+        data={exam}
+        title="Deseja realmente excluir?"
+        body={
+          <>
+            <div>Tipo: {exam.type}</div>
+            <br />
+            <div>Matéria: {exam.subject.name}</div>
+            <br />
+            <div>Turma: {exam.class_group.name}</div>
+            <br />
+            <div>Data: {Moment(exam.date).format('DD-MM-YYYY')}</div>
+          </>
+        }
+        confirmButtonText="Confirmar a exclusão"
+        confirmButtonColor="warning"
+        onClose={onDialogClose}
+        onConfirm={onConfirmDialogConfirm}
+      />
+    );
+  };
+
+  const onConfirmDialogConfirm = useCallback((data) => {
+    handleDeleteExam(data.id);
+    setModal(null);
+  }, []);
 
   const handleDeleteExam = useCallback(
     async (id: string) => {
@@ -89,8 +125,9 @@ function ExamListView() {
         return (
           <AppButton
             color="error"
-            onClick={() => {
-              handleDeleteExam(params.row.id);
+            onClick={(event) => {
+              event.stopPropagation();
+              onConfirmDeleteExamOpen(params.row);
             }}
           >
             CANCELAR
@@ -101,28 +138,31 @@ function ExamListView() {
   ];
 
   return (
-    <Grid container spacing={3}>
-      <Grid item xs={12} md={12}>
-        <Card>
-          <CardHeader
-            style={{ textAlign: 'center' }}
-            title="Provas e Trabalhos"
-            subheader="Lista de provas e trabalhos"
-          />
-          <CardContent>Detailed description of the application here...</CardContent>
+    <>
+      {modal}
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={12}>
+          <Card>
+            <CardHeader
+              style={{ textAlign: 'center' }}
+              title="Provas e Trabalhos"
+              subheader="Lista de provas e trabalhos"
+            />
+            <CardContent>Detailed description of the application here...</CardContent>
 
-          <DataGrid
-            onRowClick={(params) => history.push(`/exames/${params.row.id}`)}
-            rows={exams}
-            columns={columns}
-            // pageSize={5}
-            // rowsPerPageOptions={[5]}
-            // checkboxSelection
-            autoHeight
-          />
-        </Card>
+            <DataGrid
+              onRowClick={(params) => history.push(`/exames/${params.row.id}`)}
+              rows={exams}
+              columns={columns}
+              // pageSize={5}
+              // rowsPerPageOptions={[5]}
+              // checkboxSelection
+              autoHeight
+            />
+          </Card>
+        </Grid>
       </Grid>
-    </Grid>
+    </>
   );
 }
 
