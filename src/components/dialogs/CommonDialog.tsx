@@ -64,7 +64,7 @@ const CommonDialog: React.FC<Props> = ({
       </AppDialogTitle>
       <DialogContent>{body || text}</DialogContent>
       <DialogActions className={classes.actions}>
-        {!hideCancelButton && <AppButton onClick={onClose}>Cancel</AppButton>}
+        {!hideCancelButton && <AppButton onClick={onClose}>Voltar</AppButton>}
         <AppButton onClick={handleOnConfirm} color={confirmButtonColor} mr={0}>
           {confirmButtonText}
         </AppButton>
