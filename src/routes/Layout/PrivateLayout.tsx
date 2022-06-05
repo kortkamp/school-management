@@ -66,7 +66,7 @@ const SIDE_BAR_PRIVATE_ITEMS: Array<LinkToPage> = [
   },
   {
     title: 'Pessoas',
-    icon: 'search',
+    icon: 'person',
     subMenus: [
       {
         title: 'Professores',

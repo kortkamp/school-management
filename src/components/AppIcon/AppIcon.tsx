@@ -51,6 +51,7 @@ const ICONS: Record<string, React.ComponentType> = {
   account: AccountCircle,
   signup: PersonAddIcon,
   login: PersonIcon,
+  person: PersonIcon,
   logout: ExitToAppIcon,
   notifications: NotificationsIcon,
   exams: ListAltIcon,

@@ -3,24 +3,25 @@ import { DataGrid } from '@mui/x-data-grid';
 import { useCallback, useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router';
 import { AppButton, AppLoading } from '../../components';
+import { examsService } from '../../services/exams.service';
 import { studentsService } from '../../services/students.service';
 
 /**
- * Renders "ClassGroups" view
- * url: /professores/*
+ * Renders "ExamView" view
+ * url: /exams/:id*
  */
 const ExamView = () => {
   const { id } = useParams<{ id: string }>();
 
-  const [classGroup, setClassGroup] = useState<any>();
+  const [exam, setExams] = useState<any>();
   const [loading, setLoading] = useState(true);
 
   const history = useHistory();
 
   const loadClassGroupsList = useCallback(async () => {
     // try{
-    const response = await studentsService.getById(id);
-    setClassGroup(response.data.user);
+    const response = await examsService.getById(id);
+    setExams(response.data.exam);
     setLoading(false);
 
     // } catch(err:any){
@@ -65,11 +66,11 @@ const ExamView = () => {
     <Grid container spacing={3}>
       <Grid item xs={12} md={12}>
         <Card>
-          <CardHeader style={{ textAlign: 'center' }} title="Turma" subheader={classGroup.name} />
-          <CardContent>Alunos</CardContent>
+          <CardHeader style={{ textAlign: 'center' }} title={exam.type.toUpperCase()} subheader={exam.type} />
+          <CardContent>Notas</CardContent>
 
           <DataGrid
-            rows={classGroup.users}
+            rows={exam.results}
             columns={columns}
             pageSize={5}
             rowsPerPageOptions={[5]}

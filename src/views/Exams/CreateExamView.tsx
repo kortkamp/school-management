@@ -135,9 +135,8 @@ function CreateExamView() {
             label="Matéria"
             name="subject_id"
             value={values.subject_id}
-            error={fieldHasError('email')}
-            helperText={fieldGetError('email') || ' '}
             onChange={onFieldChange}
+            style={{ minWidth: '100%' }}
             {...SHARED_CONTROL_PROPS}
           >
             {subjects.map((subject) => {

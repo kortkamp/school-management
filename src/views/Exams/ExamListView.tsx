@@ -3,7 +3,7 @@ import { DataGrid } from '@mui/x-data-grid';
 import { useCallback, useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
 import Moment from 'moment';
-import { AppLoading } from '../../components';
+import { AppButton, AppLoading } from '../../components';
 import { examsService } from '../../services/exams.service';
 
 /**
@@ -49,12 +49,13 @@ function ExamListView() {
   if (loading) return <AppLoading />;
 
   const columns = [
-    { field: 'type', headerName: 'Tipo', width: 100 },
+    { field: 'type', headerName: 'Tipo', width: 100, flex: 1 },
 
     {
       field: 'subject',
       headerName: 'Matéria',
       width: 150,
+      flex: 1,
       valueGetter: (params: any) => {
         return params.row.subject.name;
       },
@@ -63,45 +64,37 @@ function ExamListView() {
       field: 'class_group',
       headerName: 'Turma',
       width: 150,
+      flex: 1,
       valueGetter: (params: any) => {
         return params.row.class_group.name;
       },
     },
-    { field: 'value', headerName: 'Valor', width: 80 },
-    { field: 'weight', headerName: 'Peso', width: 80 },
+    { field: 'value', headerName: 'Valor', width: 50, flex: 1 },
+    { field: 'weight', headerName: 'Peso', width: 50, flex: 1 },
     {
       field: 'date',
       headerName: 'Data',
       width: 100,
+      flex: 1,
       valueGetter: (params: any) => params && Moment(params.row.date).format('DD-MM-YYYY'),
     },
 
     {
-      field: 'action',
-      headerName: 'Action',
-      sortable: false,
-      renderCell: (params: any) => {
-        const onClick = (e: any) => {
-          e.stopPropagation(); // don't select this row after clicking
-          history.push(`/turmas/${params.row.id}`);
-        };
-
-        return <Button onClick={onClick}>Mostrar</Button>;
-      },
-    },
-    {
       field: 'cancelar',
       headerName: 'cancelar',
       sortable: false,
+      width: 130,
+      flex: 1,
       renderCell: (params: any) => {
         return (
-          <Button
+          <AppButton
+            color="error"
             onClick={() => {
               handleDeleteExam(params.row.id);
             }}
           >
             CANCELAR
-          </Button>
+          </AppButton>
         );
       },
     },
@@ -118,7 +111,15 @@ function ExamListView() {
           />
           <CardContent>Detailed description of the application here...</CardContent>
 
-          <DataGrid rows={exams} columns={columns} pageSize={5} rowsPerPageOptions={[5]} checkboxSelection autoHeight />
+          <DataGrid
+            onRowClick={(params) => history.push(`/exames/${params.row.id}`)}
+            rows={exams}
+            columns={columns}
+            // pageSize={5}
+            // rowsPerPageOptions={[5]}
+            // checkboxSelection
+            autoHeight
+          />
         </Card>
       </Grid>
     </Grid>
