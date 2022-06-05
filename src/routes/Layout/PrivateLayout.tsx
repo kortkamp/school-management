@@ -65,34 +65,56 @@ const SIDE_BAR_PRIVATE_ITEMS: Array<LinkToPage> = [
     icon: 'account',
   },
   {
-    title: 'Professores',
-    path: '/professores',
+    title: 'Pessoas',
     icon: 'search',
+    subMenus: [
+      {
+        title: 'Professores',
+        path: '/professores',
+        icon: 'search',
+      },
+      {
+        title: 'Alunos',
+        path: '/alunos',
+        icon: 'search',
+      },
+    ],
   },
-  {
-    title: 'Alunos',
-    path: '/alunos',
-    icon: 'search',
-  },
+
   {
     title: 'Turmas',
     path: '/turmas',
     icon: 'group',
+    subMenus: [
+      {
+        title: 'Listar Turmas',
+        path: '/turmas',
+        icon: 'group',
+      },
+      {
+        title: 'Criar Turma',
+        path: '/turmas/criar',
+        icon: 'group',
+      },
+    ],
   },
-  {
-    title: 'Criar Turmas',
-    path: '/turmas/criar',
-    icon: 'group',
-  },
+
   {
     title: 'Provas',
     path: '/exames',
     icon: 'exams',
-  },
-  {
-    title: 'Criar Provas',
-    path: '/exames/criar',
-    icon: 'exams',
+    subMenus: [
+      {
+        title: 'Listar Provas',
+        path: '/exames',
+        icon: 'exams',
+      },
+      {
+        title: 'Criar Provas',
+        path: '/exames/criar',
+        icon: 'exams',
+      },
+    ],
   },
   {
     title: 'About',

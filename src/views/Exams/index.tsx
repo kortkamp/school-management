@@ -12,7 +12,7 @@ const ExamsRoutes = () => {
     <Switch>
       <Route path="/exames/criar" component={CreateExamView} />
       <Route path="/exames/:id" component={ExamView} />
-      <Route component={ExamListView} />
+      <Route exact path="/exames" component={ExamListView} />
     </Switch>
   );
 };

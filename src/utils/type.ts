@@ -8,4 +8,5 @@ export declare interface LinkToPage {
   title?: string;
   path?: string;
   icon?: string;
+  subMenus?: LinkToPage[];
 }

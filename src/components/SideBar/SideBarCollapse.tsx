@@ -7,7 +7,10 @@ import makeStyles from '@mui/styles/makeStyles';
 import AppIcon from '../AppIcon';
 import SideBarLink from './SideBarLink';
 import { LinkToPage } from '../../utils/type';
-import SideBarCollapse from './SideBarCollapse';
+import { useState } from 'react';
+import { Collapse, ListItemButton } from '@mui/material';
+import { ExpandLess, ExpandMore } from '@mui/icons-material';
+import SideBarNavigation from './SideBarNavigation';
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {},
@@ -45,44 +48,34 @@ const useStyles = makeStyles((theme: Theme) => ({
  */
 interface Props {
   className?: string;
-  items: Array<LinkToPage>;
+  item: LinkToPage;
   showIcons?: boolean;
   afterLinkClick?: React.MouseEventHandler;
 }
-const SideBarNavigation: React.FC<Props> = ({
-  className,
-  items,
-  showIcons = false,
-  afterLinkClick,
-  ...restOfProps
-}) => {
+const SideBarCollapse: React.FC<Props> = ({ className, item, showIcons = false, afterLinkClick, ...restOfProps }) => {
+  const [open, setOpen] = useState(false);
+
+  const handleClick = () => {
+    setOpen(!open);
+  };
+
   const classes = useStyles();
-  const classRoot = clsx(classes.root, className);
   return (
-    <nav>
-      <List className={classRoot} {...restOfProps}>
-        {items.map((link) =>
-          link.subMenus ? (
-            <SideBarCollapse className={classes.item} item={link} showIcons afterLinkClick={afterLinkClick} />
-          ) : (
-            <ListItem key={`${link.title}-${link.path}`} className={classes.item} disableGutters>
-              <Button
-                className={classes.button}
-                component={SideBarLink}
-                to={link.path as string}
-                onClick={afterLinkClick}
-              >
-                <div className={classes.iconOrMargin}>
-                  {showIcons && link.icon ? <AppIcon icon={link.icon} /> : null}
-                </div>
-                {link.title}
-              </Button>
-            </ListItem>
-          )
+    <>
+      <ListItem key={`${item.title}-${item.path}`} className={className} disableGutters>
+        <ListItemButton className={classes.button} onClick={handleClick}>
+          <div className={classes.iconOrMargin}>{showIcons && item.icon ? <AppIcon icon={item.icon} /> : null}</div>
+          {item.title}
+        </ListItemButton>
+        {open ? <ExpandLess /> : <ExpandMore />}
+      </ListItem>
+      <Collapse in={open}>
+        {item.subMenus && (
+          <SideBarNavigation className={classes.root} items={item.subMenus} afterLinkClick={afterLinkClick} />
         )}
-      </List>
-    </nav>
+      </Collapse>
+    </>
   );
 };
 
-export default SideBarNavigation;
+export default SideBarCollapse;

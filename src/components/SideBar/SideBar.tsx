@@ -93,7 +93,7 @@ const SideBar: React.FC<Props> = ({ anchor, className, open, variant, items, onC
 
   return (
     <Drawer anchor={anchor} classes={drawerClasses} open={open} variant={variant} onClose={onClose}>
-      <div className={classRoot} {...restOfProps} onClick={handleAfterLinkClick}>
+      <div className={classRoot} {...restOfProps}>
         {state.isAuthenticated /*&& state?.currentUser*/ && (
           <>
             <UserInfo className={classes.profile} user={state.currentUser} showAvatar />
@@ -101,7 +101,7 @@ const SideBar: React.FC<Props> = ({ anchor, className, open, variant, items, onC
           </>
         )}
 
-        <SideBarNavigation className={classes.nav} items={items} showIcons />
+        <SideBarNavigation className={classes.nav} items={items} showIcons afterLinkClick={handleAfterLinkClick} />
         <Divider />
 
         <div className={classes.buttons}>
