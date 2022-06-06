@@ -6,6 +6,7 @@ import Moment from 'moment';
 import { AppButton, AppLoading } from '../../components';
 import { examsService } from '../../services/exams.service';
 import { CommonDialog } from '../../components/dialogs';
+import { ErrorAPI } from '../Errors';
 
 /**
  * Renders "ExamsListView" view
@@ -15,6 +16,8 @@ function ExamListView() {
   const [exams, setExams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<ReactNode | null>(null);
+
+  const [Error, setError] = useState<ReactNode | null>(null);
 
   const history = useHistory();
 
@@ -58,7 +61,7 @@ function ExamListView() {
       const apiResult = await examsService.remove(id);
 
       if (!apiResult) {
-        // setError('Não foi possível excluir o exame');
+        setError('Não foi possível excluir o exame');
         return;
       }
 
@@ -69,21 +72,19 @@ function ExamListView() {
   );
 
   const loadClassGroupsList = useCallback(async () => {
-    // try{
-    const response = await examsService.getAll();
-    setExams(response.data.exams.result);
-    setLoading(false);
-
-    // } catch(err:any){
-    //     throw new Error('err')
-    //   }
+    try {
+      const response = await examsService.getAll();
+      setExams(response.data.exams.result);
+      setLoading(false);
+    } catch (err: any) {
+      console.log(err);
+      setError(ErrorAPI(404));
+    }
   }, []);
 
   useEffect(() => {
     loadClassGroupsList();
   }, [loadClassGroupsList]);
-
-  if (loading) return <AppLoading />;
 
   const columns = [
     { field: 'type', headerName: 'Tipo', width: 100, flex: 1 },
@@ -137,6 +138,9 @@ function ExamListView() {
       },
     },
   ];
+
+  if (Error) return Error as JSX.Element;
+  if (loading) return <AppLoading />;
 
   return (
     <>
