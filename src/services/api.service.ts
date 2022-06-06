@@ -28,18 +28,18 @@ const api = () => {
   instance.interceptors.response.use(
     function (config) {
       return config;
-    },
-    function (error) {
-      // let status = error?.response?.status;
-      if (error.response.status === 403) {
-        // redirect to 403 page
-        return Promise.reject({ redirectTo: '/no-access' });
-      }
-      if (error.response.status === 401) {
-        return Promise.reject({ redirectTo: '/login' });
-      }
-      Promise.reject(error);
     }
+    // function (error) {
+    //   // // let status = error?.response?.status;
+    //   // if (error.response.status === 403) {
+    //   //   // redirect to 403 page
+    //   //   return Promise.reject({ redirectTo: '/no-access' });
+    //   // }
+    //   // if (error.response.status === 401) {
+    //   //   return Promise.reject({ redirectTo: '/login' });
+    //   // }
+    //   Promise.reject(error);
+    // }
   );
 
   return instance;
