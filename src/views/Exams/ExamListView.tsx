@@ -117,6 +117,8 @@ function ExamListView() {
       valueGetter: (params: any) => params && Moment(params.row.date).format('DD-MM-YYYY'),
     },
 
+    { field: 'status', headerName: 'Situação', width: 50, flex: 1 },
+
     {
       field: 'cancelar',
       headerName: 'cancelar',
