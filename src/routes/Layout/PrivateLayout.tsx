@@ -10,7 +10,7 @@ import { ErrorBoundary } from '../../components';
 import SideBar from '../../components/SideBar/SideBar';
 import { LinkToPage } from '../../utils/type';
 
-const TITLE_PRIVATE = 'Private Web App';
+const TITLE_PRIVATE = 'Área Administrativa ';
 const MOBILE_SIDEBAR_ANCHOR = 'left'; // 'right';
 const DESKTOP_SIDEBAR_ANCHOR = 'left'; // 'right';
 export const SIDEBAR_WIDTH = 240; // 240px
@@ -41,13 +41,21 @@ const useStyles = makeStyles((theme: Theme) => ({
  * Centralized place in the App to update document.title
  */
 
-function updateDocumentTitle(title = '') {
+function updateDocumentTitle(role: string) {
+  const titleRole = {
+    admin: 'Administrador',
+    teacher: 'Professor',
+    student: 'Aluno',
+    responsible: 'Responsável',
+  };
+
+  const title = titleRole[role as keyof typeof titleRole];
   if (title) {
-    document.title = `${title} - ${TITLE_PRIVATE}`;
+    document.title = `Área do ${title}`;
   } else {
     document.title = TITLE_PRIVATE;
   }
-  return document.title;
+  return document.title.toUpperCase();
 }
 
 /**
@@ -117,14 +125,9 @@ const SIDE_BAR_PRIVATE_ITEMS: Array<LinkToPage> = [
     ],
   },
   {
-    title: 'About',
+    title: 'Sobre',
     path: '/about',
     icon: 'info',
-  },
-  {
-    title: 'Dev Tools',
-    path: '/dev',
-    icon: 'settings',
   },
 ];
 
@@ -156,7 +159,7 @@ const PrivateLayout: React.FC = ({ children }) => {
     [classes.root]: true,
     [classes.shiftContent]: isDesktop,
   });
-  const title = updateDocumentTitle();
+  const title = updateDocumentTitle(state?.currentUser?.role as string);
   const shouldOpenSideBar = isDesktop ? true : openSideBar;
 
   return (
