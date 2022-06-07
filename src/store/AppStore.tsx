@@ -2,6 +2,7 @@ import React, { createContext, useReducer, useContext } from 'react';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import AppReducer from './AppReducer';
 import { localStorageGet } from '../utils/localStorage';
+import { IAuthUserResult } from '../services/auth.service';
 
 /**
  * AppState structure and initial values
@@ -9,7 +10,7 @@ import { localStorageGet } from '../utils/localStorage';
 export interface IAppState {
   darkMode: boolean;
   isAuthenticated: boolean;
-  currentUser?: object | undefined | string;
+  currentUser?: IAuthUserResult | undefined;
 }
 const initialAppState: IAppState = {
   darkMode: false, // Overridden by useMediaQuery('(prefers-color-scheme: dark)') in AppStore
@@ -35,7 +36,7 @@ const AppContext = createContext<IAppContext>([initialAppState, () => null]);
 const AppStore: React.FC = ({ children }) => {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
   const previousDarkMode = Boolean(localStorageGet('darkMode'));
-  const previousUser = localStorageGet('user');
+  const previousUser = localStorageGet('user') as IAuthUserResult;
   const tokenExists = Boolean(previousUser);
 
   const initialState: IAppState = {
