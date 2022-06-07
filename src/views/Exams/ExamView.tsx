@@ -1,7 +1,19 @@
-import { Card, CardActions, CardContent, CardHeader, Grid, CircularProgress, Button, Input } from '@mui/material';
-import { DataGrid } from '@mui/x-data-grid';
-import { ReactNode, useCallback, useEffect, useState } from 'react';
-import { useHistory, useParams } from 'react-router';
+import {
+  Card,
+  CardActions,
+  CardContent,
+  CardHeader,
+  Grid,
+  Button,
+  Input,
+  ListItem,
+  ListItemProps,
+  List,
+  ListItemText,
+  Divider,
+} from '@mui/material';
+import { ReactNode, useCallback, useEffect, useReducer, useState } from 'react';
+import { useParams } from 'react-router';
 import { AppButton, AppLoading } from '../../components';
 import { examsService } from '../../services/exams.service';
 import { studentsService } from '../../services/students.service';
@@ -12,17 +24,64 @@ import { ErrorAPI } from '../Errors';
  * Renders "ExamView" view
  * url: /exams/:id*
  */
+
+interface IResultProps extends ListItemProps {
+  result: IExamResult;
+  onChange: (e: any) => void;
+}
+
+const ResultRow: React.FC<IResultProps> = ({ result, onChange, ...props }) => (
+  <ListItem>
+    <ListItemText primary={result.name} />
+    <Input type="number" value={result.value} onChange={onChange}></Input>
+  </ListItem>
+);
+
 interface IExamResult {
-  id: string;
   student_id: string;
   name: string;
   value: number | undefined;
 }
+
+enum ExamResultActionKind {
+  CREATE = 'CREATE',
+  SET = 'SET',
+  DROP = 'DROP',
+}
+
+// An interface for our actions
+interface CountAction {
+  type: ExamResultActionKind;
+  payload: IExamResult[];
+}
+
+// Our reducer function that uses a switch statement to handle our actions
+function resultReducer(state: IExamResult[], action: CountAction) {
+  const { type, payload } = action;
+  switch (type) {
+    case ExamResultActionKind.CREATE:
+      return payload;
+    case ExamResultActionKind.SET:
+      return state.map((stateItem) => {
+        const stateItemIsInPayload = payload.findIndex(
+          (payloadItem) => payloadItem.student_id === stateItem.student_id
+        );
+        if (stateItemIsInPayload >= 0) return payload[stateItemIsInPayload];
+        return stateItem;
+      });
+    case ExamResultActionKind.DROP:
+      return state;
+    default:
+      return state;
+  }
+}
+
 const ExamView = () => {
   const { id } = useParams<{ id: string }>();
 
+  const [results, resultsDispatch] = useReducer(resultReducer, []);
+
   const [exam, setExams] = useState<any>();
-  const [results, setResults] = useState<IExamResult[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [Error, setError] = useState<ReactNode | null>(null);
@@ -35,31 +94,17 @@ const ExamView = () => {
 
       setExams(examData);
 
-      if (examData.results) {
+      if (examData.results.length) {
         const resultData = examData.results.map((examResult: any) => {
           return {
-            id: examResult.id,
+            student_id: examResult.student.id,
             name: examResult.student.name,
             value: examResult.value,
           };
         });
+        resultsDispatch({ type: ExamResultActionKind.CREATE, payload: resultData });
 
-        setResults(resultData);
-      } else {
-        const studentsResponse = await studentsService.getAll(1000, 1, 'class_group_id', examData.class_id, 'eq');
-
-        const studentsData = studentsResponse.data.result as any[];
-
-        const resultData = studentsData.map((student) => {
-          return {
-            id: '',
-            student_id: student.id,
-            name: student.name,
-            value: undefined,
-          };
-        });
-
-        setResults(resultData);
+        // setResults(resultData);
       }
 
       setLoading(false);
@@ -68,49 +113,107 @@ const ExamView = () => {
     }
   }, [id]);
 
+  const loadStudentsFromClass = useCallback(async () => {
+    try {
+      const studentsResponse = await studentsService.getAll(1000, 1, 'class_group_id', exam.class_id, 'eq');
+
+      const studentsData = studentsResponse.data.result as any[];
+
+      const resultData = studentsData.map((student) => {
+        return {
+          student_id: student.id,
+          name: student.name,
+          value: undefined,
+        };
+      });
+
+      resultsDispatch({ type: ExamResultActionKind.CREATE, payload: resultData });
+    } catch (err: any) {
+      setError(ErrorAPI(err.response?.status));
+    }
+  }, [exam]);
+
+  const handleSaveResults = useCallback(async () => {
+    try {
+      const data = {
+        exam_id: exam.id,
+        results: results.map(({ student_id, value }) => {
+          return { student_id, value };
+        }),
+      };
+      const response = await examsService.saveResults(data);
+      console.log(response);
+    } catch (err: any) {
+      setError(ErrorAPI(err.response?.status));
+    }
+  }, [exam, results]);
+
   useEffect(() => {
     loadClassGroupsList();
   }, [loadClassGroupsList]);
 
-  const columns = [
-    { field: 'name', headerName: 'Nome', width: 150 },
-    {
-      field: 'value',
-      headerName: 'Nota',
-      width: 150,
-      renderCell: (params: any) => {
-        return <Input type="number" value={params.row.value} />;
-      },
-    },
-    // {
-    //   field: 'action',
-    //   headerName: 'Action',
-    //   sortable: false,
-    //   renderCell: (params: any) => {
-    //     const onClick = (e: any) => {
-    //       e.stopPropagation(); // don't select this row after clicking
-    //       history.push('/turmas/' + params.row.id);
-    //     };
-
-    //     return <Button onClick={onClick}>Mostrar</Button>;
-    //   },
-    // },
-  ];
+  const resultsAreValid = results.every(({ value }) => value && value >= 0 && value <= exam.value);
 
   if (Error) return Error as JSX.Element;
   if (loading) return <AppLoading />;
 
   return (
-    <Grid container spacing={3}>
-      <Grid item xs={12} md={12}>
-        <Card>
+    <Grid container spacing={3} sx={{ display: 'flex', justifyContent: 'center' }}>
+      <Grid item xs={13} md={9}>
+        <Card sx={{ marginTop: '50px' }}>
           <CardHeader style={{ textAlign: 'center' }} title={exam.type.toUpperCase()} />
-          <CardContent>Turma:{exam.class_group.name}</CardContent>
-          <CardContent>Matéria:{exam.subject.name}</CardContent>
-          <CardContent>Data:{Moment(exam.date).format('DD-MM-YYYY')}</CardContent>
-          <CardContent>Valor:{exam.value}</CardContent>
-
-          <DataGrid rows={results} columns={columns} pageSize={5} rowsPerPageOptions={[5]} autoHeight />
+          <CardContent>
+            <b>Turma: </b>
+            {exam.class_group.name}
+          </CardContent>
+          <CardContent>
+            <b>Matéria: </b>
+            {exam.subject.name}
+          </CardContent>
+          <CardContent>
+            <b>Data: </b>
+            {Moment(exam.date).format('DD-MM-YYYY')}
+          </CardContent>
+          <CardContent>
+            <b>Valor: </b>
+            {exam.value}
+            <b> Peso: </b>
+            {exam.weight}
+          </CardContent>
+          <Divider />
+          {results.length ? (
+            <List>
+              {results.map((result, index) => {
+                return (
+                  <ResultRow
+                    result={result}
+                    key={result.student_id}
+                    onChange={(e) => {
+                      if (e.target.value >= 0 && e.target.value <= exam.value)
+                        resultsDispatch({
+                          type: ExamResultActionKind.SET,
+                          payload: [{ ...result, value: Number(e.target.value) }],
+                        });
+                    }}
+                  />
+                );
+              })}
+              <Divider />
+              <Grid container direction="column" alignItems="center">
+                <AppButton
+                  color="info"
+                  disabled={!resultsAreValid}
+                  size="medium"
+                  label="Gravar Notas"
+                  onClick={() => handleSaveResults()}
+                />
+              </Grid>
+            </List>
+          ) : (
+            <Grid container direction="column" alignItems="center">
+              <AppButton size="small" label="Informar Notas" onClick={() => loadStudentsFromClass()} />
+            </Grid>
+          )}
         </Card>
       </Grid>
     </Grid>

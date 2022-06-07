@@ -15,10 +15,13 @@ const update = async (id: string, data: object) => api.put(`/exams/${id}`, data)
 
 const getById = async (id: string) => api.get(`/exams/${id}`);
 
+const saveResults = async (data: object) => api.post('/exams/results', data);
+
 export const examsService = {
   getAll,
   create,
   remove,
   update,
   getById,
+  saveResults,
 };
