@@ -105,9 +105,9 @@ const SideBar: React.FC<Props> = ({ anchor, className, open, variant, items, onC
         <Divider />
 
         <div className={classes.buttons}>
-          <Tooltip title={state.darkMode ? 'Switch to Light mode' : 'Switch to Dark mode'}>
+          <Tooltip title={state.darkMode ? 'Mudar para modo claro' : 'Mudar para modo escuro'}>
             <FormControlLabel
-              label={!state.darkMode ? 'Light mode' : 'Dark mode'}
+              label={!state.darkMode ? 'Modo Claro' : 'Modo Escuro'}
               control={<Switch checked={state.darkMode} onChange={handleSwitchDarkMode} />}
             />
           </Tooltip>
