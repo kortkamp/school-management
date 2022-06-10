@@ -74,7 +74,7 @@ const SIDE_BAR_PRIVATE_ITEMS: Array<LinkToPage> = [
   },
   {
     title: 'Professores',
-    icon: 'person',
+    icon: 'teacher',
     subMenus: [
       {
         title: 'Professores',
@@ -95,6 +95,11 @@ const SIDE_BAR_PRIVATE_ITEMS: Array<LinkToPage> = [
       {
         title: 'Cadastrar Aluno',
         path: '/alunos/criar',
+        icon: 'search',
+      },
+      {
+        title: 'Designar Turma',
+        path: '/alunos/designar',
         icon: 'search',
       },
     ],

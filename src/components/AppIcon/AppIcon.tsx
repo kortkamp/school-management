@@ -21,6 +21,7 @@ import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import NotificationsIcon from '@mui/icons-material/NotificationsOutlined';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import GroupsIcon from '@mui/icons-material/Groups';
+import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 
 /**
  * How to use:
@@ -56,6 +57,7 @@ const ICONS: Record<string, React.ComponentType> = {
   notifications: NotificationsIcon,
   exams: ListAltIcon,
   group: GroupsIcon,
+  teacher: BusinessCenterIcon,
 };
 
 /**
