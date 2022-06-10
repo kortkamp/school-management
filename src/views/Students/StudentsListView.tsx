@@ -44,7 +44,7 @@ const StudentsListView = () => {
       const segmentResponse = await segmentsService.getAll();
       const gradeResponse = await gradesService.getAll();
       const classGroupResponse = await classGroupsService.getAll();
-      setSegments(segmentResponse.data.segments);
+      setSegments(segmentResponse.data.segments.sort((a: any, b: any) => a.name.localeCompare(b.name)));
       setGrades(gradeResponse.data.grades);
       setClassGroups(classGroupResponse.data.classGroups);
     } catch (err: any) {
@@ -152,7 +152,7 @@ const StudentsListView = () => {
     },
     {
       field: 'action',
-      headerName: 'Action',
+      headerName: 'Ações',
       sortable: false,
       flex: 1,
       renderCell: (params: any) => {
