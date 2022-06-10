@@ -12,18 +12,21 @@ const useStyles = makeStyles((theme: Theme) => ({
   toolbar: {
     paddingLeft: theme.spacing(1),
     paddingRight: theme.spacing(1),
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   logo: {
     height: theme.spacing(4),
   },
   title: {
-    marginLeft: theme.spacing(1),
-    marginRight: theme.spacing(1),
-    flexGrow: 1,
-    textAlign: 'center',
-    whiteSpace: 'nowrap',
+    // marginLeft: theme.spacing(1),
+    // marginRight: theme.spacing(1),
+    // flexGrow: 1,
+    // textAlign: 'center',
+    // whiteSpace: 'nowrap',
   },
-  buttons: {},
+  buttons: { position: 'relative' },
 }));
 
 /**
@@ -33,6 +36,7 @@ interface Props {
   className?: string;
   title?: string;
   isAuthenticated?: boolean;
+  isMenuOpen?: boolean;
   onMenu?: () => void;
   onNotifications?: () => void;
 }
@@ -40,6 +44,7 @@ const TopBar: React.FC<Props> = ({
   className,
   title = '',
   isAuthenticated,
+  isMenuOpen,
   onMenu,
   onNotifications,
   ...restOfProps
@@ -50,11 +55,13 @@ const TopBar: React.FC<Props> = ({
   return (
     <AppBar {...restOfProps} className={clsx(classes.root, className)} component="div">
       <Toolbar className={classes.toolbar} disableGutters>
-        <AppIconButton
-          icon="logo"
-          // color="primary"
-          onClick={onMenu}
-        />
+        <div className={classes.logo} style={{ marginRight: isMenuOpen ? '240px' : '0' }}>
+          <AppIconButton
+            icon="logo"
+            // color="primary"
+            onClick={onMenu}
+          />
+        </div>
 
         <Typography variant="h6" className={classes.title}>
           {title}
@@ -62,7 +69,7 @@ const TopBar: React.FC<Props> = ({
 
         <div className={classes.buttons}>
           {isAuthenticated && (
-            <AppIconButton icon="notifications" color="inherit" title="User Notifications" onClick={onNotifications} />
+            <AppIconButton icon="notifications" color="inherit" title="Notificações" onClick={onNotifications} />
           )}
           {/* <AppIconButton icon={iconMenu} color="inherit" title="Open Menu" onClick={onMenu} /> */}
         </div>

@@ -184,6 +184,7 @@ const PrivateLayout: React.FC = ({ children }) => {
         <TopBar
           isAuthenticated={state.isAuthenticated}
           title={title}
+          isMenuOpen={shouldOpenSideBar}
           onMenu={shouldOpenSideBar ? handleLogoClick : handleSideBarOpen}
         />
 
