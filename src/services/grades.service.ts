@@ -1,8 +1,8 @@
 import api from './api.service';
 
-const getAll = async (per_page = 10, page = 1, filterBy = '', filterValue = '', filterType = '') =>
+const getAll = async (per_page = 100, page = 1, filterBy = '', filterValue = '', filterType = '') =>
   await api.get(
-    `/grades?per_page=${per_page}&page=${page}&orderBy=created_at&orderType=DESC${
+    `/grades?per_page=${per_page}&page=${page}&orderBy=name&orderType=DESC${
       !!filterValue ? `&filterBy=${filterBy}&filterValue=${filterValue}&filterType=${filterType}` : ''
     }`
   );
