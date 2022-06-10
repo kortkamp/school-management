@@ -1,4 +1,5 @@
 import { Route, Switch } from 'react-router-dom';
+import CreateUserView from './CreateUserView';
 import StudentsListView from './StudentsListView';
 import StudentView from './StudentView';
 
@@ -9,6 +10,7 @@ import StudentView from './StudentView';
 const StudentsRoutes = () => {
   return (
     <Switch>
+      <Route path="/alunos/criar" component={CreateUserView} />
       <Route path="/alunos/:id" component={StudentView} />
       <Route component={StudentsListView} />
     </Switch>
