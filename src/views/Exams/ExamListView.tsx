@@ -155,17 +155,17 @@ function ExamListView() {
               title="Provas e Trabalhos"
               subheader="Lista de provas e trabalhos"
             />
-            <CardContent>Detailed description of the application here...</CardContent>
-
-            <DataGrid
-              onRowClick={(params) => history.push(`/exames/${params.row.id}`)}
-              rows={exams}
-              columns={columns}
-              // pageSize={5}
-              // rowsPerPageOptions={[5]}
-              // checkboxSelection
-              autoHeight
-            />
+            <CardContent>
+              <DataGrid
+                onRowClick={(params) => history.push(`/exames/${params.row.id}`)}
+                rows={exams}
+                columns={columns}
+                // pageSize={5}
+                // rowsPerPageOptions={[5]}
+                // checkboxSelection
+                autoHeight
+              />
+            </CardContent>
           </Card>
         </Grid>
       </Grid>
