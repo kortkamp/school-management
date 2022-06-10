@@ -71,8 +71,9 @@ const ClassView = () => {
           <DataGrid
             rows={classGroup.students}
             columns={columns}
-            pageSize={5}
-            rowsPerPageOptions={[5]}
+            // pageSize={5}
+            // rowsPerPageOptions={[5]}
+            autoPageSize
             checkboxSelection
             autoHeight
           />
