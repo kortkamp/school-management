@@ -8,16 +8,29 @@ import {
   Button,
   TextField,
   MenuItem,
+  Box,
 } from '@mui/material';
-import { DataGrid } from '@mui/x-data-grid';
+import { DataGrid, GridPagination } from '@mui/x-data-grid';
 import { useCallback, useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
+import { AppButton } from '../../components';
+import AppAllocationSelect, { IAllocation } from '../../components/AppAllocationSelect/AppAllocationSelect';
 import { classGroupsService } from '../../services/classGroups.service';
 import { gradesService } from '../../services/grades.service';
 import { segmentsService } from '../../services/segments.service';
 import { studentsService } from '../../services/students.service';
 import { SHARED_CONTROL_PROPS } from '../../utils/form';
 
+export function CustomFooterButtonsComponent() {
+  return (
+    <Box sx={{ padding: '10px', display: 'flex', justifyContent: 'space-between' }}>
+      <div>
+        <AppButton color="primary">Mudar Turma</AppButton>
+      </div>
+      <GridPagination />
+    </Box>
+  );
+}
 /**
  * Renders "StudentsListView" view
  * url: /alunos/*
@@ -25,32 +38,22 @@ import { SHARED_CONTROL_PROPS } from '../../utils/form';
 const StudentsListView = () => {
   const [students, setStudents] = useState<any>([]);
   const [loading, setLoading] = useState(true);
+  const [isDataLoading, setIsDataLoading] = useState(true);
 
-  const [segmentId, setSegmentId] = useState<string>('');
-  const [gradeId, setGradeId] = useState<string>('');
-  const [classGroupId, setClassGroupId] = useState<string>('');
+  const [selected, setSelected] = useState<any[]>([]);
 
-  const [segments, setSegments] = useState<any[]>([]);
-  const [grades, setGrades] = useState<any[]>([]);
-  const [classGroups, setClassGroups] = useState<any[]>([]);
+  const [allocation, setAllocation] = useState<IAllocation>({
+    segmentId: '',
+    gradeId: '',
+    classGroupId: '',
+  });
+
+  const { segmentId, gradeId, classGroupId } = allocation;
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
   const history = useHistory();
-
-  const loadFilterData = useCallback(async () => {
-    try {
-      const segmentResponse = await segmentsService.getAll();
-      const gradeResponse = await gradesService.getAll();
-      const classGroupResponse = await classGroupsService.getAll();
-      setSegments(segmentResponse.data.segments.sort((a: any, b: any) => a.name.localeCompare(b.name)));
-      setGrades(gradeResponse.data.grades);
-      setClassGroups(classGroupResponse.data.classGroups);
-    } catch (err: any) {
-      console.log(err);
-    }
-  }, []);
 
   const loadStudentsList = useCallback(async () => {
     let filterType = '',
@@ -75,33 +78,16 @@ const StudentsListView = () => {
       const response = await studentsService.getAll(pageSize, page, filterBy, filterValue, filterType);
       setStudents(response.data);
       setLoading(false);
+      setIsDataLoading(false);
     } catch (err: any) {
       console.log(err);
     }
-  }, [segmentId, gradeId, classGroupId, page, pageSize]);
+  }, [allocation, page, pageSize]);
 
   useEffect(() => {
+    setIsDataLoading(true);
     loadStudentsList();
-  }, [loadStudentsList, segmentId, gradeId, classGroupId, page, pageSize]);
-
-  useEffect(() => {
-    loadFilterData();
-  }, [loadFilterData]);
-
-  const handleSelectSegmentId = (id: string) => {
-    setSegmentId(id);
-    setGradeId('');
-    setClassGroupId('');
-  };
-
-  const handleSelectGradeId = (id: string) => {
-    setGradeId(id);
-    setClassGroupId('');
-  };
-
-  const handleSelectClassGroupId = (id: string) => {
-    setClassGroupId(id);
-  };
+  }, [loadStudentsList, allocation, page, pageSize]);
 
   if (loading)
     return (
@@ -166,6 +152,10 @@ const StudentsListView = () => {
     },
   ];
 
+  const handleSelectAllocation = (allocation: IAllocation) => {
+    setAllocation(allocation);
+  };
+
   return (
     <Grid container spacing={3}>
       <Grid item xs={12} md={12}>
@@ -174,67 +164,7 @@ const StudentsListView = () => {
 
           <CardContent>
             <Grid container spacing={1}>
-              <Grid item md={4} sm={12} xs={12}>
-                <TextField
-                  select
-                  label="Segmento"
-                  name="class_id"
-                  value={segmentId}
-                  onChange={(e) => handleSelectSegmentId(e.target.value)}
-                  {...SHARED_CONTROL_PROPS}
-                >
-                  {segments.map((segment) => {
-                    return (
-                      <MenuItem key={segment.id} value={segment.id}>
-                        {segment.name}
-                      </MenuItem>
-                    );
-                  })}
-                </TextField>
-              </Grid>
-              <Grid item md={4} sm={12} xs={12}>
-                <TextField
-                  disabled={segmentId ? false : true}
-                  select
-                  label="Ano"
-                  name="class_id"
-                  value={gradeId}
-                  onChange={(e) => handleSelectGradeId(e.target.value)}
-                  {...SHARED_CONTROL_PROPS}
-                >
-                  {grades
-                    .filter((grade) => grade.segment_id === segmentId)
-                    .map((grade) => {
-                      return (
-                        <MenuItem key={grade.id} value={grade.id}>
-                          {grade.name}
-                        </MenuItem>
-                      );
-                    })}
-                </TextField>
-              </Grid>
-              <Grid item md={4} sm={12} xs={12}>
-                <TextField
-                  disabled={gradeId ? false : true}
-                  select
-                  label="Turma"
-                  name="class_id"
-                  value={classGroupId}
-                  onChange={(e) => handleSelectClassGroupId(e.target.value)}
-                  {...SHARED_CONTROL_PROPS}
-                >
-                  {classGroups
-                    .filter((classGroup) => classGroup.grade_id === gradeId)
-                    .map((classGroup) => {
-                      return (
-                        <MenuItem key={classGroup.id} value={classGroup.id}>
-                          {classGroup.name}
-                        </MenuItem>
-                      );
-                    })}
-                </TextField>
-              </Grid>
-
+              <AppAllocationSelect onChange={handleSelectAllocation} />
               <Grid item md={12} sm={12} xs={12}>
                 <DataGrid
                   rows={students.result}
@@ -248,12 +178,17 @@ const StudentsListView = () => {
                   paginationMode="server"
                   rowsPerPageOptions={[10, 20, 50]}
                   checkboxSelection
+                  loading={isDataLoading}
                   autoHeight
+                  onSelectionModelChange={(ids) => {
+                    setSelected(ids.map((item: any) => item.id));
+                  }}
                   initialState={{
                     pagination: {
                       page: 1,
                     },
                   }}
+                  components={{ Footer: CustomFooterButtonsComponent }}
                 />
               </Grid>
             </Grid>
