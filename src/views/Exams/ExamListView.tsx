@@ -120,22 +120,30 @@ function ExamListView() {
     { field: 'status', headerName: 'Situação', width: 50, flex: 1 },
 
     {
-      field: 'cancelar',
-      headerName: 'cancelar',
+      field: 'actions',
+      headerName: 'Ações',
       sortable: false,
-      width: 130,
-      flex: 1,
+      width: 230,
+      flex: 3,
       renderCell: (params: any) => {
         return (
-          <AppButton
-            color="error"
-            onClick={(event) => {
-              event.stopPropagation();
-              onConfirmDeleteExamOpen(params.row);
-            }}
-          >
-            CANCELAR
-          </AppButton>
+          <>
+            <AppButton color="default" onClick={() => history.push(`/exames/${params.row.id}`)}>
+              Notas
+            </AppButton>
+            <AppButton color="info" onClick={() => history.push(`/exames/editar/${params.row.id}`)}>
+              Editar
+            </AppButton>
+            <AppButton
+              color="error"
+              onClick={(event) => {
+                event.stopPropagation();
+                onConfirmDeleteExamOpen(params.row);
+              }}
+            >
+              CANCELAR
+            </AppButton>
+          </>
         );
       },
     },
@@ -157,7 +165,6 @@ function ExamListView() {
             />
             <CardContent>
               <DataGrid
-                onRowClick={(params) => history.push(`/exames/${params.row.id}`)}
                 rows={exams}
                 columns={columns}
                 // pageSize={5}

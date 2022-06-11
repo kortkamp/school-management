@@ -1,29 +1,13 @@
 import { SyntheticEvent, useCallback, useState, useEffect } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 import { Grid, TextField, Card, CardHeader, CardContent, LinearProgress, MenuItem } from '@mui/material';
 import { useAppStore } from '../../store';
 import { AppButton, AppAlert, AppForm } from '../../components';
-import { useAppForm, SHARED_CONTROL_PROPS, eventPreventDefault } from '../../utils/form';
+import { useAppForm, SHARED_CONTROL_PROPS, eventPreventDefault, DEFAULT_FORM_STATE } from '../../utils/form';
 import { classGroupsService } from '../../services/classGroups.service';
 import { subjectsService } from '../../services/subjects.service';
 import { examsService } from '../../services/exams.service';
-
-const VALIDATE_FORM_SIGNUP = {
-  value: {
-    type: 'string',
-    format: {
-      pattern: '^$|[- .+()0-9]+', // Note: We have to allow empty in the pattern
-      message: 'should contain numbers',
-    },
-  },
-  weight: {
-    type: 'string',
-    format: {
-      pattern: '^$|[- .+()0-9]+', // Note: We have to allow empty in the pattern
-      message: 'should contain numbers',
-    },
-  },
-};
+import Moment from 'moment';
 
 interface FormStateValues {
   type: string;
@@ -34,17 +18,20 @@ interface FormStateValues {
   date: Date | undefined;
 }
 
+const VALIDATE_FORM = {};
+
 /**
  * Renders "Create Exam" view
  * url: /exames/criar
  */
 function CreateExamView() {
   const history = useHistory();
+  const { id } = useParams<{ id: string }>();
   const [, dispatch] = useAppStore();
   const [validationSchema, setValidationSchema] = useState<any>({
-    ...VALIDATE_FORM_SIGNUP,
+    ...VALIDATE_FORM,
   });
-  const [formState, , /* setFormState */ onFieldChange, fieldGetError, fieldHasError] = useAppForm({
+  const [formState, setFormState, onFieldChange, fieldGetError, fieldHasError] = useAppForm({
     validationSchema, // the state value, so could be changed in time
     initialValues: {
       type: '',
@@ -59,9 +46,11 @@ function CreateExamView() {
   const [subjects, setSubjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
-  const values = formState.values as FormStateValues; // Typed alias to formState.values as the "Source of Truth"
+  const values = formState.values as FormStateValues;
 
-  useEffect(() => {
+  const isEditing = id ? true : false;
+
+  const loadData = useCallback(() => {
     // Component Mount
     let componentMounted = true;
 
@@ -73,6 +62,11 @@ function CreateExamView() {
 
         const subjectsResponse = await subjectsService.getAll();
         setSubjects(subjectsResponse.data.subjects);
+
+        if (isEditing) {
+          const examResponse = await examsService.getById(id);
+          setFormState({ ...DEFAULT_FORM_STATE, isValid: true, values: examResponse.data.exam });
+        }
       } catch (err: any) {
         console.log(err);
       }
@@ -88,17 +82,35 @@ function CreateExamView() {
       // Component Un-mount
       componentMounted = false;
     };
-  }, []);
+  }, [id]);
+
+  useEffect(() => {
+    loadData();
+  }, [id, loadData]);
 
   const handleFormSubmit = useCallback(
     async (event: SyntheticEvent) => {
       event.preventDefault();
 
-      const apiResult = await examsService.create(values);
+      if (isEditing) {
+        const apiResult = await examsService.update(id, {
+          type: values.type,
+          value: values.value,
+          weight: values.weight,
+          date: values.date,
+        });
 
-      if (!apiResult) {
-        setError('Não foi possível criar o exame');
-        return;
+        if (!apiResult) {
+          setError('Não foi possível salvar o exame');
+          return;
+        }
+      } else {
+        const apiResult = await examsService.create(values);
+
+        if (!apiResult) {
+          setError('Não foi possível criar o exame');
+          return;
+        }
       }
 
       history.replace('/exames');
@@ -113,7 +125,10 @@ function CreateExamView() {
   return (
     <AppForm onSubmit={handleFormSubmit}>
       <Card>
-        <CardHeader title="Adicionar Prova ou Trabalho" />
+        <CardHeader
+          style={{ textAlign: 'center' }}
+          title={isEditing ? 'Editar Prova ou Trabalho' : 'Adicionar Prova ou Trabalho'}
+        />
         <CardContent>
           <TextField
             required
@@ -133,6 +148,7 @@ function CreateExamView() {
             required
             select
             label="Matéria"
+            disabled={isEditing}
             name="subject_id"
             value={values.subject_id}
             onChange={onFieldChange}
@@ -149,6 +165,7 @@ function CreateExamView() {
           </TextField>
           <TextField
             required
+            disabled={isEditing}
             select
             label="Turma"
             name="class_id"
@@ -170,8 +187,6 @@ function CreateExamView() {
             name="value"
             type="number"
             value={values.value}
-            error={fieldHasError('value')}
-            helperText={fieldGetError('value') || ' '}
             onChange={onFieldChange}
             {...SHARED_CONTROL_PROPS}
           />
@@ -181,8 +196,6 @@ function CreateExamView() {
             name="weight"
             type="number"
             value={values.weight}
-            error={fieldHasError('weight')}
-            helperText={fieldGetError('weight') || ' '}
             onChange={onFieldChange}
             {...SHARED_CONTROL_PROPS}
           />
@@ -192,7 +205,7 @@ function CreateExamView() {
             InputLabelProps={{ shrink: true }}
             label="Data"
             name="date"
-            value={values.date}
+            value={Moment(values.date).format('YYYY-MM-DD')}
             onChange={onFieldChange}
             {...SHARED_CONTROL_PROPS}
           />
@@ -205,7 +218,7 @@ function CreateExamView() {
 
           <Grid container justifyContent="center" alignItems="center">
             <AppButton type="submit" disabled={!formState.isValid}>
-              Adicionar
+              {isEditing ? 'SALVAR' : 'ADICIONAR'}
             </AppButton>
           </Grid>
         </CardContent>

@@ -11,6 +11,7 @@ const ExamsRoutes = () => {
   return (
     <Switch>
       <Route path="/exames/criar" component={CreateExamView} />
+      <Route path="/exames/editar/:id" component={CreateExamView} />
       <Route path="/exames/:id" component={ExamView} />
       <Route exact path="/exames" component={ExamListView} />
     </Switch>
