@@ -151,8 +151,8 @@ function CreateUserView() {
 
   return (
     <AppForm style={{ minWidth: '100%' }} onSubmit={handleFormSubmit}>
-      <Card style={{ minWidth: '100%' }}>
-        <CardHeader title="Cadastro de Aluno" />
+      <Card style={{ minWidth: '100%', marginTop: '50px' }}>
+        <CardHeader style={{ textAlign: 'center' }} title="Cadastro de Aluno" />
         <CardContent style={{ minWidth: '100%' }}>
           <Grid container spacing={1}>
             <Grid item md={8} sm={12} xs={12}>

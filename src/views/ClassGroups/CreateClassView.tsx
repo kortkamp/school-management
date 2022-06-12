@@ -107,9 +107,9 @@ function CreateClassView() {
   if (loading) return <LinearProgress />;
 
   return (
-    <AppForm onSubmit={handleFormSubmit}>
+    <AppForm onSubmit={handleFormSubmit} style={{ minWidth: '100%', marginTop: '50px' }}>
       <Card>
-        <CardHeader title="Criar uma nova turma" />
+        <CardHeader style={{ textAlign: 'center' }} title="Criar uma nova turma" />
         <CardContent>
           <TextField
             required
