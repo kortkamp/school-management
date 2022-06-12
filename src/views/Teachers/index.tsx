@@ -1,5 +1,5 @@
 import { Route, Switch } from 'react-router-dom';
-import TeachersView from './Teachers';
+import { TeachersListView } from '../Users/UsersListView';
 
 /**
  * Routes for "Teachers" view
@@ -8,7 +8,9 @@ import TeachersView from './Teachers';
 const TeachersRoutes = () => {
   return (
     <Switch>
-      <Route component={TeachersView} />
+      {/* <Route path="/professores/criar" component={TeachersListView} /> */}
+      {/* <Route path="/professores/:id" component={StudentView} /> */}
+      <Route component={TeachersListView} />
     </Switch>
   );
 };

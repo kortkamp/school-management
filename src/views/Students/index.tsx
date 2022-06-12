@@ -1,7 +1,7 @@
 import { Route, Switch } from 'react-router-dom';
 import CreateUserView from './CreateUserView';
-import StudentsListView from './StudentsListView';
 import StudentView from './StudentView';
+import { StudentsListView } from '../Users/UsersListView';
 
 /**
  * Routes for "Students" view
