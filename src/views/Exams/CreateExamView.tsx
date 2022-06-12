@@ -15,7 +15,7 @@ interface FormStateValues {
   class_id: string;
   value: number;
   weight: number;
-  date: Date | undefined;
+  date: Date | '';
 }
 
 const VALIDATE_FORM = {};
@@ -39,7 +39,7 @@ function CreateExamView() {
       class_id: '',
       value: 0,
       weight: 0,
-      date: undefined,
+      date: '',
     } as FormStateValues,
   });
   const [classGroups, setClassGroups] = useState<any[]>([]);
@@ -124,7 +124,7 @@ function CreateExamView() {
 
   return (
     <AppForm onSubmit={handleFormSubmit}>
-      <Card>
+      <Card style={{ marginTop: '50px' }}>
         <CardHeader
           style={{ textAlign: 'center' }}
           title={isEditing ? 'Editar Prova ou Trabalho' : 'Adicionar Prova ou Trabalho'}
