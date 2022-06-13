@@ -86,6 +86,9 @@ const AppAllocationSelect: React.FC<Props> = ({ onChange }) => {
           onChange={(e) => handleSelectSegmentId(e.target.value)}
           {...SHARED_CONTROL_PROPS}
         >
+          <MenuItem key={'all'} value={''}>
+            Limpar
+          </MenuItem>
           {segments.map((segment) => {
             return (
               <MenuItem key={segment.id} value={segment.id}>
@@ -93,6 +96,9 @@ const AppAllocationSelect: React.FC<Props> = ({ onChange }) => {
               </MenuItem>
             );
           })}
+          <MenuItem key={'null'} value={'null'}>
+            Sem Segmento
+          </MenuItem>
         </TextField>
       </Grid>
       <Grid item md={4} sm={12} xs={12}>
@@ -105,6 +111,9 @@ const AppAllocationSelect: React.FC<Props> = ({ onChange }) => {
           onChange={(e) => handleSelectGradeId(e.target.value)}
           {...SHARED_CONTROL_PROPS}
         >
+          <MenuItem key={'all'} value={''}>
+            Limpar
+          </MenuItem>
           {grades
             .filter((grade) => grade.segment_id === segmentId)
             .map((grade) => {
@@ -114,6 +123,9 @@ const AppAllocationSelect: React.FC<Props> = ({ onChange }) => {
                 </MenuItem>
               );
             })}
+          <MenuItem key={'null'} value={'null'}>
+            Sem Ano
+          </MenuItem>
         </TextField>
       </Grid>
       <Grid item md={4} sm={12} xs={12}>
@@ -126,6 +138,9 @@ const AppAllocationSelect: React.FC<Props> = ({ onChange }) => {
           onChange={(e) => handleSelectClassGroupId(e.target.value)}
           {...SHARED_CONTROL_PROPS}
         >
+          <MenuItem key={'all'} value={''}>
+            Limpar
+          </MenuItem>
           {classGroups
             .filter((classGroup) => classGroup.grade_id === gradeId)
             .map((classGroup) => {
@@ -135,6 +150,9 @@ const AppAllocationSelect: React.FC<Props> = ({ onChange }) => {
                 </MenuItem>
               );
             })}
+          <MenuItem key={'null'} value={'null'}>
+            Sem Turma
+          </MenuItem>
         </TextField>
       </Grid>
     </>
