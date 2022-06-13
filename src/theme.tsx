@@ -49,10 +49,10 @@ const LIGHT_THEME: ThemeOptions = {
 const DARK_THEME: ThemeOptions = {
   palette: {
     mode: 'dark',
-    // background: {
-    //   paper: '#424242', // Gray 800 - Background of "Paper" based component
-    //   default: '#121212',
-    // },
+    background: {
+      paper: '#424242', // Gray 800 - Background of "Paper" based component
+      default: '#121212',
+    },
     ...FRONT_COLORS,
   },
 };

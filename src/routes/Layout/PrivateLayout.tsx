@@ -77,8 +77,23 @@ const SIDE_BAR_PRIVATE_ITEMS: Array<LinkToPage> = [
     icon: 'teacher',
     subMenus: [
       {
-        title: 'Professores',
+        title: 'Listar Professores',
         path: '/professores',
+        icon: 'search',
+      },
+      {
+        title: 'Cadastrar Professor',
+        path: '/professores/criar',
+        icon: 'search',
+      },
+      {
+        title: 'Associar Turma',
+        path: '/professores/turma',
+        icon: 'search',
+      },
+      {
+        title: 'Associar Disciplina',
+        path: '/professores/disciplina',
         icon: 'search',
       },
     ],
