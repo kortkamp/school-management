@@ -205,7 +205,7 @@ function CreateExamView() {
             InputLabelProps={{ shrink: true }}
             label="Data"
             name="date"
-            value={Moment(values.date).format('YYYY-MM-DD')}
+            value={Moment(values.date).utcOffset('+0300').format('YYYY-MM-DD')}
             onChange={onFieldChange}
             {...SHARED_CONTROL_PROPS}
           />

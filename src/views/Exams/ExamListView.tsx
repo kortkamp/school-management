@@ -114,7 +114,7 @@ function ExamListView() {
       headerName: 'Data',
       width: 100,
       flex: 1,
-      valueGetter: (params: any) => params && Moment(params.row.date).format('DD-MM-YYYY'),
+      valueGetter: (params: any) => params && Moment(params.row.date).utcOffset('+0300').format('DD-MM-YYYY'),
     },
 
     { field: 'status', headerName: 'Situação', width: 50, flex: 1 },
