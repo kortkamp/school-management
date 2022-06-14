@@ -3,6 +3,7 @@ import { DataGrid } from '@mui/x-data-grid';
 import { useCallback, useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
 import { AppButton, AppLink } from '../../components';
+import AppAllocationSelect, { IAllocation } from '../../components/AppAllocationSelect/AppAllocationSelect';
 import { classGroupsService } from '../../services/classGroups.service';
 
 /**
@@ -12,6 +13,12 @@ import { classGroupsService } from '../../services/classGroups.service';
 const ClassGroupsView = () => {
   const [classGroups, setClassGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [allocation, setAllocation] = useState<IAllocation>({
+    segmentId: '',
+    gradeId: '',
+    classGroupId: '',
+  });
 
   const history = useHistory();
 
@@ -84,9 +91,12 @@ const ClassGroupsView = () => {
   return (
     <Grid container spacing={3}>
       <Grid item xs={12} md={12}>
-        <Card>
+        <Card style={{ padding: '20px' }}>
           <CardHeader style={{ textAlign: 'center' }} title="Turmas" subheader="Lista de turmas" />
           <CardContent>Detailed description of the application here...</CardContent>
+          <Grid container spacing={1}>
+            <AppAllocationSelect onChange={setAllocation} />
+          </Grid>
 
           <DataGrid
             rows={classGroups}
