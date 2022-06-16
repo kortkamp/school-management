@@ -11,6 +11,8 @@ import {
   List,
   ListItemText,
   Divider,
+  Typography,
+  Theme,
 } from '@mui/material';
 import { ReactNode, useCallback, useEffect, useReducer, useState } from 'react';
 import { useParams } from 'react-router';
@@ -19,6 +21,24 @@ import { examsService } from '../../services/exams.service';
 import { studentsService } from '../../services/students.service';
 import Moment from 'moment';
 import { ErrorAPI } from '../Errors';
+import { createStyles, makeStyles } from '@mui/styles';
+import { NavLink } from 'react-router-dom';
+
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    studentResultRow: {
+      '&:hover': {
+        background: theme.palette.background.paper,
+      },
+      transition: theme.transitions.create(['background'], { duration: theme.transitions.duration.short }),
+    },
+    title: {
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+    },
+  })
+);
 
 /**
  * Renders "ExamView" view
@@ -31,7 +51,7 @@ interface IResultProps extends ListItemProps {
 }
 
 const ResultRow: React.FC<IResultProps> = ({ result, onChange, ...props }) => (
-  <ListItem>
+  <ListItem {...props}>
     <ListItemText primary={result.name} />
     <Input type="number" value={result.value} onChange={onChange}></Input>
   </ListItem>
@@ -40,7 +60,7 @@ const ResultRow: React.FC<IResultProps> = ({ result, onChange, ...props }) => (
 interface IExamResult {
   student_id: string;
   name: string;
-  value: number | undefined;
+  value: number | undefined | '';
 }
 
 enum ExamResultActionKind {
@@ -77,6 +97,8 @@ function resultReducer(state: IExamResult[], action: CountAction) {
 }
 
 const ExamView = () => {
+  const classes = useStyles();
+
   const { id } = useParams<{ id: string }>();
 
   const [results, resultsDispatch] = useReducer(resultReducer, []);
@@ -123,7 +145,7 @@ const ExamView = () => {
         return {
           student_id: student.id,
           name: student.name,
-          value: undefined,
+          value: '' as '',
         };
       });
 
@@ -152,14 +174,14 @@ const ExamView = () => {
     loadClassGroupsList();
   }, [loadClassGroupsList]);
 
-  const resultsAreValid = results.every(({ value }) => value && value >= 0 && value <= exam.value);
+  const resultsAreValid = results.every(({ value }) => (value || value === 0) && value >= 0 && value <= exam.value);
 
   if (Error) return Error as JSX.Element;
   if (loading) return <AppLoading />;
 
   return (
     <Grid container spacing={3} sx={{ display: 'flex', justifyContent: 'center' }}>
-      <Grid item xs={13} md={9}>
+      <Grid item xs={12} md={9} sm={12}>
         <Card sx={{ marginTop: '50px' }}>
           <CardHeader style={{ textAlign: 'center' }} title={exam.type.toUpperCase()} />
           <CardContent>
@@ -182,33 +204,39 @@ const ExamView = () => {
           </CardContent>
           <Divider />
           {results.length ? (
-            <List>
-              {results.map((result, index) => {
-                return (
-                  <ResultRow
-                    result={result}
-                    key={result.student_id}
-                    onChange={(e) => {
-                      if (e.target.value >= 0 && e.target.value <= exam.value)
-                        resultsDispatch({
-                          type: ExamResultActionKind.SET,
-                          payload: [{ ...result, value: Number(e.target.value) }],
-                        });
-                    }}
+            <>
+              <CardContent style={{ textAlign: 'center' }}>
+                <b>Notas</b>
+              </CardContent>
+              <List>
+                {results.map((result, index) => {
+                  return (
+                    <ResultRow
+                      className={classes.studentResultRow}
+                      result={result}
+                      key={result.student_id}
+                      onChange={(e) => {
+                        if (e.target.value >= 0 && e.target.value <= exam.value)
+                          resultsDispatch({
+                            type: ExamResultActionKind.SET,
+                            payload: [{ ...result, value: Number(e.target.value) }],
+                          });
+                      }}
+                    />
+                  );
+                })}
+                <Divider />
+                <Grid container direction="column" alignItems="center">
+                  <AppButton
+                    color="info"
+                    disabled={!resultsAreValid}
+                    size="medium"
+                    label="Gravar Notas"
+                    onClick={() => handleSaveResults()}
                   />
-                );
-              })}
-              <Divider />
-              <Grid container direction="column" alignItems="center">
-                <AppButton
-                  color="info"
-                  disabled={!resultsAreValid}
-                  size="medium"
-                  label="Gravar Notas"
-                  onClick={() => handleSaveResults()}
-                />
-              </Grid>
-            </List>
+                </Grid>
+              </List>
+            </>
           ) : (
             <Grid container direction="column" alignItems="center">
               <AppButton size="small" label="Informar Notas" onClick={() => loadStudentsFromClass()} />

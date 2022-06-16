@@ -13,8 +13,8 @@ interface FormStateValues {
   type: string;
   subject_id: string;
   class_id: string;
-  value: number;
-  weight: number;
+  value: number | '';
+  weight: number | '';
   date: Date | '';
 }
 
@@ -37,8 +37,8 @@ function CreateExamView() {
       type: '',
       subject_id: '',
       class_id: '',
-      value: 0,
-      weight: 0,
+      value: '',
+      weight: '',
       date: '',
     } as FormStateValues,
   });

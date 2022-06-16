@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, Grid, CircularProgress, Button } from '@mui/material';
-import { DataGrid } from '@mui/x-data-grid';
+import { Card, CardContent, CardHeader, Grid, CircularProgress, Button, Box } from '@mui/material';
+import { DataGrid, GridPagination } from '@mui/x-data-grid';
 import { ReactNode, useCallback, useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
 import Moment from 'moment';
@@ -149,6 +149,19 @@ function ExamListView() {
     },
   ];
 
+  function CustomFooterButtonsComponent() {
+    return (
+      <Box sx={{ padding: '10px', display: 'flex', justifyContent: 'space-between' }}>
+        <div>
+          <AppButton color="primary" onClick={() => history.push('/exames/criar')}>
+            Criar Avaliação
+          </AppButton>
+        </div>
+        <GridPagination />
+      </Box>
+    );
+  }
+
   if (Error) return Error as JSX.Element;
   if (loading) return <AppLoading />;
 
@@ -171,6 +184,7 @@ function ExamListView() {
                 // rowsPerPageOptions={[5]}
                 // checkboxSelection
                 autoHeight
+                components={{ Footer: CustomFooterButtonsComponent }}
               />
             </CardContent>
           </Card>
