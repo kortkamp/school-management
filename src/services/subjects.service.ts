@@ -7,6 +7,8 @@ const getAll = async (per_page = 10, page = 1, filterBy = '', filterValue = '', 
     }`
   );
 
+const getByUser = async (user_id: string) => await api.get('/subjects/user/' + user_id);
+
 const create = async (data: object) => await api.post('/subjects', data);
 
 const remove = async (id: object) => await api.delete('/subjects/' + id);
@@ -17,6 +19,7 @@ const getById = async (id: string) => await api.get('/subjects/' + id);
 
 export const subjectsService = {
   getAll,
+  getByUser,
   create,
   remove,
   update,
