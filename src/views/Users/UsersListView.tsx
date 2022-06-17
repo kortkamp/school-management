@@ -131,7 +131,19 @@ const ListView = ({ role }: { role: 'student' | 'teacher' }) => {
           history.push('/turmas/' + params.row.id);
         };
 
-        return <Button onClick={onClick}>Mostrar</Button>;
+        return (
+          <>
+            <AppButton onClick={() => history.push(`/professores/disciplinas/${params.row.id}`)}>Matérias</AppButton>
+            <AppButton
+              onClick={(event) => {
+                event.stopPropagation();
+                // onConfirmDeleteExamOpen(params.row);
+              }}
+            >
+              Turmas
+            </AppButton>
+          </>
+        );
       },
     },
   ];

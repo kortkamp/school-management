@@ -16,6 +16,7 @@ import { subjectsService } from '../../services/subjects.service';
 import { SHARED_CONTROL_PROPS, useAppForm } from '../../utils/form';
 import { DataGrid, GridNoRowsOverlay, GridOverlay } from '@mui/x-data-grid';
 import { segmentsService } from '../../services/segments.service';
+import { useParams } from 'react-router-dom';
 
 interface ISegment {
   id: string;
@@ -41,6 +42,8 @@ interface FormStateValues {
 const TeacherSubjectView = () => {
   const [teachers, setTeachers] = useState<any[]>([]);
 
+  const { id: teacherIdPAram } = useParams<{ id: string }>();
+
   const [subjects, setSubjects] = useState<ISubject[]>([]);
   const [filteredSubjects, setFilteredSubjects] = useState<ISubject[]>([]);
   const [teacherSubjects, setTeacherSubjects] = useState<ISubject[]>([]);
@@ -54,7 +57,7 @@ const TeacherSubjectView = () => {
   const [formState, setFormState, onFieldChange, fieldGetError, fieldHasError] = useAppForm({
     validationSchema, // the state value, so could be changed in time
     initialValues: {
-      teacher_id: '',
+      teacher_id: teacherIdPAram,
       segment_id: '',
       subjects_ids: [],
     } as FormStateValues,
@@ -103,7 +106,7 @@ const TeacherSubjectView = () => {
     } catch (err: any) {
       console.log(err);
     }
-  }, [values.teacher_id]);
+  }, [values.teacher_id, teacherIdPAram]);
 
   useEffect(() => {
     setFilteredSubjects(
@@ -124,6 +127,9 @@ const TeacherSubjectView = () => {
     loadTeacherList();
     loadSubjectsList();
     loadSegmentsList();
+    // if(teacherIdPAram){
+
+    // }
   }, [loadTeacherList, loadSubjectsList, loadSegmentsList]);
 
   const handleRemoveTeacherSubject = async (teacher_id: string, subject_id: string) => {
