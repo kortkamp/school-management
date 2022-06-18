@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { Theme, AppBar, Toolbar, Typography } from '@mui/material';
 import makeStyles from '@mui/styles/makeStyles';
 import AppIconButton from '../AppIconButton';
+import { SIDEBAR_WIDTH } from '../../routes/Layout/PrivateLayout';
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -55,7 +56,7 @@ const TopBar: React.FC<Props> = ({
   return (
     <AppBar {...restOfProps} className={clsx(classes.root, className)} component="div">
       <Toolbar className={classes.toolbar} disableGutters>
-        <div className={classes.logo} style={{ marginRight: isMenuOpen ? '240px' : '0' }}>
+        <div className={classes.logo} style={{ marginRight: isMenuOpen ? SIDEBAR_WIDTH + 'px' : '0' }}>
           <AppIconButton
             icon="logo"
             // color="primary"
