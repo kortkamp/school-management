@@ -88,12 +88,12 @@ const SIDE_BAR_PRIVATE_ITEMS: Array<LinkToPage> = [
       },
       {
         title: 'Associar Turma',
-        path: '/professores/turma',
+        path: '/professores/turmas',
         icon: 'search',
       },
       {
         title: 'Associar Disciplina',
-        path: '/professores/disciplina',
+        path: '/professores/disciplinas',
         icon: 'search',
       },
     ],

@@ -57,7 +57,7 @@ const TeacherSubjectView = () => {
   const [formState, setFormState, onFieldChange, fieldGetError, fieldHasError] = useAppForm({
     validationSchema, // the state value, so could be changed in time
     initialValues: {
-      teacher_id: teacherIdPAram,
+      teacher_id: teacherIdPAram || '',
       segment_id: '',
       subjects_ids: [],
     } as FormStateValues,
@@ -222,7 +222,7 @@ const TeacherSubjectView = () => {
     <Grid container spacing={3}>
       <Grid item xs={12} md={12}>
         <Card>
-          <CardHeader style={{ textAlign: 'center' }} title="Professores" subheader="Associar professor a Disciplina" />
+          <CardHeader style={{ textAlign: 'center' }} title="Professores" subheader="Associar Professor a Disciplina" />
           <CardContent>
             <Grid container spacing={2}>
               <Grid item md={6} sm={12} xs={12}>
