@@ -6,19 +6,11 @@ import { AppButton, AppLink, AppIconButton, AppAlert, AppForm } from '../../../c
 import { useAppForm, SHARED_CONTROL_PROPS, eventPreventDefault } from '../../../utils/form';
 import { sessionService } from '../../../services/auth.service';
 
-const VALIDATE_FORM_LOGIN_EMAIL = {
-  email: {
-    presence: true,
-    email: true,
-  },
-  password: {
-    presence: true,
-    length: {
-      minimum: 6,
-      maximum: 32,
-      message: 'must be between 6 and 32 characters',
-    },
-  },
+import * as yup from 'yup';
+
+const formSchema = {
+  email: yup.string().email('Email inválido'),
+  password: yup.string().min(6, 'Mínimo de 6 caracteres').max(12, 'Máximo de 12 caracteres'),
 };
 
 interface FormStateValues {
@@ -34,7 +26,7 @@ const LoginEmailView = () => {
   const history = useHistory();
   const [, dispatch] = useAppStore();
   const [formState, , /* setFormState */ onFieldChange, fieldGetError, fieldHasError] = useAppForm({
-    validationSchema: VALIDATE_FORM_LOGIN_EMAIL,
+    validationSchema: formSchema,
     initialValues: { email: '', password: '' } as FormStateValues,
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -66,7 +58,7 @@ const LoginEmailView = () => {
   return (
     <AppForm onSubmit={handleFormSubmit}>
       <Card>
-        <CardHeader title="Login with Email" />
+        <CardHeader title="Entrar com Email" />
         <CardContent>
           <TextField
             required
@@ -109,10 +101,10 @@ const LoginEmailView = () => {
           ) : null}
           <Grid container justifyContent="center" alignItems="center">
             <AppButton type="submit" disabled={!formState.isValid}>
-              Login with Email
+              Entrar com Email
             </AppButton>
             <Button variant="text" color="inherit" component={AppLink} to="/auth/recovery/password">
-              Forgot Password
+              Esqueci minha senha
             </Button>
           </Grid>
         </CardContent>

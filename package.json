@@ -34,7 +34,8 @@
     "react-scripts": "latest",
     "typescript": "latest",
     "validate.js": "latest",
-    "web-vitals": "latest"
+    "web-vitals": "latest",
+    "yup": "^0.32.11"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "latest",

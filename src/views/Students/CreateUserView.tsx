@@ -1,34 +1,30 @@
 import { SyntheticEvent, useCallback, useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
-import {
-  Grid,
-  TextField,
-  Card,
-  CardHeader,
-  CardContent,
-  LinearProgress,
-  MenuItem,
-  FormControlLabel,
-  RadioGroup,
-  Radio,
-  FormLabel,
-  Button,
-  Theme,
-} from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
+import { Grid, TextField, CardHeader, MenuItem } from '@mui/material';
+
+import * as yup from 'yup';
 
 import { useAppStore } from '../../store';
 import { AppButton, AppAlert, AppForm } from '../../components';
-import { useAppForm, SHARED_CONTROL_PROPS, eventPreventDefault } from '../../utils/form';
+import { useAppForm, SHARED_CONTROL_PROPS } from '../../utils/form';
 import { studentsService } from '../../services/students.service';
 import AppStepSelector from '../../components/AppStepSelector';
 
 const VALIDATE_FORM_SIGNUP = {
   email: {
-    presence: { allowEmpty: false },
+    presence: { allowEmpty: true },
     email: true,
   },
   phone: {
+    type: 'string',
+    presence: { allowEmpty: false, message: 'É necessário preencher este campo' },
+    format: {
+      pattern: '^$|[- .+()0-9]+', // Note: We have to allow empty in the pattern
+      message: 'deve conter apenas números',
+    },
+  },
+  enroll_id: {
+    presence: { allowEmpty: false, message: 'É necessário preencher este campo' },
     type: 'string',
     format: {
       pattern: '^$|[- .+()0-9]+', // Note: We have to allow empty in the pattern
@@ -51,6 +47,23 @@ const VALIDATE_FORM_SIGNUP = {
       message: 'precisa conter entre 6 e 12 caracteres',
     },
   },
+  password_confirmation: {
+    equality: 'password',
+  },
+};
+
+const formSchema = {
+  email: yup.string().email('Email inválido'),
+  phone: yup.string().required('O campo é obrigatório'),
+  enroll_id: yup.number().required('O campo é obrigatório').positive().integer(),
+  name: yup
+    .string()
+    .matches(/^[A-Za-z ]+$/, 'Apenas letras')
+    .required('O campo é obrigatório'),
+  password: yup.string().min(6, 'Mínimo de 6 caracteres').max(12, 'Máximo de 12 caracteres'),
+  password_confirmation: yup.string().oneOf([yup.ref('password'), null], 'As senhas não conferem!'),
+  sex: yup.string().required('O campo é obrigatório'),
+  birth: yup.date(),
 };
 
 interface FormStateValues {
@@ -75,11 +88,9 @@ interface FormStateValues {
 function CreateUserView() {
   const history = useHistory();
   const [, dispatch] = useAppStore();
-  const [validationSchema, setValidationSchema] = useState<any>({
-    ...VALIDATE_FORM_SIGNUP,
-  });
+
   const [formState, , /* setFormState */ onFieldChange, fieldGetError, fieldHasError] = useAppForm({
-    validationSchema, // the state value, so could be changed in time
+    validationSchema: formSchema, // the state value, so could be changed in time
     initialValues: {
       email: '',
       name: '',
@@ -197,32 +208,27 @@ function CreateUserView() {
             />
           </Grid>
 
-          <Grid
-            item
-            md={6}
-            sm={12}
-            xs={12}
-            margin="normal"
-            style={{ display: 'flex', alignItems: 'center', flexDirection: 'column', justifyContent: 'center' }}
-          >
-            <FormLabel id="demo-radio-buttons-group-label">Sexo:</FormLabel>
-            <RadioGroup
-              aria-labelledby="demo-radio-buttons-group-label"
-              row
+          <Grid item md={6} sm={12} xs={12}>
+            <TextField
+              required
+              // disabled={}
+              select
+              label="Sexo"
               name="sex"
               value={values.sex}
               onChange={onFieldChange}
+              {...SHARED_CONTROL_PROPS}
             >
-              <FormControlLabel value="M" control={<Radio />} label="Masculino" />
-              <FormControlLabel value="F" control={<Radio />} label="Feminino" />
-            </RadioGroup>
+              <MenuItem value="M">Masculino</MenuItem>
+              <MenuItem value="F">Feminino</MenuItem>
+            </TextField>
           </Grid>
 
           <Grid item md={12} sm={12} xs={12}>
             <TextField
               label="Email"
               name="email"
-              type="email"
+              // type="email"
               value={values.email}
               error={fieldHasError('email')}
               helperText={fieldGetError('email') || ' '}
@@ -249,8 +255,8 @@ function CreateUserView() {
               label="Confirmação de Password"
               name="password_confirmation"
               value={values.password_confirmation}
-              error={fieldHasError('password')}
-              helperText={fieldGetError('password') || ' '}
+              error={fieldHasError('password_confirmation')}
+              helperText={fieldGetError('password_confirmation') || ' '}
               onChange={onFieldChange}
               {...SHARED_CONTROL_PROPS}
             />

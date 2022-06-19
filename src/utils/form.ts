@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, SyntheticEvent } from 'react';
-import validate from 'validate.js';
+// import validate from 'validate.js';
+import * as yup from 'yup';
+
 import { ObjectPropByName } from './type';
 
 // Same props to style Input, TextField, and so on across the Application
@@ -54,7 +56,7 @@ export const formGetError = (formState: FormState, fieldName: string): string =>
 
 // Params for useAppForm() hook
 interface UseAppFormParams {
-  validationSchema: object;
+  validationSchema: any;
   initialValues: object;
 }
 
@@ -65,7 +67,7 @@ interface UseAppFormParams {
     validationSchema: XXX_FORM_SCHEMA,
     initialValues: {name: 'John Doe'},
   });
- * @param {object} options.validationSchema - validation schema in 'validate.js' format
+ * @param {object} options.validationSchema - validation schema in 'yup' format
  * @param {object} [options.initialValues] - optional initialization data for formState.values
  */
 export function useAppForm({ validationSchema, initialValues = {} }: UseAppFormParams) {
@@ -82,15 +84,28 @@ export function useAppForm({ validationSchema, initialValues = {} }: UseAppFormP
 
   // Create Form state and apply initialValues if set
   const [formState, setFormState] = useState({ ...DEFAULT_FORM_STATE, values: initialValues });
+  const [yupValidationSchema, setYupValidationSchema] = useState<any>(yup.object().shape(validationSchema));
 
-  // Validation by 'validate.js' on every formState.values change
-  useEffect(() => {
-    const errors = validate(formState.values, validationSchema);
+  const validate = useCallback(async () => {
+    let errors: any = {}; //validate(formState.values, validationSchema);
+    let isValid = false;
+    try {
+      isValid = await yupValidationSchema.validate(formState.values, { abortEarly: false, stripUnknown: true });
+    } catch (err: any) {
+      const { inner } = err as yup.ValidationError;
+      inner.forEach((error: any) => (errors[error.path] = [error.message]));
+      console.log(errors);
+    }
+
     setFormState((currentFormState) => ({
       ...currentFormState,
-      isValid: errors ? false : true,
+      isValid,
       errors: errors || {},
     }));
+  }, [validationSchema, formState.values]);
+
+  useEffect(() => {
+    validate();
   }, [validationSchema, formState.values]);
 
   // Event to call on every Input change. Note: the "name" props of the Input control must be set!
