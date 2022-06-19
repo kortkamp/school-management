@@ -3,7 +3,7 @@ import { localStorageGet } from '../utils/localStorage';
 
 const api = () => {
   const defaultOptions = {
-    baseURL: 'http://localhost:3003',
+    baseURL: 'http://10.0.0.106:3003',
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Content-Type': 'application/json',
