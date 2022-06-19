@@ -1,5 +1,5 @@
 import { Card, CardActions, CardContent, CardHeader, Grid, CircularProgress, Button, Box } from '@mui/material';
-import { DataGrid, GridPagination } from '@mui/x-data-grid';
+import { DataGrid, GridOverlay, GridPagination } from '@mui/x-data-grid';
 import { useCallback, useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
 import { AppButton } from '../../components';
@@ -246,7 +246,14 @@ const ListView = ({ role }: { role: 'student' | 'teacher' }) => {
                       page: 1,
                     },
                   }}
-                  components={{ Footer: CustomFooterButtonsComponent }}
+                  // components={{ Footer: CustomFooterButtonsComponent }}
+                  components={{
+                    NoRowsOverlay: () => (
+                      <GridOverlay>
+                        <div>Sem {roleData[role].title}</div>
+                      </GridOverlay>
+                    ),
+                  }}
                 />
               </Grid>
             </Grid>
