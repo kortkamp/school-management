@@ -43,14 +43,14 @@ const ListView = ({ role }: { role: 'student' | 'teacher' }) => {
   const history = useHistory();
 
   const datagridStudentscolumns = [
-    { field: 'name', headerName: 'Nome', width: 150, flex: 1 },
-    { field: 'enroll_id', headerName: 'Matrícula', width: 150, flex: 1 },
+    { field: 'name', headerName: 'Nome', width: 150 },
+    { field: 'enroll_id', headerName: 'Matrícula', width: 150 },
 
     {
       field: 'segment',
       headerName: 'Segmento',
       width: 150,
-      flex: 1,
+      // flex: 1,
       valueGetter: (params: any) => {
         return params.row.segment?.name || '';
       },
@@ -59,7 +59,7 @@ const ListView = ({ role }: { role: 'student' | 'teacher' }) => {
       field: 'classGroup',
       headerName: 'Turma',
       width: 150,
-      flex: 1,
+      // flex: 1,
       valueGetter: (params: any) => {
         return params.row.classGroup?.name || '';
       },
@@ -68,7 +68,7 @@ const ListView = ({ role }: { role: 'student' | 'teacher' }) => {
       field: 'grade',
       headerName: 'Ano',
       width: 150,
-      flex: 1,
+      // flex: 1,
       valueGetter: (params: any) => {
         return params.row.grade?.name;
       },
@@ -76,8 +76,10 @@ const ListView = ({ role }: { role: 'student' | 'teacher' }) => {
     {
       field: 'action',
       headerName: 'Ações',
+      width: 250,
+
       sortable: false,
-      flex: 1,
+      // flex: 1,
       renderCell: (params: any) => {
         const onClick = (e: any) => {
           e.stopPropagation(); // don't select this row after clicking
@@ -90,8 +92,8 @@ const ListView = ({ role }: { role: 'student' | 'teacher' }) => {
   ];
 
   const datagridTeacherscolumns = [
-    { field: 'name', headerName: 'Nome', width: 150, flex: 1 },
-    { field: 'enroll_id', headerName: 'Matrícula', width: 150, flex: 1 },
+    { field: 'name', headerName: 'Nome', width: 150 },
+    { field: 'enroll_id', headerName: 'Matrícula', width: 150 },
 
     // {
     //   field: 'segment',
@@ -123,8 +125,8 @@ const ListView = ({ role }: { role: 'student' | 'teacher' }) => {
     {
       field: 'action',
       headerName: 'Ações',
+      width: 350,
       sortable: false,
-      flex: 1,
       renderCell: (params: any) => {
         const onClick = (e: any) => {
           e.stopPropagation(); // don't select this row after clicking

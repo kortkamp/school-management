@@ -87,13 +87,13 @@ function ExamListView() {
   }, [loadClassGroupsList]);
 
   const columns = [
-    { field: 'type', headerName: 'Tipo', width: 100, flex: 1 },
+    { field: 'type', headerName: 'Tipo', width: 100 },
 
     {
       field: 'subject',
       headerName: 'Matéria',
       width: 150,
-      flex: 1,
+
       valueGetter: (params: any) => {
         return params.row.subject.name;
       },
@@ -102,29 +102,29 @@ function ExamListView() {
       field: 'class_group',
       headerName: 'Turma',
       width: 150,
-      flex: 1,
+
       valueGetter: (params: any) => {
         return params.row.class_group.name;
       },
     },
-    { field: 'value', headerName: 'Valor', width: 50, flex: 1 },
-    { field: 'weight', headerName: 'Peso', width: 50, flex: 1 },
+    { field: 'value', headerName: 'Valor', width: 50 },
+    { field: 'weight', headerName: 'Peso', width: 50 },
     {
       field: 'date',
       headerName: 'Data',
       width: 100,
-      flex: 1,
+
       valueGetter: (params: any) => params && Moment(params.row.date).utcOffset('+0300').format('DD-MM-YYYY'),
     },
 
-    { field: 'status', headerName: 'Situação', width: 50, flex: 1 },
+    { field: 'status', headerName: 'Situação', width: 100 },
 
     {
       field: 'actions',
       headerName: 'Ações',
       sortable: false,
-      width: 230,
-      flex: 3,
+      width: 330,
+
       renderCell: (params: any) => {
         return (
           <>
