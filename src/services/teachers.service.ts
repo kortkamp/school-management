@@ -1,6 +1,6 @@
 import api from './api.service';
 
-const getAll = async (per_page = 10, page = 1, filterBy = '', filterValue = '', filterType = '') =>
+const getAll = async (per_page = 1000, page = 1, filterBy = '', filterValue = '', filterType = '') =>
   await api.get(
     `/teachers?per_page=${per_page}&page=${page}&orderBy=name&orderType=ASC${
       !!filterValue ? `&filterBy=${filterBy}&filterValue=${filterValue}&filterType=${filterType}` : ''
