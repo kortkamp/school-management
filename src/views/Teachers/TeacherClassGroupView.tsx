@@ -217,13 +217,25 @@ const TeacherClassGroupView = () => {
   };
 
   const handleAddTeacherClassGroup = async (classGroup: IClassGroup) => {
-    try {
-      const teacherClassGroup = {
-        subject_ids: selectedSubjects,
-        class_group_id: classGroup.id,
-        teacher_id: values.teacher_id,
-      };
+    const teacherClassExists = (class_group_id: string, subject_id: string) => {
+      return teacherClassGroups.find(
+        (teacherClass) => teacherClass.subject_id === subject_id && teacherClass.class_group_id === class_group_id
+      );
+    };
 
+    const subjects_ids = selectedSubjects.filter((subject_id) => !teacherClassExists(classGroup.id, subject_id));
+
+    if (!subjects_ids.length) {
+      return;
+    }
+
+    const teacherClassGroup = {
+      subject_ids: subjects_ids,
+      class_group_id: classGroup.id,
+      teacher_id: values.teacher_id,
+    };
+
+    try {
       const response = await teacherClassGroupsService.create(teacherClassGroup);
 
       const createdTeacherClassGroup: ITeacherClassGroup[] = response.data.teacherClass.map(
