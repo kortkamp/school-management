@@ -3,11 +3,10 @@ import { Grid, TextField, Card, CardHeader, CardContent } from '@mui/material';
 import { AppButton, AppAlert, AppForm } from '../../../components';
 import { useAppForm, SHARED_CONTROL_PROPS } from '../../../utils/form';
 
-const VALIDATE_FORM_RECOVERY_PASSWORD = {
-  email: {
-    presence: true,
-    email: true,
-  },
+import * as yup from 'yup';
+
+const formSchema = {
+  email: yup.string().email('Email inválido'),
 };
 
 interface FormStateValues {
@@ -20,12 +19,12 @@ interface Props {
 
 /**
  * Renders "Recover Password" view for Login flow
- * url: /uth/recovery/password
+ * url: /auth/recovery/password
  * @param {string} [props.email] - pre-populated email in case the user already enters it
  */
 const RecoveryPasswordView = ({ email = '' }: Props) => {
   const [formState, , /* setFormState */ onFieldChange, fieldGetError, fieldHasError] = useAppForm({
-    validationSchema: VALIDATE_FORM_RECOVERY_PASSWORD,
+    validationSchema: formSchema,
     initialValues: { email } as FormStateValues,
   });
   const [message, setMessage] = useState<string>();
@@ -37,7 +36,7 @@ const RecoveryPasswordView = ({ email = '' }: Props) => {
     // await api.auth.recoverPassword(values);
 
     //Show message with instructions for the user
-    setMessage('Email with instructions has been sent to your address');
+    setMessage('Um email com instruções foi enviado para você');
   };
 
   const handleCloseError = useCallback(() => setMessage(undefined), []);
@@ -45,7 +44,7 @@ const RecoveryPasswordView = ({ email = '' }: Props) => {
   return (
     <AppForm onSubmit={handleFormSubmit}>
       <Card>
-        <CardHeader title="Recover Password" />
+        <CardHeader title="Recuperar Senha" />
         <CardContent>
           <TextField
             required
@@ -66,7 +65,7 @@ const RecoveryPasswordView = ({ email = '' }: Props) => {
 
           <Grid container justifyContent="center" alignItems="center">
             <AppButton type="submit" disabled={!formState.isValid}>
-              Send Password Recovery Email
+              Enviar email de recuperação de senha
             </AppButton>
           </Grid>
         </CardContent>
