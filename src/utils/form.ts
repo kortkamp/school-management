@@ -88,13 +88,12 @@ export function useAppForm({ validationSchema, initialValues = {} }: UseAppFormP
 
   const validate = useCallback(async () => {
     let errors: any = {}; //validate(formState.values, validationSchema);
-    let isValid = false;
+    let isValid: any = false;
     try {
       isValid = await yupValidationSchema.validate(formState.values, { abortEarly: false, stripUnknown: true });
     } catch (err: any) {
       const { inner } = err as yup.ValidationError;
       inner.forEach((error: any) => (errors[error.path] = [error.message]));
-      console.log(errors);
     }
 
     setFormState((currentFormState) => ({
@@ -129,6 +128,15 @@ export function useAppForm({ validationSchema, initialValues = {} }: UseAppFormP
     }));
   }, []);
 
+  const isFieldRequired = (field: string) => {
+    return (
+      yupValidationSchema
+        .describe()
+        .fields[field]?.tests.findIndex(({ name }: { name: string }) => name === 'required') >= 0
+    );
+    // return yupValidationSchema.fields[field]._exclusive.required || false;
+  };
+
   // Returns text of "top most" Error for the Field by given Name or null
   const fieldGetError = (fieldName: string): string => formGetError(formState, fieldName);
 
@@ -136,5 +144,5 @@ export function useAppForm({ validationSchema, initialValues = {} }: UseAppFormP
   const fieldHasError = (fieldName: string): boolean => formHasError(formState, fieldName);
 
   // Return state and methods
-  return [formState, setFormState, onFieldChange, fieldGetError, fieldHasError] as const;
+  return [formState, setFormState, onFieldChange, fieldGetError, fieldHasError, isFieldRequired] as const;
 }
