@@ -8,6 +8,8 @@ import { classGroupsService } from '../../services/classGroups.service';
 import { subjectsService } from '../../services/subjects.service';
 import { examsService } from '../../services/exams.service';
 import Moment from 'moment';
+import { teacherClassGroupsService } from '../../services/teacherClassGroups.service';
+import { result } from 'validate.js';
 
 interface FormStateValues {
   type: string;
@@ -16,6 +18,24 @@ interface FormStateValues {
   value: number | '';
   weight: number | '';
   date: Date | '';
+}
+
+interface ITeacherClassGroup {
+  subject_id: string;
+  subject: {
+    id: string;
+    name: string;
+  };
+}
+
+interface ITeacherClassGroupResponse {
+  id: string;
+  name: string;
+  grade: {
+    id: string;
+    name: string;
+  };
+  teacherClassGroups: ITeacherClassGroup[];
 }
 
 const VALIDATE_FORM = {};
@@ -27,11 +47,11 @@ const VALIDATE_FORM = {};
 function CreateExamView() {
   const history = useHistory();
   const { id } = useParams<{ id: string }>();
-  const [, dispatch] = useAppStore();
+  const [state, dispatch] = useAppStore();
   const [validationSchema, setValidationSchema] = useState<any>({
     ...VALIDATE_FORM,
   });
-  const [formState, setFormState, onFieldChange, fieldGetError, fieldHasError] = useAppForm({
+  const [formState, setFormState, onFieldChange, fieldGetError, fieldHasError, , setField] = useAppForm({
     validationSchema, // the state value, so could be changed in time
     initialValues: {
       type: '',
@@ -42,8 +62,8 @@ function CreateExamView() {
       date: '',
     } as FormStateValues,
   });
-  const [classGroups, setClassGroups] = useState<any[]>([]);
-  const [subjects, setSubjects] = useState<any[]>([]);
+  const [classGroups, setClassGroups] = useState<ITeacherClassGroupResponse[]>([]);
+  const [subjects, setSubjects] = useState<ITeacherClassGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
   const values = formState.values as FormStateValues;
@@ -57,11 +77,15 @@ function CreateExamView() {
     async function fetchData() {
       // TODO: Call any Async API here
       try {
-        const response = await classGroupsService.getAll();
-        setClassGroups(response.data.classGroups);
+        if (state.currentUser?.id) {
+          const response = await teacherClassGroupsService.getAllbyTeacher(state.currentUser.id);
+          const teacherClassesResponse = response.data.teacherClasses as ITeacherClassGroupResponse[];
+          // const a = teacherClassesResponse.reduce((result, teacherClass) => [teacherClass], []);
+          setClassGroups(response.data.teacherClasses);
+        }
 
-        const subjectsResponse = await subjectsService.getAll();
-        setSubjects(subjectsResponse.data.subjects);
+        // const subjectsResponse = await subjectsService.getAll();
+        // setSubjects(subjectsResponse.data.subjects);
 
         if (isEditing) {
           const examResponse = await examsService.getById(id);
@@ -87,6 +111,17 @@ function CreateExamView() {
   useEffect(() => {
     loadData();
   }, [id, loadData]);
+
+  useEffect(() => {
+    setField('subject_id', '');
+    const subjects = classGroups.find((classGroup) => classGroup.id === values.class_id)?.teacherClassGroups;
+    if (subjects) {
+      setSubjects(subjects);
+      if (subjects.length === 1) {
+        setField('subject_id', subjects[0].subject_id);
+      }
+    }
+  }, [values.class_id]);
 
   const handleFormSubmit = useCallback(
     async (event: SyntheticEvent) => {
@@ -144,25 +179,7 @@ function CreateExamView() {
             <MenuItem value="trabalho">Trabalho</MenuItem>
             <MenuItem value="trabalho em grupo">Trabalho em grupo</MenuItem>
           </TextField>
-          <TextField
-            required
-            select
-            label="Matéria"
-            disabled={isEditing}
-            name="subject_id"
-            value={values.subject_id}
-            onChange={onFieldChange}
-            style={{ minWidth: '100%' }}
-            {...SHARED_CONTROL_PROPS}
-          >
-            {subjects.map((subject) => {
-              return (
-                <MenuItem key={subject.id} value={subject.id}>
-                  {subject.name}.
-                </MenuItem>
-              );
-            })}
-          </TextField>
+
           <TextField
             required
             disabled={isEditing}
@@ -176,7 +193,26 @@ function CreateExamView() {
             {classGroups.map((classGroup) => {
               return (
                 <MenuItem key={classGroup.id} value={classGroup.id}>
-                  {classGroup.name}
+                  {classGroup.name + ' - ' + classGroup.grade.name}
+                </MenuItem>
+              );
+            })}
+          </TextField>
+          <TextField
+            required
+            select
+            label="Matéria"
+            disabled={isEditing}
+            name="subject_id"
+            value={values.subject_id}
+            onChange={onFieldChange}
+            style={{ minWidth: '100%' }}
+            {...SHARED_CONTROL_PROPS}
+          >
+            {subjects.map((subject) => {
+              return (
+                <MenuItem key={subject.subject_id} value={subject.subject_id}>
+                  {subject.subject.name}.
                 </MenuItem>
               );
             })}

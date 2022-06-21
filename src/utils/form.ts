@@ -128,6 +128,20 @@ export function useAppForm({ validationSchema, initialValues = {} }: UseAppFormP
     }));
   }, []);
 
+  const setField = (name: string, value: any) => {
+    setFormState((formState) => ({
+      ...formState,
+      values: {
+        ...formState.values,
+        [name]: value,
+      },
+      touched: {
+        ...formState.touched,
+        [name]: true,
+      },
+    }));
+  };
+
   const isFieldRequired = (field: string) => {
     return (
       yupValidationSchema
@@ -144,5 +158,5 @@ export function useAppForm({ validationSchema, initialValues = {} }: UseAppFormP
   const fieldHasError = (fieldName: string): boolean => formHasError(formState, fieldName);
 
   // Return state and methods
-  return [formState, setFormState, onFieldChange, fieldGetError, fieldHasError, isFieldRequired] as const;
+  return [formState, setFormState, onFieldChange, fieldGetError, fieldHasError, isFieldRequired, setField] as const;
 }
