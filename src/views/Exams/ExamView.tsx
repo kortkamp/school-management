@@ -13,16 +13,18 @@ import {
   Divider,
   Typography,
   Theme,
+  AlertColor,
 } from '@mui/material';
 import { ReactNode, useCallback, useEffect, useReducer, useState } from 'react';
 import { useParams } from 'react-router';
-import { AppButton, AppLoading } from '../../components';
+import { AppAlert, AppButton, AppLoading } from '../../components';
 import { examsService } from '../../services/exams.service';
 import { studentsService } from '../../services/students.service';
 import Moment from 'moment';
 import { ErrorAPI } from '../Errors';
 import { createStyles, makeStyles } from '@mui/styles';
 import { NavLink } from 'react-router-dom';
+import { useAppMessage } from '../../utils/message';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -99,14 +101,15 @@ function resultReducer(state: IExamResult[], action: CountAction) {
 const ExamView = () => {
   const classes = useStyles();
 
+  const [AppMessage, setMessage] = useAppMessage();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
   const { id } = useParams<{ id: string }>();
 
   const [results, resultsDispatch] = useReducer(resultReducer, []);
 
   const [exam, setExams] = useState<any>();
-  const [loading, setLoading] = useState(true);
-
-  const [Error, setError] = useState<ReactNode | null>(null);
 
   const loadClassGroupsList = useCallback(async () => {
     try {
@@ -131,7 +134,7 @@ const ExamView = () => {
 
       setLoading(false);
     } catch (err: any) {
-      setError(ErrorAPI(err.response?.status));
+      console.log(err);
     }
   }, [id]);
 
@@ -151,11 +154,12 @@ const ExamView = () => {
 
       resultsDispatch({ type: ExamResultActionKind.CREATE, payload: resultData });
     } catch (err: any) {
-      setError(ErrorAPI(err.response?.status));
+      setMessage({ type: 'error', text: err.response });
     }
   }, [exam]);
 
   const handleSaveResults = useCallback(async () => {
+    setSaving(true);
     try {
       const data = {
         exam_id: exam.id,
@@ -165,9 +169,12 @@ const ExamView = () => {
       };
       const response = await examsService.saveResults(data);
       console.log(response);
+      setMessage({ type: 'success', text: 'As notas foram salvas com sucesso' });
     } catch (err: any) {
-      setError(ErrorAPI(err.response?.status));
+      console.log(err);
+      setMessage({ type: 'error', text: err.response.data.message });
     }
+    setSaving(false);
   }, [exam, results]);
 
   useEffect(() => {
@@ -176,7 +183,6 @@ const ExamView = () => {
 
   const resultsAreValid = results.every(({ value }) => (value || value === 0) && value >= 0 && value <= exam.value);
 
-  if (Error) return Error as JSX.Element;
   if (loading) return <AppLoading />;
 
   return (
@@ -226,10 +232,14 @@ const ExamView = () => {
                   );
                 })}
                 <Divider />
+                <Grid item md={12} sm={12} xs={12}>
+                  <AppMessage />
+                </Grid>
                 <Grid container direction="column" alignItems="center">
                   <AppButton
                     color="info"
-                    disabled={!resultsAreValid}
+                    disabled={!resultsAreValid || saving}
+                    loading={saving}
                     size="medium"
                     label="Gravar Notas"
                     onClick={() => handleSaveResults()}
