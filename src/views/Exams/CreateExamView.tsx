@@ -3,13 +3,10 @@ import { useHistory, useParams } from 'react-router-dom';
 import { Grid, TextField, Card, CardHeader, CardContent, LinearProgress, MenuItem } from '@mui/material';
 import { useAppStore } from '../../store';
 import { AppButton, AppAlert, AppForm } from '../../components';
-import { useAppForm, SHARED_CONTROL_PROPS, eventPreventDefault, DEFAULT_FORM_STATE } from '../../utils/form';
-import { classGroupsService } from '../../services/classGroups.service';
-import { subjectsService } from '../../services/subjects.service';
+import { useAppForm, SHARED_CONTROL_PROPS, DEFAULT_FORM_STATE } from '../../utils/form';
 import { examsService } from '../../services/exams.service';
 import Moment from 'moment';
 import { teacherClassGroupsService } from '../../services/teacherClassGroups.service';
-import { result } from 'validate.js';
 
 interface FormStateValues {
   type: string;
@@ -83,9 +80,6 @@ function CreateExamView() {
           // const a = teacherClassesResponse.reduce((result, teacherClass) => [teacherClass], []);
           setClassGroups(response.data.teacherClasses);
         }
-
-        // const subjectsResponse = await subjectsService.getAll();
-        // setSubjects(subjectsResponse.data.subjects);
 
         if (isEditing) {
           const examResponse = await examsService.getById(id);
