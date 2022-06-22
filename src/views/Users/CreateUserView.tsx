@@ -9,6 +9,7 @@ import { useAppForm, SHARED_CONTROL_PROPS } from '../../utils/form';
 import { studentsService } from '../../services/students.service';
 import AppStepSelector from '../../components/AppStepSelector';
 import { teachersService } from '../../services/teachers.service';
+import { useAppMessage } from '../../utils/message';
 
 const createStudentSchema = {
   email: yup.string().email('Email inválido'),
@@ -92,6 +93,10 @@ interface FormStateValues {
 function CreateUserView({ role }: { role: 'student' | 'teacher' }) {
   const history = useHistory();
 
+  const [AppMessage, setMessage] = useAppMessage();
+
+  const [saving, setSaving] = useState(false);
+
   const createUserSchema = roleData[role].createUserSchema;
 
   const [formState, , /* setFormState */ onFieldChange, fieldGetError, fieldHasError, isFieldRequired] = useAppForm({
@@ -113,31 +118,29 @@ function CreateUserView({ role }: { role: 'student' | 'teacher' }) {
     } as FormStateValues,
   });
 
-  const [error, setError] = useState<string>();
   const values = formState.values as FormStateValues;
 
   const handleFormSubmit = useCallback(
     async (event: SyntheticEvent) => {
       event.preventDefault();
 
+      setSaving(true);
+
       const createUserService = roleData[role].service;
 
       const { willLogin, ...data } = values;
 
       try {
-        const apiResult = await createUserService.create(data);
-      } catch (err) {
+        await createUserService.create(data);
+        history.replace(`/${roleData[role].title.toLowerCase()}`);
+      } catch (err: any) {
         console.log(err);
-        setError(`Não foi possível cadastrar o ${roleData[role].name}`);
-        return;
+        setMessage({ type: 'error', text: err.response.data.message });
       }
-
-      history.replace(`/${roleData[role].title.toLowerCase()}`);
+      setSaving(false);
     },
     [values, history]
   );
-
-  const handleCloseError = useCallback(() => setError(undefined), []);
 
   const [formStep, setFormStep] = useState(0);
 
@@ -296,14 +299,10 @@ function CreateUserView({ role }: { role: 'student' | 'teacher' }) {
             </>
           )}
           <Grid item md={12} sm={12} xs={12}>
-            {error ? (
-              <AppAlert severity="error" onClose={handleCloseError}>
-                {error}
-              </AppAlert>
-            ) : null}
+            <AppMessage />
           </Grid>
           <Grid container justifyContent="center" alignItems="center">
-            <AppButton type="submit" disabled={!formState.isValid}>
+            <AppButton type="submit" disabled={!formState.isValid || saving} loading={saving}>
               Cadastrar
             </AppButton>
           </Grid>
