@@ -87,7 +87,7 @@ const AppAllocationSelect: React.FC<Props> = ({ onChange }) => {
           {...SHARED_CONTROL_PROPS}
         >
           <MenuItem key={'all'} value={''}>
-            Limpar
+            Todos
           </MenuItem>
           {segments.map((segment) => {
             return (
@@ -112,7 +112,7 @@ const AppAllocationSelect: React.FC<Props> = ({ onChange }) => {
           {...SHARED_CONTROL_PROPS}
         >
           <MenuItem key={'all'} value={''}>
-            Limpar
+            Todos
           </MenuItem>
           {grades
             .filter((grade) => grade.segment_id === segmentId)
@@ -139,7 +139,7 @@ const AppAllocationSelect: React.FC<Props> = ({ onChange }) => {
           {...SHARED_CONTROL_PROPS}
         >
           <MenuItem key={'all'} value={''}>
-            Limpar
+            Todas
           </MenuItem>
           {classGroups
             .filter((classGroup) => classGroup.grade_id === gradeId)
