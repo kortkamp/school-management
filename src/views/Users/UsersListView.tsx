@@ -1,6 +1,6 @@
 import { Card, CardActions, CardContent, CardHeader, Grid, CircularProgress, Button, Box } from '@mui/material';
 import { DataGrid, GridOverlay, GridPagination } from '@mui/x-data-grid';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useHistory } from 'react-router';
 import { AppButton } from '../../components';
 import AppAllocationSelect, { IAllocation } from '../../components/AppAllocationSelect/AppAllocationSelect';
@@ -26,6 +26,8 @@ const ListView = ({ role }: { role: 'student' | 'teacher' }) => {
   const [users, setUsers] = useState<any>([]);
   const [loading, setLoading] = useState(true);
   const [isDataLoading, setIsDataLoading] = useState(true);
+
+  const mounted = useRef(false);
 
   const [selected, setSelected] = useState<any[]>([]);
 
@@ -95,33 +97,6 @@ const ListView = ({ role }: { role: 'student' | 'teacher' }) => {
     { field: 'name', headerName: 'Nome', width: 150 },
     { field: 'enroll_id', headerName: 'Matrícula', width: 150 },
 
-    // {
-    //   field: 'segment',
-    //   headerName: 'Segmento',
-    //   width: 150,
-    //   flex: 1,
-    //   valueGetter: (params: any) => {
-    //     return params.row.segment?.name || '';
-    //   },
-    // },
-    // {
-    //   field: 'classGroup',
-    //   headerName: 'Turma',
-    //   width: 150,
-    //   flex: 1,
-    //   valueGetter: (params: any) => {
-    //     return params.row.classGroup?.name || '';
-    //   },
-    // },
-    // {
-    //   field: 'grade',
-    //   headerName: 'Ano',
-    //   width: 150,
-    //   flex: 1,
-    //   valueGetter: (params: any) => {
-    //     return params.row.grade?.name;
-    //   },
-    // },
     {
       field: 'action',
       headerName: 'Ações',
@@ -179,17 +154,24 @@ const ListView = ({ role }: { role: 'student' | 'teacher' }) => {
         filterValue = `${classGroupId}`;
       }
       const response = await roleData[role].service.getAll(pageSize, page, filterBy, filterValue, filterType);
-      setUsers(response.data);
-      setLoading(false);
-      setIsDataLoading(false);
+
+      if (mounted.current) {
+        setUsers(response.data);
+        setLoading(false);
+        setIsDataLoading(false);
+      }
     } catch (err: any) {
       console.log(err);
     }
   }, [allocation, page, pageSize]);
 
   useEffect(() => {
+    mounted.current = true;
     setIsDataLoading(true);
     loadStudentsList();
+    return () => {
+      mounted.current = false;
+    };
   }, [loadStudentsList, allocation, page, pageSize]);
 
   if (loading)
