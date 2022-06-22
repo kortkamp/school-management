@@ -12,7 +12,7 @@ export const AppLoading = () => {
     >
       <Grid item xs={3}>
         <CircularProgress />
-        <h1>Carregando...</h1>
+        {/* <h1>Carregando...</h1> */}
       </Grid>
     </Grid>
   );
