@@ -1,19 +1,49 @@
-import { Card, CardContent, CardHeader, Grid, CircularProgress, Button, Box } from '@mui/material';
-import { DataGrid, GridPagination } from '@mui/x-data-grid';
+import { Card, CardContent, CardHeader, Grid, Box, TextField, MenuItem } from '@mui/material';
+import { DataGrid, GridOverlay, GridPagination } from '@mui/x-data-grid';
 import { ReactNode, useCallback, useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
 import Moment from 'moment';
-import { AppButton, AppLoading } from '../../components';
+import { AppButton } from '../../components';
 import { examsService } from '../../services/exams.service';
 import { CommonDialog } from '../../components/dialogs';
-import { ErrorAPI } from '../Errors';
+import { SHARED_CONTROL_PROPS } from '../../utils/form';
 
+interface IExam {
+  id: string;
+  type: string;
+  status: string;
+  value: number;
+  weight: number;
+  teacher_id: string;
+  subject_id: string;
+  class_id: string;
+  date: Date;
+
+  subject: {
+    id: string;
+    name: string;
+  };
+  class_group: {
+    id: string;
+    name: string;
+  };
+  teacher: {
+    id: string;
+    name: string;
+  };
+}
 /**
  * Renders "ExamsListView" view
  * url: /exames/*
  */
 function ExamListView() {
-  const [exams, setExams] = useState<any[]>([]);
+  const [isSeaching, SetIsSearching] = useState(false);
+
+  const [statusFilter, setStatusFilter] = useState('open');
+  const [typeFilter, setTypeFilter] = useState('');
+
+  const [exams, setExams] = useState<IExam[]>([]);
+  const [filteredExams, setFilteredExams] = useState<IExam[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<ReactNode | null>(null);
 
@@ -66,25 +96,47 @@ function ExamListView() {
       }
 
       // setExams(exams.filter((exam) => exam.id !== id));
-      loadClassGroupsList();
+      loadExamList();
     },
     [history]
   );
 
-  const loadClassGroupsList = useCallback(async () => {
+  const loadExamList = useCallback(async () => {
+    setLoading(true);
+
+    let filter = {
+      by: '',
+      value: '',
+      type: '',
+    };
+
+    if (statusFilter !== 'all') {
+      filter = {
+        by: 'status',
+        value: statusFilter,
+        type: 'eq',
+      };
+    }
+
+    console.log(filter);
+
     try {
-      const response = await examsService.getAll();
+      const response = await examsService.getAll(1000, 1, filter.by, filter.value, filter.type);
       setExams(response.data.exams.result);
-      setLoading(false);
     } catch (err: any) {
       console.log(err);
-      setError(ErrorAPI(404));
+      // setError(ErrorAPI(404));
     }
-  }, []);
+    setLoading(false);
+  }, [statusFilter]);
 
   useEffect(() => {
-    loadClassGroupsList();
-  }, [loadClassGroupsList]);
+    loadExamList();
+  }, [loadExamList, statusFilter]);
+
+  useEffect(() => {
+    setFilteredExams(exams.filter((exam) => (typeFilter !== '' ? exam.type === typeFilter : true)));
+  }, [typeFilter, exams]);
 
   const columns = [
     { field: 'type', headerName: 'Tipo', width: 100 },
@@ -162,8 +214,8 @@ function ExamListView() {
     );
   }
 
-  if (Error) return Error as JSX.Element;
-  if (loading) return <AppLoading />;
+  // if (Error) return Error as JSX.Element;
+  // if (loading) return <AppLoading />;
 
   return (
     <>
@@ -173,18 +225,59 @@ function ExamListView() {
           <Card>
             <CardHeader
               style={{ textAlign: 'center' }}
-              title="Provas e Trabalhos"
-              subheader="Lista de provas e trabalhos"
+              title="Provas e Trabalhos Pendentes"
+              subheader="Lista de provas e trabalhos em aberto"
             />
             <CardContent>
+              <Grid container spacing={1}>
+                <Grid item xs={12} sm={12} md={3}>
+                  <TextField
+                    select
+                    label="Situação"
+                    name="status"
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    {...SHARED_CONTROL_PROPS}
+                  >
+                    <MenuItem value={'all'}>Todas</MenuItem>
+                    <MenuItem value={'open'}>Em Aberto</MenuItem>
+                    <MenuItem value={'closed'}>Encerradas</MenuItem>
+                  </TextField>
+                </Grid>
+                <Grid item xs={12} sm={12} md={3}>
+                  <TextField
+                    select
+                    label="Tipo"
+                    name="type"
+                    value={typeFilter}
+                    onChange={(e) => setTypeFilter(e.target.value)}
+                    {...SHARED_CONTROL_PROPS}
+                  >
+                    <MenuItem value={''}>Todas</MenuItem>
+                    <MenuItem value={'prova'}>Prova</MenuItem>
+                    <MenuItem value={'trabalho'}>Trabalho</MenuItem>
+                    <MenuItem value={'trabalho em grupo'}>Trabalho em grupo</MenuItem>
+                    <MenuItem value={'exercice'}>Exercício</MenuItem>
+                  </TextField>
+                </Grid>
+              </Grid>
+
               <DataGrid
-                rows={exams}
-                columns={columns}
+                rows={filteredExams}
+                columns={!loading ? columns : []}
+                loading={loading}
                 // pageSize={5}
                 // rowsPerPageOptions={[5]}
                 // checkboxSelection
                 autoHeight
-                components={{ Footer: CustomFooterButtonsComponent }}
+                components={{
+                  Footer: CustomFooterButtonsComponent,
+                  NoRowsOverlay: () => (
+                    <GridOverlay>
+                      <div>Nenhuma avaliação encontrada</div>
+                    </GridOverlay>
+                  ),
+                }}
               />
             </CardContent>
           </Card>
