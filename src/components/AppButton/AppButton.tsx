@@ -4,6 +4,7 @@ import makeStyles from '@mui/styles/makeStyles';
 import Box from '@mui/material/Box';
 import Button, { ButtonProps } from '@mui/material/Button';
 import { buttonStylesByNames, ColorName } from '../../utils/style';
+import { CircularProgress } from '@mui/material';
 
 /**
  * Note: You can change these const to control default appearance of the AppButton component
@@ -14,6 +15,7 @@ const APP_BUTTON_MARGIN = 1;
 const useStyles = makeStyles((theme: Theme) => ({
   box: {
     display: 'inline-block',
+    position: 'relative',
   },
   // Add "filled" styles for Material UI names 'primary', 'secondary', 'warning', and so on
   ...buttonStylesByNames(theme),
@@ -33,6 +35,7 @@ interface Props extends Omit<ButtonProps, 'color'> {
   to?: string; // Link prop
   href?: string; // Link prop
   openInNewTab?: boolean; // Link prop
+  loading?: boolean;
   underline?: 'none' | 'hover' | 'always'; // Link prop
 }
 
@@ -55,6 +58,7 @@ const AppButton: React.FC<Props> = ({
   ml = APP_BUTTON_MARGIN,
   mr = APP_BUTTON_MARGIN,
   text,
+  loading,
   underline = 'none',
   variant = APP_BUTTON_VARIANT,
   ...restOfProps
@@ -64,8 +68,21 @@ const AppButton: React.FC<Props> = ({
   return (
     <Box {...{ m, mt, mb, ml, mr }} className={classes.box}>
       <Button className={classButton} variant={variant} {...{ ...restOfProps, underline }}>
-        {children || label || text}
+        {children || label || text}{' '}
       </Button>
+      {loading && (
+        <CircularProgress
+          size={24}
+          sx={{
+            color: 'green',
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            marginTop: '-12px',
+            marginLeft: '-12px',
+          }}
+        />
+      )}
     </Box>
   );
 };
