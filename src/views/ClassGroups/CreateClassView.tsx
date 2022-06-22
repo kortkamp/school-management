@@ -5,19 +5,13 @@ import { useAppStore } from '../../store';
 import { AppButton, AppAlert, AppForm } from '../../components';
 import { useAppForm, SHARED_CONTROL_PROPS, eventPreventDefault } from '../../utils/form';
 import { classGroupsService } from '../../services/classGroups.service';
-import { subjectsService } from '../../services/subjects.service';
 import { segmentsService } from '../../services/segments.service';
 import { gradesService } from '../../services/grades.service';
 
-const VALIDATE_FORM = {
-  name: {
-    type: 'string',
-    presence: { allowEmpty: false },
-    format: {
-      pattern: '^[A-Za-z0-9 ]+$', // Note: Allow only alphabets and space
-      message: 'O nome da turma só permite letras e números',
-    },
-  },
+import * as yup from 'yup';
+
+const createClassGroupSchema = {
+  name: yup.string().required('O campo é obrigatório'),
 };
 
 interface FormStateValues {
@@ -33,11 +27,9 @@ interface FormStateValues {
 function CreateClassView() {
   const history = useHistory();
   const [, dispatch] = useAppStore();
-  const [validationSchema, setValidationSchema] = useState<any>({
-    ...VALIDATE_FORM,
-  });
+
   const [formState, , /* setFormState */ onFieldChange, fieldGetError, fieldHasError] = useAppForm({
-    validationSchema, // the state value, so could be changed in time
+    validationSchema: createClassGroupSchema,
     initialValues: {
       name: '',
       segment_id: '',
@@ -77,7 +69,7 @@ function CreateClassView() {
 
       setLoading(false); // Reset "Loading..." indicator
     }
-    fetchData(); // Call API asynchronously
+    fetchData();
 
     return () => {
       // Component Un-mount
