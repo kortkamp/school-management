@@ -6,6 +6,8 @@ const getAll = async (per_page = 10, page = 1, filterBy = '', filterValue = '', 
       filterValue ? `&filterBy=${filterBy}&filterValue=${filterValue}&filterType=${filterType}` : ''
     }`
   );
+const getResultsByClassSubject = async (class_id: string, subject_id: string) =>
+  api.get(`/exams/subject/?class_id=${class_id}&subject_id=${subject_id}`);
 
 const create = async (data: object) => api.post('/exams', data);
 
@@ -23,5 +25,6 @@ export const examsService = {
   remove,
   update,
   getById,
+  getResultsByClassSubject,
   saveResults,
 };

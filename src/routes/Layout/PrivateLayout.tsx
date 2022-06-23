@@ -153,6 +153,11 @@ const SIDE_BAR_PRIVATE_ITEMS: Array<LinkToPage> = [
         path: '/exames/criar',
         icon: 'exams',
       },
+      {
+        title: 'Notas',
+        path: '/exames/notas',
+        icon: 'exams',
+      },
     ],
   },
   {

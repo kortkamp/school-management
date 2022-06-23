@@ -128,8 +128,6 @@ const ExamView = () => {
           };
         });
         resultsDispatch({ type: ExamResultActionKind.CREATE, payload: resultData });
-
-        // setResults(resultData);
       }
 
       setLoading(false);
