@@ -121,8 +121,8 @@ function ExamListView() {
     console.log(filter);
 
     try {
-      const response = await examsService.getAll(1000, 1, filter.by, filter.value, filter.type);
-      setExams(response.data.exams.result);
+      const exams = await examsService.getAll(1000, 1, filter.by, filter.value, filter.type);
+      setExams(exams.result);
     } catch (err: any) {
       console.log(err);
       // setError(ErrorAPI(404));
