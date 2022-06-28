@@ -7,6 +7,8 @@ import { SHARED_CONTROL_PROPS } from '../../utils/form';
 import { examsService } from '../../services/exams.service';
 import makeStyles from '@mui/styles/makeStyles';
 import AppSubjectClassSelector from '../../components/AppSubjectClassSelector';
+import { studentsService } from '../../services/students.service';
+import { sortByField } from '../../utils/sort';
 
 interface IResult {
   value: number;
@@ -14,27 +16,6 @@ interface IResult {
     id: string;
     name: string;
   };
-}
-interface IExamResult {
-  id: string;
-  type: string;
-  status: string;
-  value: number;
-  weight: number;
-  date: Date;
-  subject: {
-    id: string;
-    name: string;
-  };
-  class_group: {
-    id: string;
-    name: string;
-  };
-  teacher: {
-    id: string;
-    name: string;
-  };
-  results: IResult[];
 }
 
 interface IDisplayColumnResults {
@@ -75,15 +56,22 @@ function ExamResultView() {
     async function fetchData() {
       setLoading(true);
       try {
-        const response = await examsService.getResultsByClassSubject(classGroupId, subjectId);
-        const exams = response.data.exams as IExamResult[];
+        const exams = await examsService.getAll(
+          undefined,
+          undefined,
+          'subject_id,class_id',
+          `${subjectId},${classGroupId}`,
+          'eq,eq'
+        );
 
-        const columns: IDisplayColumnResults[] = exams.map((exam) => ({
+        const columns: IDisplayColumnResults[] = exams.result.map((exam) => ({
           exam_id: exam.id,
           title: exam.type,
           date: exam.date,
           value: exam.value,
         }));
+
+        const studentsResults = await studentsService.listResults(classGroupId, subjectId);
 
         const rows = [] as any[];
 
@@ -91,20 +79,15 @@ function ExamResultView() {
           return;
         }
 
-        exams.forEach((exam) => {
-          exam.results.forEach((result) => {
-            const rowIndex = rows.findIndex((row) => row.id === result.student.id);
-            if (rowIndex < 0) {
-              rows.push({ id: result.student.id, student: result.student.name, [exam.id]: result.value });
-            } else {
-              rows[rowIndex][exam.id] = result.value;
-            }
+        studentsResults.forEach((studentResult) => {
+          const newRow = { id: studentResult.id, student: studentResult.name } as any;
+          studentResult.results.forEach((result) => {
+            newRow[result.exam_id] = result.value;
           });
+          rows.push(newRow);
         });
 
-        // setExamResults(exams);
-
-        setDisplayRows(rows);
+        setDisplayRows(sortByField(rows, 'student'));
 
         setDisplayColumns(columns);
       } catch (err: any) {
@@ -180,11 +163,12 @@ function ExamResultView() {
               columns={!loading ? columns : []}
               loading={loading}
               autoHeight
+              hideFooter
               components={{
                 NoRowsOverlay: () => (
                   <GridOverlay>
                     {subjectId && classGroupId ? (
-                      <div>Nenhuma avaliação encontrada</div>
+                      <div>Nenhuma nota encontrada</div>
                     ) : (
                       <div>Selecione Turma e Matéria</div>
                     )}
