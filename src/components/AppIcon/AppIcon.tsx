@@ -22,6 +22,7 @@ import NotificationsIcon from '@mui/icons-material/NotificationsOutlined';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import GroupsIcon from '@mui/icons-material/Groups';
 import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
+import CalendarToday from '@mui/icons-material/CalendarToday';
 
 /**
  * How to use:
@@ -58,6 +59,7 @@ const ICONS: Record<string, React.ComponentType> = {
   exams: ListAltIcon,
   group: GroupsIcon,
   teacher: BusinessCenterIcon,
+  calendar: CalendarToday,
 };
 
 /**

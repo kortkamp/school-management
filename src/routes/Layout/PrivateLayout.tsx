@@ -137,6 +137,23 @@ const SIDE_BAR_PRIVATE_ITEMS: Array<LinkToPage> = [
       },
     ],
   },
+  {
+    title: 'Bimestres',
+    path: '/bimestres',
+    icon: 'calendar',
+    subMenus: [
+      {
+        title: 'Listar Bimestres',
+        path: '/bimestres',
+        icon: 'calendar',
+      },
+      {
+        title: 'Criar Bimestre',
+        path: '/bimestres/criar',
+        icon: 'calendar',
+      },
+    ],
+  },
 
   {
     title: 'Provas',
