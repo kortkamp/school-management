@@ -15,10 +15,27 @@ const update = async (id: string, data: object) => await api.put('/students/' + 
 
 const getById = async (id: string) => await api.get('/students/' + id);
 
+interface IStudentResults {
+  id: string;
+  name: string;
+  enroll_id: string;
+  results: {
+    exam_id: string;
+    value: number;
+  }[];
+}
+
+const listResults = async (class_group_id: string, subject_id: string) => {
+  const response = await api.get(`/students/results?class_group_id=${class_group_id}&subject_id=${subject_id}`);
+
+  return response.data.students as IStudentResults[];
+};
+
 export const studentsService = {
   getAll,
   create,
   remove,
   update,
   getById,
+  listResults,
 };
