@@ -1,6 +1,6 @@
-import { SyntheticEvent, useCallback, useEffect, useState } from 'react';
+import { SyntheticEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
-import { Grid, TextField, Card, CardHeader, CardContent } from '@mui/material';
+import { Grid, TextField, Card, CardHeader, CardContent, MenuItem } from '@mui/material';
 import { useAppStore } from '../../store';
 import { AppButton, AppAlert, AppForm } from '../../components';
 import { useAppForm, SHARED_CONTROL_PROPS, eventPreventDefault, DEFAULT_FORM_STATE } from '../../utils/form';
@@ -15,7 +15,10 @@ const createTermSchema = {
   name: yup.string().required('O campo é obrigatório'),
   year: yup.string().required('O campo é obrigatório'),
   start_at: yup.date().required('O campo é obrigatório'),
-  end_at: yup.date().required('O campo é obrigatório'),
+  end_at: yup
+    .date()
+    .required('O campo é obrigatório')
+    .min(yup.ref('start_at'), 'A data de término precisa ser depois da data inicial'),
 };
 
 interface FormStateValues {
@@ -39,6 +42,15 @@ function CreateTermView() {
   const [isSaving, setIsSaving] = useState(false);
 
   const [AppMessage, setMessage] = useAppMessage();
+
+  const mounted = useRef(false);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   const [formState, setFormState, onFieldChange, fieldGetError, fieldHasError] = useAppForm({
     validationSchema: createTermSchema,
@@ -75,23 +87,18 @@ function CreateTermView() {
   );
 
   const loadData = useCallback(() => {
-    let componentMounted = true;
-
     async function fetchData() {
       try {
         const { name, year, start_at, end_at } = await termsService.getById(id);
+
+        if (!mounted.current) return;
+
         setFormState({ ...DEFAULT_FORM_STATE, isValid: true, values: { name, year, start_at, end_at } });
       } catch (err: any) {
         console.log(err);
       }
-
-      if (!componentMounted) return;
     }
     fetchData();
-
-    return () => {
-      componentMounted = false;
-    };
   }, [id]);
 
   useEffect(() => {
@@ -117,16 +124,25 @@ function CreateTermView() {
             name="name"
             value={values.name}
             onChange={onFieldChange}
+            error={fieldHasError('name')}
+            helperText={fieldGetError('name') || ' '}
             {...SHARED_CONTROL_PROPS}
           />
           <TextField
             required
             label="Ano"
             name="year"
+            select
             value={values.year}
             onChange={onFieldChange}
+            error={fieldHasError('year')}
+            helperText={fieldGetError('year') || ' '}
             {...SHARED_CONTROL_PROPS}
-          />
+          >
+            <MenuItem value="2021">2021</MenuItem>
+            <MenuItem value="2022">2022</MenuItem>
+            <MenuItem value="2023">2023</MenuItem>
+          </TextField>
 
           <TextField
             required
@@ -136,6 +152,8 @@ function CreateTermView() {
             name="start_at"
             value={values.start_at ? Moment(values.start_at).utcOffset('+0300').format('YYYY-MM-DD') : ''}
             onChange={onFieldChange}
+            error={fieldHasError('start_at')}
+            helperText={fieldGetError('start_at') || ' '}
             {...SHARED_CONTROL_PROPS}
           />
           <TextField
@@ -146,6 +164,8 @@ function CreateTermView() {
             name="end_at"
             value={values.end_at ? Moment(values.end_at).utcOffset('+0300').format('YYYY-MM-DD') : ''}
             onChange={onFieldChange}
+            error={fieldHasError('end_at')}
+            helperText={fieldGetError('end_at') || ' '}
             {...SHARED_CONTROL_PROPS}
           />
 

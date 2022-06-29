@@ -14,7 +14,7 @@ interface FormStateValues {
   class_id: string;
   value: number | '';
   weight: number | '';
-  date: Date | '';
+  date: Date | null;
 }
 
 interface ITeacherClassGroup {
@@ -56,7 +56,7 @@ function CreateExamView() {
       class_id: '',
       value: '',
       weight: '',
-      date: '',
+      date: null,
     } as FormStateValues,
   });
   const [classGroups, setClassGroups] = useState<ITeacherClassGroupResponse[]>([]);
@@ -235,7 +235,7 @@ function CreateExamView() {
             InputLabelProps={{ shrink: true }}
             label="Data"
             name="date"
-            value={Moment(values.date).utcOffset('+0300').format('YYYY-MM-DD')}
+            value={values.date ? Moment(values.date).utcOffset('+0300').format('YYYY-MM-DD') : ''}
             onChange={onFieldChange}
             {...SHARED_CONTROL_PROPS}
           />
