@@ -10,7 +10,7 @@ export enum examType {
   EXERCICE = 'exercício',
 }
 
-interface IExam {
+export interface IExam {
   id: string;
 
   type: string;
@@ -35,5 +35,3 @@ interface IExam {
 
   updated_at: Date;
 }
-
-export { IExam };
