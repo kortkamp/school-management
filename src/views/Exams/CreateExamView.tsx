@@ -2,16 +2,19 @@ import { SyntheticEvent, useCallback, useState, useEffect } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import { Grid, TextField, Card, CardHeader, CardContent, LinearProgress, MenuItem } from '@mui/material';
 import { useAppStore } from '../../store';
-import { AppButton, AppAlert, AppForm } from '../../components';
+import { AppButton, AppForm } from '../../components';
 import { useAppForm, SHARED_CONTROL_PROPS, DEFAULT_FORM_STATE } from '../../utils/form';
 import { examsService } from '../../services/exams.service';
 import Moment from 'moment';
 import { teacherClassGroupsService } from '../../services/teacherClassGroups.service';
+import { useAppMessage } from '../../utils/message';
+import { IListTerms, termsService } from '../../services/terms.service';
 
 interface FormStateValues {
   type: string;
   subject_id: string;
   class_id: string;
+  term_id: string;
   value: number | '';
   weight: number | '';
   date: Date | null;
@@ -44,7 +47,11 @@ const VALIDATE_FORM = {};
 function CreateExamView() {
   const history = useHistory();
   const { id } = useParams<{ id: string }>();
+
   const [state, dispatch] = useAppStore();
+
+  const [AppMessage, setMessage] = useAppMessage();
+
   const [validationSchema, setValidationSchema] = useState<any>({
     ...VALIDATE_FORM,
   });
@@ -54,16 +61,20 @@ function CreateExamView() {
       type: '',
       subject_id: '',
       class_id: '',
+      term_id: '',
       value: '',
-      weight: '',
+      weight: 1,
       date: null,
     } as FormStateValues,
   });
   const [classGroups, setClassGroups] = useState<ITeacherClassGroupResponse[]>([]);
   const [subjects, setSubjects] = useState<ITeacherClassGroup[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>();
+  const [terms, setTerms] = useState<IListTerms[]>([]);
   const values = formState.values as FormStateValues;
+
+  const [loading, setLoading] = useState(true);
+
+  const [termError, setTermError] = useState<string | null>(null);
 
   const isEditing = id ? true : false;
 
@@ -80,6 +91,10 @@ function CreateExamView() {
           // const a = teacherClassesResponse.reduce((result, teacherClass) => [teacherClass], []);
           setClassGroups(response.data.teacherClasses);
         }
+
+        const termsResponse = await termsService.getAll();
+
+        setTerms(termsResponse);
 
         if (isEditing) {
           const examResponse = await examsService.getById(id);
@@ -117,37 +132,49 @@ function CreateExamView() {
     }
   }, [values.class_id]);
 
+  // autofill term based on chosen date
+  useEffect(() => {
+    const date = values.date;
+    if (date) {
+      const examTerm = terms.find((term) => date >= term.start_at && date <= term.end_at);
+      if (examTerm) {
+        setFormState((formState) => ({
+          ...formState,
+          values: {
+            ...formState.values,
+            term_id: examTerm?.id,
+          },
+        }));
+        setTermError(null);
+      } else {
+        setTermError('A data não pertence a nunhum bimestre');
+      }
+    }
+  }, [values.date]);
+
   const handleFormSubmit = useCallback(
     async (event: SyntheticEvent) => {
       event.preventDefault();
-
-      if (isEditing) {
-        const apiResult = await examsService.update(id, {
-          type: values.type,
-          value: values.value,
-          weight: values.weight,
-          date: values.date,
-        });
-
-        if (!apiResult) {
-          setError('Não foi possível salvar o exame');
-          return;
+      try {
+        if (isEditing) {
+          const apiResult = await examsService.update(id, {
+            type: values.type,
+            value: values.value,
+            weight: values.weight,
+            date: values.date,
+            term_id: values.term_id,
+          });
+        } else {
+          const apiResult = await examsService.create(values);
         }
-      } else {
-        const apiResult = await examsService.create(values);
-
-        if (!apiResult) {
-          setError('Não foi possível criar o exame');
-          return;
-        }
+        history.replace('/exames');
+      } catch (err: any) {
+        console.log(err);
+        setMessage({ type: 'error', text: err.response.data.message });
       }
-
-      history.replace('/exames');
     },
     [dispatch, values, history]
   );
-
-  const handleCloseError = useCallback(() => setError(undefined), []);
 
   if (loading) return <LinearProgress />;
 
@@ -220,7 +247,7 @@ function CreateExamView() {
             onChange={onFieldChange}
             {...SHARED_CONTROL_PROPS}
           />
-          <TextField
+          {/* <TextField
             required
             label="Peso"
             name="weight"
@@ -228,7 +255,7 @@ function CreateExamView() {
             value={values.weight}
             onChange={onFieldChange}
             {...SHARED_CONTROL_PROPS}
-          />
+          /> */}
           <TextField
             required
             type="date"
@@ -237,14 +264,32 @@ function CreateExamView() {
             name="date"
             value={values.date ? Moment(values.date).utcOffset('+0300').format('YYYY-MM-DD') : ''}
             onChange={onFieldChange}
+            error={termError !== null}
+            helperText={termError}
             {...SHARED_CONTROL_PROPS}
           />
+          <TextField
+            required
+            // disabled={isEditing}
+            select
+            label="Bimestre"
+            name="term_id"
+            value={values.term_id}
+            onChange={onFieldChange}
+            {...SHARED_CONTROL_PROPS}
+          >
+            {terms.map((term) => {
+              return (
+                <MenuItem key={term.id} value={term.id}>
+                  {term.name}
+                </MenuItem>
+              );
+            })}
+          </TextField>
 
-          {error ? (
-            <AppAlert severity="error" onClose={handleCloseError}>
-              {error}
-            </AppAlert>
-          ) : null}
+          <Grid item md={12} sm={12} xs={12}>
+            <AppMessage />
+          </Grid>
 
           <Grid container justifyContent="center" alignItems="center">
             <AppButton type="submit" disabled={!formState.isValid}>
