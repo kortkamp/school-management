@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, Grid, Box, TextField, MenuItem } from '@mui/material';
-import { DataGrid, GridOverlay, GridPagination } from '@mui/x-data-grid';
+import { DataGrid, GridColumns, GridOverlay, GridPagination } from '@mui/x-data-grid';
 import { ReactNode, useCallback, useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
 import Moment from 'moment';
@@ -138,13 +138,14 @@ function ExamListView() {
     setFilteredExams(exams.filter((exam) => (typeFilter !== '' ? exam.type === typeFilter : true)));
   }, [typeFilter, exams]);
 
-  const columns = [
+  const columns: GridColumns<IExam> = [
     { field: 'type', headerName: 'Tipo', width: 100 },
 
     {
       field: 'subject',
       headerName: 'Matéria',
       width: 150,
+      cellClassName: 'xxxxxxxx',
 
       valueGetter: (params: any) => {
         return params.row.subject.name;
@@ -159,8 +160,17 @@ function ExamListView() {
         return params.row.class_group.name;
       },
     },
-    { field: 'value', headerName: 'Valor', width: 50 },
-    { field: 'weight', headerName: 'Peso', width: 50 },
+    {
+      field: 'term',
+      headerName: 'Bimestre',
+      width: 150,
+
+      valueGetter: (params: any) => {
+        return params.row.term.name;
+      },
+    },
+    { field: 'value', headerName: 'Valor', width: 100 },
+    { field: 'weight', headerName: 'Peso', width: 100 },
     {
       field: 'date',
       headerName: 'Data',
@@ -169,7 +179,22 @@ function ExamListView() {
       valueGetter: (params: any) => params && Moment(params.row.date).utcOffset('+0300').format('DD-MM-YYYY'),
     },
 
-    { field: 'status', headerName: 'Situação', width: 100 },
+    {
+      field: 'status',
+      headerName: 'Situação',
+      width: 100,
+
+      valueGetter: (params: any) => {
+        switch (params.row.status) {
+          case 'open':
+            return 'Aberta';
+          case 'closed':
+            return 'Fechada';
+          default:
+            return '';
+        }
+      },
+    },
 
     {
       field: 'actions',
@@ -213,9 +238,6 @@ function ExamListView() {
       </Box>
     );
   }
-
-  // if (Error) return Error as JSX.Element;
-  // if (loading) return <AppLoading />;
 
   return (
     <>
@@ -266,9 +288,6 @@ function ExamListView() {
                 rows={filteredExams}
                 columns={!loading ? columns : []}
                 loading={loading}
-                // pageSize={5}
-                // rowsPerPageOptions={[5]}
-                // checkboxSelection
                 autoHeight
                 components={{
                   Footer: CustomFooterButtonsComponent,
