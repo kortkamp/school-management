@@ -8,7 +8,7 @@ import { ErrorBoundary, AppIconButton, AppIcon } from '../../components';
 import SideBar from '../../components/SideBar/SideBar';
 import { LinkToPage } from '../../utils/type';
 
-const TITLE_PUBLIC = 'Some App';
+const TITLE_PUBLIC = 'Sistema de Getão Escolar';
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -125,9 +125,9 @@ const PublicLayout: React.FC = ({ children }) => {
 
       <Grid item className={classes.footer} component="footer">
         <BottomNavigation onChange={handleBottomNavigationChange} showLabels>
-          <BottomNavigationAction label="Login" value="/auth/login" icon={<AppIcon icon="login" />} />
-          <BottomNavigationAction label="Signup" value="/auth/signup" icon={<AppIcon icon="signup" />} />
-          <BottomNavigationAction label="About" value="/about" icon={<AppIcon icon="info" />} />
+          <BottomNavigationAction label="Entrar" value="/auth/login" icon={<AppIcon icon="login" />} />
+          <BottomNavigationAction label="Cadastrar" value="/auth/signup" icon={<AppIcon icon="signup" />} />
+          <BottomNavigationAction label="Sobre" value="/about" icon={<AppIcon icon="info" />} />
         </BottomNavigation>
       </Grid>
     </Grid>
