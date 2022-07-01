@@ -1,0 +1,1 @@
+../../../school-management-api/src/modules/exams/models/IExam.ts
