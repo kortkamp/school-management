@@ -15,7 +15,7 @@ const update = async (id: string, data: object) => await api.put('/students/' + 
 
 const getById = async (id: string) => await api.get('/students/' + id);
 
-interface IStudentResults {
+export interface IStudentResults {
   id: string;
   name: string;
   enroll_id: string;
