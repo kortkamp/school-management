@@ -1,6 +1,8 @@
 import api from './api.service';
 
-interface IListExamResults {
+import { IExam } from './IExam';
+
+export interface IListExamResults {
   id: string;
   type: string;
   status: string;
@@ -21,6 +23,10 @@ interface IListExamResults {
     name: string;
   };
   teacher: {
+    id: string;
+    name: string;
+  };
+  term: {
     id: string;
     name: string;
   };
