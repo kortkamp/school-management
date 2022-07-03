@@ -1,29 +1,23 @@
 import {
   Card,
-  CardActions,
   CardContent,
   CardHeader,
   Grid,
-  Button,
-  Input,
   ListItem,
   ListItemProps,
   List,
   ListItemText,
   Divider,
-  Typography,
   Theme,
-  AlertColor,
+  Input,
 } from '@mui/material';
-import { ReactNode, useCallback, useEffect, useReducer, useState } from 'react';
+import { useCallback, useEffect, useReducer, useState } from 'react';
 import { useParams } from 'react-router';
 import { AppAlert, AppButton, AppLoading } from '../../components';
 import { examsService } from '../../services/exams.service';
 import { studentsService } from '../../services/students.service';
 import Moment from 'moment';
-import { ErrorAPI } from '../Errors';
 import { createStyles, makeStyles } from '@mui/styles';
-import { NavLink } from 'react-router-dom';
 import { useAppMessage } from '../../utils/message';
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -72,13 +66,13 @@ enum ExamResultActionKind {
 }
 
 // An interface for our actions
-interface CountAction {
+interface ResultsAction {
   type: ExamResultActionKind;
   payload: IExamResult[];
 }
 
 // Our reducer function that uses a switch statement to handle our actions
-function resultReducer(state: IExamResult[], action: CountAction) {
+function resultReducer(state: IExamResult[], action: ResultsAction) {
   const { type, payload } = action;
   switch (type) {
     case ExamResultActionKind.CREATE:
@@ -161,9 +155,11 @@ const ExamView = () => {
     try {
       const data = {
         exam_id: exam.id,
-        results: results.map(({ student_id, value }) => {
-          return { student_id, value };
-        }),
+        results: results
+          .map(({ student_id, value }) => {
+            return { student_id, value };
+          })
+          .filter((result) => result.value !== ''),
       };
       const response = await examsService.saveResults(data);
       console.log(response);
@@ -236,7 +232,8 @@ const ExamView = () => {
                 <Grid container direction="column" alignItems="center">
                   <AppButton
                     color="info"
-                    disabled={!resultsAreValid || saving}
+                    // disabled={!resultsAreValid || saving}
+                    disabled={saving}
                     loading={saving}
                     size="medium"
                     label="Gravar Notas"
