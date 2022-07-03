@@ -9,6 +9,7 @@ import Moment from 'moment';
 import { teacherClassGroupsService } from '../../services/teacherClassGroups.service';
 import { useAppMessage } from '../../utils/message';
 import { IListTerms, termsService } from '../../services/terms.service';
+import { examType } from '../../services/IExam';
 
 interface FormStateValues {
   type: string;
@@ -196,9 +197,11 @@ function CreateExamView() {
             style={{ minWidth: '100%' }}
             {...SHARED_CONTROL_PROPS}
           >
-            <MenuItem value="prova">Prova</MenuItem>
-            <MenuItem value="trabalho">Trabalho</MenuItem>
-            <MenuItem value="trabalho em grupo">Trabalho em grupo</MenuItem>
+            {Object.values(examType).map((type) => (
+              <MenuItem key={type} value={type}>
+                {type}
+              </MenuItem>
+            ))}
           </TextField>
 
           <TextField
