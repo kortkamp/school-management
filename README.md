@@ -1,15 +1,13 @@
-# React + Material UI + Auth starter using TypeScript
+# School Management System
 
-The **TypeScript** edition of **Create React App** plus **Material UI** with set of **reusable components** and utilities to build professional **React Application** faster.
 
+Boostraped by
 - [Source Code](https://github.com/karpolan/react-typescript-material-ui-with-auth-starter)
-- [Online Demo](https://react-typescript-material.netlify.app/)
 
 ## How to use
 
-1. Clone or download the repo from: https://github.com/karpolan/react-typescript-material-ui-with-auth-starter
+1. Clone or download the repo from: https://github.com/kortkamp/school-management
 2. Create **Favorite Icon** images and put them into `/public/img/favicon`, the **favicon.ico** file should be paced into root of `/public` folder.
-3. Add REST or GraphQL API methods...
 
 ## Available Scripts
 
