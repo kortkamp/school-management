@@ -24,9 +24,9 @@ const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     studentResultRow: {
       '&:hover': {
-        background: theme.palette.background.paper,
+        background: theme.palette.mode === 'light' ? theme.palette.grey[200] : theme.palette.grey[700],
       },
-      transition: theme.transitions.create(['background'], { duration: theme.transitions.duration.short }),
+      transition: theme.transitions.create(['background'], { duration: theme.transitions.duration.shortest }),
     },
     title: {
       textOverflow: 'ellipsis',
