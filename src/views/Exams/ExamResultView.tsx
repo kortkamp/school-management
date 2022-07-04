@@ -11,6 +11,9 @@ import { IStudentResults, studentsService } from '../../services/students.servic
 import { sortByField } from '../../utils/sort';
 import { IListTerms, termsService } from '../../services/terms.service';
 import { AppButton } from '../../components';
+import { examSubType, examType } from '../../services/IExam';
+
+const passingNote = 5;
 
 interface IResult {
   value: number;
@@ -23,6 +26,7 @@ interface IResult {
 interface IDisplayColumnResults {
   id: string;
   title: string;
+  sub_type?: string;
   date: Date;
   value: number;
   term: { id: string; name: string };
@@ -39,6 +43,14 @@ const useStyles = makeStyles((theme: Theme) => ({
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'flex-start',
+    },
+    '& .traced': {
+      textDecoration: 'line-through',
+      color: theme.palette.text.disabled,
+    },
+
+    '& .reproved': {
+      color: theme.palette.error.main,
     },
   },
 }));
@@ -65,18 +77,108 @@ function ExamResultView() {
   const [loading, setLoading] = useState(false);
 
   const generateMean = (
-    results: { exam_id: string; value: number }[],
-    exams: { id: string; type: string; term: { id: string } }[],
+    studentsResults: { id: string; results: { exam_id: string; value: number }[] },
+    exams: { id: string; type: string; sub_type: string; term: { id: string } }[],
     term_id: string
   ) => {
-    const termExamsIds = exams.filter((exam) => exam.term.id === term_id).map((exam) => exam.id);
-    const mean = results.reduce((sum, result) => {
-      if (termExamsIds.includes(result.exam_id)) {
-        sum = result.value + (sum || 0);
-      }
-      return sum;
-    }, undefined as number | undefined);
-    return mean;
+    interface IResultModification {
+      student_id: string;
+      exam_id: string;
+      weight: number;
+    }
+    let mean: number | '' = '';
+    const finalResultValues: number[] = [];
+
+    const { results } = studentsResults;
+
+    const resultWeightModification: IResultModification[] = [];
+
+    const normalizedExams = exams.map((exam) => ({ ...exam, weight: 1 }));
+
+    const termExams = normalizedExams.filter((exam) => exam.term.id === term_id);
+
+    const examTypesList = Object.values(examType);
+
+    // generates an individual result for each exam type
+    examTypesList.forEach((type) => {
+      const typeExams = termExams.filter((exam) => exam.type === type);
+      //apply different weights according subtype of the exam
+      typeExams.forEach((exam) => {
+        switch (exam.sub_type) {
+          case examSubType.SUBSTITUTIVE:
+            const examResultValue = results.find((result) => result.exam_id === exam.id);
+            if (examResultValue) {
+              typeExams
+                .filter((anotherExam) => anotherExam.id !== exam.id)
+                .forEach((anotherExam) => {
+                  anotherExam.weight = 0;
+                  resultWeightModification.push({
+                    student_id: studentsResults.id,
+                    exam_id: anotherExam.id,
+                    weight: 0,
+                  });
+                });
+            }
+            break;
+          case examSubType.MEAN:
+            typeExams.forEach((anotherExam) => {
+              anotherExam.weight = 0.5;
+              resultWeightModification.push({
+                student_id: studentsResults.id,
+                exam_id: anotherExam.id,
+                weight: 0.5,
+              });
+            });
+            break;
+          case examSubType.GREATER:
+            typeExams
+              .filter((anotherExam) => anotherExam.id !== exam.id)
+              .forEach((anotherExam) => {
+                const examResultValue = results.find((result) => result.exam_id === exam.id)?.value || 0;
+                const anotherExamResultValue = results.find((result) => result.exam_id === anotherExam.id)?.value || 0;
+
+                if (examResultValue >= anotherExamResultValue) {
+                  anotherExam.weight = 0;
+                  resultWeightModification.push({
+                    student_id: studentsResults.id,
+                    exam_id: anotherExam.id,
+                    weight: 0,
+                  });
+                }
+                if (examResultValue < anotherExamResultValue) {
+                  exam.weight = 0;
+                  resultWeightModification.push({
+                    student_id: studentsResults.id,
+                    exam_id: exam.id,
+                    weight: 0,
+                  });
+                }
+              });
+            break;
+
+          default:
+            break;
+        }
+      });
+
+      // sum all results for a type applying weights
+
+      typeExams.forEach((exam) => {
+        let examResult = 0;
+        const result = results.find((result) => result.exam_id === exam.id);
+        if (result) {
+          examResult += result.value * exam.weight;
+
+          finalResultValues.push(examResult);
+        }
+      });
+    });
+
+    if (finalResultValues.length > 0) {
+      mean = finalResultValues.reduce((total, result) => total + result, 0);
+    }
+
+    return { mean, resultWeightModification };
   };
 
   const generateColumnClasses = (terms: IListTerms[]) => {
@@ -148,6 +250,7 @@ function ExamResultView() {
         const columns: IDisplayColumnResults[] = exams.map((exam) => ({
           id: exam.id,
           title: exam.type,
+          sub_type: exam.sub_type,
           date: exam.date,
           value: exam.value,
           term: exam.term,
@@ -168,7 +271,7 @@ function ExamResultView() {
 
         columns.push(...termResumeColumns);
 
-        const hiddenColumns = columns.filter((column) => column.isResume === false).map((column) => column.id);
+        const resultColumns = columns.filter((column) => column.isResume === false).map((column) => column.id);
 
         const finalColumn = {
           id: 'final',
@@ -179,7 +282,7 @@ function ExamResultView() {
           isResume: true,
         };
 
-        toggleShowHideColumns(hiddenColumns);
+        toggleShowHideColumns(resultColumns);
 
         const columnClasses = generateColumnClasses(termsResponse);
 
@@ -189,7 +292,7 @@ function ExamResultView() {
           const newRow = { id: studentResult.id, student: studentResult.name } as Record<string, any>;
           // generate one object property for each exam result
           studentResult.results.forEach((result) => {
-            newRow[result.exam_id] = result.value;
+            newRow[result.exam_id] = { result: result.value, weight: 1 };
           });
           return total.concat(newRow);
         }, [] as Record<string, any>[]);
@@ -197,7 +300,14 @@ function ExamResultView() {
         studentsResults.forEach((studentResult) => {
           termsResponse.forEach((term) => {
             const studentIndex = rows.findIndex((row: any) => row.id === studentResult.id);
-            rows[studentIndex][term.id] = generateMean(studentResult.results, exams, term.id);
+            const { mean, resultWeightModification } = generateMean(studentResult, exams, term.id);
+
+            resultWeightModification.forEach((weigthModification) => {
+              if (rows[studentIndex][weigthModification.exam_id]) {
+                rows[studentIndex][weigthModification.exam_id].weight = weigthModification.weight;
+              }
+            });
+            rows[studentIndex][term.id] = { result: mean, weight: 1 };
           });
         });
 
@@ -256,11 +366,17 @@ function ExamResultView() {
           type: 'number',
           hide: !displayColumn.isResume,
 
-          cellClassName: () => {
+          valueGetter: (params: any) => {
+            return params.row[displayColumn.id]?.result;
+          },
+
+          cellClassName: (params) => {
+            const weightModificator = params.row[displayColumn.id]?.weight === 0 ? 'traced ' : '';
+            const resultMoficator = params.row[displayColumn.id]?.result < passingNote ? 'reproved ' : '';
             if (displayColumn.isResume) {
-              return 'resume-' + displayColumn.term.id;
+              return resultMoficator + 'resume-' + displayColumn.term.id;
             }
-            return 'term-' + displayColumn.term.id;
+            return weightModificator + 'term-' + displayColumn.term.id;
           },
 
           renderHeader: (params: GridColumnHeaderParams) => (
@@ -268,6 +384,9 @@ function ExamResultView() {
               <span>{displayColumn.term.name}</span>
               <span style={{ textAlign: 'center' }}>
                 <b>{displayColumn.title}</b>
+              </span>
+              <span style={{ textAlign: 'center' }}>
+                <b>{displayColumn.sub_type}</b>
               </span>
               {!displayColumn.isResume ? (
                 <>
