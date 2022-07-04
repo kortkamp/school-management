@@ -13,7 +13,7 @@ import { IListTerms, termsService } from '../../services/terms.service';
 import { AppButton } from '../../components';
 import { examSubType, examType } from '../../services/IExam';
 
-const passingNote = 5;
+const passingNote = 7;
 
 interface IResult {
   value: number;
@@ -51,6 +51,10 @@ const useStyles = makeStyles((theme: Theme) => ({
 
     '& .reproved': {
       color: theme.palette.error.main,
+    },
+
+    '& .resume-final': {
+      fontWeight: '600',
     },
   },
 }));
@@ -297,10 +301,16 @@ function ExamResultView() {
           return total.concat(newRow);
         }, [] as Record<string, any>[]);
 
+        // generate the term mean results
         studentsResults.forEach((studentResult) => {
+          const termMeans: number[] = [];
+          const studentIndex = rows.findIndex((row: any) => row.id === studentResult.id);
           termsResponse.forEach((term) => {
-            const studentIndex = rows.findIndex((row: any) => row.id === studentResult.id);
             const { mean, resultWeightModification } = generateMean(studentResult, exams, term.id);
+
+            if (mean !== '') {
+              termMeans.push(mean);
+            }
 
             resultWeightModification.forEach((weigthModification) => {
               if (rows[studentIndex][weigthModification.exam_id]) {
@@ -309,7 +319,12 @@ function ExamResultView() {
             });
             rows[studentIndex][term.id] = { result: mean, weight: 1 };
           });
+
+          const final = termMeans.reduce((total, mean) => mean + total) / termMeans.length;
+          rows[studentIndex]['final'] = { result: final, weight: 1 };
         });
+
+        console.log(rows);
 
         if (!componentMounted) {
           return;
