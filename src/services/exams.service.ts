@@ -1,8 +1,14 @@
 import api from './api.service';
 
-import { IExam } from './IExam';
+export interface IStudentResult {
+  value: number;
+  student: {
+    id: string;
+    name: string;
+  };
+}
 
-export interface IListExamResults {
+export interface IExam {
   id: string;
   type: string;
   sub_type: string;
@@ -31,6 +37,7 @@ export interface IListExamResults {
     id: string;
     name: string;
   };
+  results: IStudentResult[];
 }
 
 interface IExamListResponse {
@@ -38,7 +45,7 @@ interface IExamListResponse {
   page: number;
   per_page: number;
   total_pages: number;
-  result: IListExamResults[];
+  result: IExam[];
 }
 
 const getAll = async (per_page = 10, page = 1, filterBy = '', filterValue = '', filterType = '') => {
@@ -58,7 +65,7 @@ const remove = async (id: string) => api.delete(`/exams/${id}`);
 
 const update = async (id: string, data: object) => api.put(`/exams/${id}`, data);
 
-const getById = async (id: string) => api.get(`/exams/${id}`);
+const getById = async (id: string) => (await api.get(`/exams/${id}`)).data.exam as IExam;
 
 const saveResults = async (data: object) => api.post('/exams/results', data);
 

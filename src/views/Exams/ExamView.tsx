@@ -107,9 +107,7 @@ const ExamView = () => {
 
   const loadClassGroupsList = useCallback(async () => {
     try {
-      const response = await examsService.getById(id);
-
-      const examData = response.data.exam;
+      const examData = await examsService.getById(id);
 
       setExams(examData);
 

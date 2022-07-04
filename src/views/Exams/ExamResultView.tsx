@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Moment from 'moment';
 
 import { SHARED_CONTROL_PROPS } from '../../utils/form';
-import { examsService, IListExamResults } from '../../services/exams.service';
+import { examsService, IExam } from '../../services/exams.service';
 import makeStyles from '@mui/styles/makeStyles';
 import AppSubjectClassSelector from '../../components/AppSubjectClassSelector';
 import { IStudentResults, studentsService } from '../../services/students.service';
@@ -67,7 +67,7 @@ function ExamResultView() {
   const [subjectId, setSubjectId] = useState('');
   const [classGroupId, setClassGroupId] = useState('');
 
-  const [exams, setExams] = useState<IListExamResults[]>([]);
+  const [exams, setExams] = useState<IExam[]>([]);
 
   const [hiddenColumnsIds, setHiddenColumnsIds] = useState([] as string[]);
 

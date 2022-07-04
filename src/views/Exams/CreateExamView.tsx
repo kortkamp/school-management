@@ -103,7 +103,7 @@ function CreateExamView() {
 
         if (isEditing) {
           const examResponse = await examsService.getById(id);
-          setFormState({ ...DEFAULT_FORM_STATE, isValid: true, values: examResponse.data.exam });
+          setFormState({ ...DEFAULT_FORM_STATE, isValid: true, values: examResponse });
         }
       } catch (err: any) {
         console.log(err);
