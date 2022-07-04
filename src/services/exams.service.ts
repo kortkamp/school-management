@@ -5,6 +5,7 @@ import { IExam } from './IExam';
 export interface IListExamResults {
   id: string;
   type: string;
+  sub_type: string;
   status: string;
   value: number;
   weight: number;

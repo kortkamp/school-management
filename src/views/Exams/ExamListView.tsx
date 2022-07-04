@@ -141,6 +141,8 @@ function ExamListView() {
   const columns: GridColumns<IExam> = [
     { field: 'type', headerName: 'Tipo', width: 100 },
 
+    { field: 'sub_type', headerName: 'SubTipo', width: 120 },
+
     {
       field: 'subject',
       headerName: 'Matéria',
@@ -170,7 +172,6 @@ function ExamListView() {
       },
     },
     { field: 'value', headerName: 'Valor', width: 100 },
-    { field: 'weight', headerName: 'Peso', width: 100 },
     {
       field: 'date',
       headerName: 'Data',

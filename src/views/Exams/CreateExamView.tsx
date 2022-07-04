@@ -9,10 +9,12 @@ import Moment from 'moment';
 import { teacherClassGroupsService } from '../../services/teacherClassGroups.service';
 import { useAppMessage } from '../../utils/message';
 import { IListTerms, termsService } from '../../services/terms.service';
-import { examType } from '../../services/IExam';
+import { examSubType, examType } from '../../services/IExam';
 
 interface FormStateValues {
   type: string;
+  sub_type: string;
+  reference_id: string;
   subject_id: string;
   class_id: string;
   term_id: string;
@@ -60,6 +62,8 @@ function CreateExamView() {
     validationSchema, // the state value, so could be changed in time
     initialValues: {
       type: '',
+      sub_type: '',
+      reference_id: '',
       subject_id: '',
       class_id: '',
       term_id: '',
@@ -160,6 +164,8 @@ function CreateExamView() {
         if (isEditing) {
           const apiResult = await examsService.update(id, {
             type: values.type,
+            sub_type: values.sub_type,
+            reference_id: values.reference_id,
             value: values.value,
             weight: values.weight,
             date: values.date,
@@ -200,6 +206,23 @@ function CreateExamView() {
             {Object.values(examType).map((type) => (
               <MenuItem key={type} value={type}>
                 {type}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            required
+            select
+            label="SubTipo"
+            name="sub_type"
+            value={values.sub_type}
+            onChange={onFieldChange}
+            style={{ minWidth: '100%' }}
+            {...SHARED_CONTROL_PROPS}
+          >
+            {Object.values(examSubType).map((subType) => (
+              <MenuItem key={subType} value={subType}>
+                {subType}
               </MenuItem>
             ))}
           </TextField>
