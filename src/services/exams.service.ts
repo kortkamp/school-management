@@ -12,6 +12,7 @@ export interface IExam {
   id: string;
   type: string;
   sub_type: string;
+  reference_id: string;
   status: string;
   value: number;
   weight: number;
