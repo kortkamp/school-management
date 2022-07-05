@@ -125,14 +125,17 @@ function ExamResultView() {
             }
             break;
           case examSubType.MEAN:
-            typeExams.forEach((anotherExam) => {
-              anotherExam.weight = 0.5;
-              resultWeightModification.push({
-                student_id: studentsResults.id,
-                exam_id: anotherExam.id,
-                weight: 0.5,
+            const examResult = results.find((result) => result.exam_id === exam.id);
+            if (examResult) {
+              typeExams.forEach((anotherExam) => {
+                anotherExam.weight = 0.5;
+                resultWeightModification.push({
+                  student_id: studentsResults.id,
+                  exam_id: anotherExam.id,
+                  weight: 0.5,
+                });
               });
-            });
+            }
             break;
           case examSubType.GREATER:
             typeExams

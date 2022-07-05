@@ -92,7 +92,11 @@ function resultReducer(state: IExamResult[], action: ResultsAction) {
   }
 }
 
-const ExamView = () => {
+interface Props {
+  examId?: string;
+}
+
+const ExamView: React.FC<Props> = ({ examId }) => {
   const classes = useStyles();
 
   const [AppMessage, setMessage] = useAppMessage();
@@ -107,7 +111,7 @@ const ExamView = () => {
 
   const loadClassGroupsList = useCallback(async () => {
     try {
-      const examData = await examsService.getById(id);
+      const examData = await examsService.getById(examId || id);
 
       setExams(examData);
 
@@ -178,7 +182,7 @@ const ExamView = () => {
   if (loading) return <AppLoading />;
 
   return (
-    <Grid container spacing={3} sx={{ display: 'flex', justifyContent: 'center' }}>
+    <Grid container spacing={1} sx={{ display: 'flex', justifyContent: 'center' }}>
       <Grid item xs={12} md={9} sm={12}>
         <Card sx={{ marginTop: '50px' }}>
           <CardHeader style={{ textAlign: 'center' }} title={exam.type.toUpperCase()} />

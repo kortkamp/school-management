@@ -4,7 +4,7 @@ import { Grid, TextField, Card, CardHeader, CardContent, LinearProgress, MenuIte
 import { useAppStore } from '../../store';
 import { AppButton, AppForm } from '../../components';
 import { useAppForm, SHARED_CONTROL_PROPS, DEFAULT_FORM_STATE } from '../../utils/form';
-import { examsService } from '../../services/exams.service';
+import { examsService, IExam } from '../../services/exams.service';
 import Moment from 'moment';
 import { teacherClassGroupsService } from '../../services/teacherClassGroups.service';
 import { useAppMessage } from '../../utils/message';
@@ -19,7 +19,7 @@ interface FormStateValues {
   class_id: string;
   term_id: string;
   value: number | '';
-  weight: number | '';
+  weight: number;
   date: Date | null;
 }
 
@@ -43,13 +43,18 @@ interface ITeacherClassGroupResponse {
 
 const VALIDATE_FORM = {};
 
+interface Props {
+  examId?: string;
+  getExamData?: (data: FormStateValues) => void;
+}
+
 /**
  * Renders "Create Exam" view
  * url: /exames/criar
  */
-function CreateExamView() {
+const CreateExamView: React.FC<Props> = ({ examId, getExamData }) => {
   const history = useHistory();
-  const { id } = useParams<{ id: string }>();
+  const { id: examIdParam } = useParams<{ id: string }>();
 
   const [state, dispatch] = useAppStore();
 
@@ -81,7 +86,7 @@ function CreateExamView() {
 
   const [termError, setTermError] = useState<string | null>(null);
 
-  const isEditing = id ? true : false;
+  const editingExamId = examIdParam || examId;
 
   const loadData = useCallback(() => {
     // Component Mount
@@ -101,8 +106,8 @@ function CreateExamView() {
 
         setTerms(termsResponse);
 
-        if (isEditing) {
-          const examResponse = await examsService.getById(id);
+        if (editingExamId) {
+          const examResponse = await examsService.getById(editingExamId);
           setFormState({ ...DEFAULT_FORM_STATE, isValid: true, values: examResponse });
         }
       } catch (err: any) {
@@ -120,11 +125,11 @@ function CreateExamView() {
       // Component Un-mount
       componentMounted = false;
     };
-  }, [id]);
+  }, [editingExamId]);
 
   useEffect(() => {
     loadData();
-  }, [id, loadData]);
+  }, [editingExamId, loadData]);
 
   useEffect(() => {
     setField('subject_id', '');
@@ -161,8 +166,8 @@ function CreateExamView() {
     async (event: SyntheticEvent) => {
       event.preventDefault();
       try {
-        if (isEditing) {
-          const apiResult = await examsService.update(id, {
+        if (editingExamId) {
+          const apiResult = await examsService.update(editingExamId, {
             type: values.type,
             sub_type: values.sub_type,
             reference_id: values.reference_id,
@@ -173,6 +178,9 @@ function CreateExamView() {
           });
         } else {
           const apiResult = await examsService.create(values);
+        }
+        if (getExamData) {
+          getExamData(values);
         }
         history.replace('/exames');
       } catch (err: any) {
@@ -190,7 +198,7 @@ function CreateExamView() {
       <Card style={{ marginTop: '50px' }}>
         <CardHeader
           style={{ textAlign: 'center' }}
-          title={isEditing ? 'Editar Prova ou Trabalho' : 'Adicionar Prova ou Trabalho'}
+          title={editingExamId ? 'Editar Prova ou Trabalho' : 'Adicionar Prova ou Trabalho'}
         />
         <CardContent>
           <TextField
@@ -229,7 +237,7 @@ function CreateExamView() {
 
           <TextField
             required
-            disabled={isEditing}
+            disabled={editingExamId ? true : false}
             select
             label="Turma"
             name="class_id"
@@ -249,7 +257,7 @@ function CreateExamView() {
             required
             select
             label="Matéria"
-            disabled={isEditing}
+            disabled={editingExamId ? true : false}
             name="subject_id"
             value={values.subject_id}
             onChange={onFieldChange}
@@ -296,7 +304,7 @@ function CreateExamView() {
           />
           <TextField
             required
-            // disabled={isEditing}
+            // disabled={editingExamId}
             select
             label="Bimestre"
             name="term_id"
@@ -319,13 +327,13 @@ function CreateExamView() {
 
           <Grid container justifyContent="center" alignItems="center">
             <AppButton type="submit" disabled={!formState.isValid}>
-              {isEditing ? 'SALVAR' : 'ADICIONAR'}
+              {editingExamId ? 'SALVAR' : 'ADICIONAR'}
             </AppButton>
           </Grid>
         </CardContent>
       </Card>
     </AppForm>
   );
-}
+};
 
 export default CreateExamView;

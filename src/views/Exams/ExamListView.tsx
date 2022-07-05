@@ -8,6 +8,9 @@ import { examsService } from '../../services/exams.service';
 import { CommonDialog } from '../../components/dialogs';
 import { SHARED_CONTROL_PROPS } from '../../utils/form';
 
+import ExamView from './ExamView';
+import CreateExamView from './CreateExamView';
+
 interface IExam {
   id: string;
   type: string;
@@ -118,8 +121,6 @@ function ExamListView() {
       };
     }
 
-    console.log(filter);
-
     try {
       const exams = await examsService.getAll(1000, 1, filter.by, filter.value, filter.type);
       setExams(exams.result);
@@ -137,6 +138,63 @@ function ExamListView() {
   useEffect(() => {
     setFilteredExams(exams.filter((exam) => (typeFilter !== '' ? exam.type === typeFilter : true)));
   }, [typeFilter, exams]);
+
+  const handleConfirmExamResults = () => {
+    onDialogClose();
+  };
+
+  const handleShowExamResults = (examId: string) => {
+    setModal(
+      <CommonDialog
+        open
+        hideCancelButton
+        title=""
+        body={<ExamView examId={examId} />}
+        fullWidth
+        confirmButtonText="Fechar"
+        // confirmButtonColor="warning"
+        onClose={onDialogClose}
+        onConfirm={handleConfirmExamResults}
+      />
+    );
+  };
+
+  const handleEditExam = (examId: string) => {
+    setModal(
+      <CommonDialog
+        open
+        hideCancelButton
+        title=""
+        body={
+          <CreateExamView
+            examId={examId}
+            getExamData={(examData) => {
+              setExams((exams) => {
+                return exams.map((exam) => {
+                  if (exam.id === examId) {
+                    return {
+                      ...exam,
+                      value: examData.value as number,
+                      date: examData.date as Date,
+                      type: examData.type,
+                      sub_type: examData.sub_type,
+                    };
+                  }
+                  return exam;
+                });
+              });
+              console.log(examData);
+            }}
+          />
+        }
+        fullWidth
+        confirmButtonText="Fechar"
+        // confirmButtonColor="warning"
+        onClose={onDialogClose}
+        onConfirm={handleConfirmExamResults}
+      />
+    );
+  };
 
   const columns: GridColumns<IExam> = [
     { field: 'type', headerName: 'Tipo', width: 100 },
@@ -206,10 +264,12 @@ function ExamListView() {
       renderCell: (params: any) => {
         return (
           <>
-            <AppButton color="default" onClick={() => history.push(`/exames/${params.row.id}`)}>
+            {/* <AppButton color="default" onClick={() => history.push(`/exames/${params.row.id}`)}> */}
+            <AppButton color="default" onClick={() => handleShowExamResults(params.row.id)}>
               Notas
             </AppButton>
-            <AppButton color="info" onClick={() => history.push(`/exames/editar/${params.row.id}`)}>
+            {/* <AppButton color="info" onClick={() => history.push(`/exames/editar/${params.row.id}`)}> */}
+            <AppButton color="info" onClick={() => handleEditExam(params.row.id)}>
               Editar
             </AppButton>
             <AppButton
