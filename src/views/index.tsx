@@ -6,6 +6,7 @@ import ClassGroups from './ClassGroups';
 import Students from './Students';
 import Exams from './Exams';
 import Terms from './Terms';
+import Routines from './Routines';
 
 // import Welcome from './Welcome';
 
@@ -19,4 +20,5 @@ export {
   Students,
   Exams,
   Terms,
+  Routines,
 };
