@@ -14,6 +14,7 @@ export interface IAllocation {
 
 interface Props {
   onChange?: (allocation: IAllocation) => void;
+  getClassGroup?: (classGroup: any) => void;
 }
 
 enum AllocationActionKind {
@@ -26,7 +27,7 @@ interface AllocationAction {
   payload: Partial<IAllocation>;
 }
 
-const AppAllocationSelect: React.FC<Props> = ({ onChange }) => {
+const AppAllocationSelect: React.FC<Props> = ({ onChange, getClassGroup }) => {
   function allocationReducer(state: IAllocation, action: AllocationAction) {
     const { type, payload } = action;
 
@@ -63,16 +64,25 @@ const AppAllocationSelect: React.FC<Props> = ({ onChange }) => {
     loadFilterData();
   }, [loadFilterData]);
 
+  const updateClassGroup = (id: string | undefined) => {
+    if (getClassGroup) {
+      getClassGroup(classGroups.find((classGroup) => classGroup.id === id));
+    }
+  };
+
   const handleSelectSegmentId = (id: string) => {
     allocationDispatch({ type: AllocationActionKind.SET, payload: { gradeId: '', classGroupId: '', segmentId: id } });
+    updateClassGroup(undefined);
   };
 
   const handleSelectGradeId = (id: string) => {
     allocationDispatch({ type: AllocationActionKind.SET, payload: { gradeId: id, classGroupId: '' } });
+    updateClassGroup(undefined);
   };
 
   const handleSelectClassGroupId = (id: string) => {
     allocationDispatch({ type: AllocationActionKind.SET, payload: { classGroupId: id } });
+    updateClassGroup(id);
   };
 
   return (
