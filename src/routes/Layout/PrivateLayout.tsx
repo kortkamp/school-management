@@ -73,6 +73,11 @@ const SIDE_BAR_PRIVATE_ITEMS: Array<LinkToPage> = [
     icon: 'account',
   },
   {
+    title: 'Horários',
+    path: '/horarios',
+    icon: 'clock',
+  },
+  {
     title: 'Professores',
     icon: 'teacher',
     subMenus: [
