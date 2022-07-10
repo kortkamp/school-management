@@ -7,11 +7,29 @@ export interface IRoutine {
   end_at: string;
 }
 
-interface IRoutineSubject {
+export interface IRoutineSubject {
   routine_id: string;
   subject_id: string;
   class_group_id: string;
   week_day: number;
+}
+
+export interface IRoutineData {
+  week_day: number;
+  subject: {
+    id: string;
+    name: string;
+  };
+  classGroup: {
+    id: string;
+    name: string;
+  };
+}
+export interface IClassGroupRoutine {
+  id: string;
+  start_at: string;
+  end_at: string;
+  routineSubjects: IRoutineData[];
 }
 
 const getAll = async () => (await api.get(`/routines`)).data.routines as IRoutine[];
@@ -21,6 +39,12 @@ const getRoutineSubjectsByClassGroup = async (id: string) =>
 
 const saveRoutineSubjects = async (data: { routine_subjects: IRoutineSubject[] }) =>
   await api.post('/routines/subjects', data);
+
+const getRoutinesByClassGroup = async (id: string) =>
+  (await api.get('/routines/class-group/' + id)).data.routines as IClassGroupRoutine[];
+
+const getRoutinesByTeacher = async (id: string) =>
+  (await api.get('/routines/teacher/' + id)).data.routines as IClassGroupRoutine[];
 
 // const create = async (data: object) => await api.post('/routines', data);
 
@@ -34,6 +58,8 @@ export const routinesService = {
   getAll,
   getRoutineSubjectsByClassGroup,
   saveRoutineSubjects,
+  getRoutinesByClassGroup,
+  getRoutinesByTeacher,
   // create,
   // remove,
   // update,
