@@ -11,6 +11,7 @@ export interface IAuthUserResult {
   email: string;
   avatar: string | null;
   role: string;
+  class_group_id?: string;
   token: string;
 }
 
