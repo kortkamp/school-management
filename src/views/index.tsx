@@ -7,13 +7,14 @@ import Students from './Students';
 import Exams from './Exams';
 import Terms from './Terms';
 import Routines from './Routines';
+import Home from './Home';
 
 // import Welcome from './Welcome';
 
 export {
   NotFound,
   About,
-  NotImplemented as Welcome,
+  Home as Welcome,
   NotImplemented as User,
   Teachers,
   ClassGroups,
