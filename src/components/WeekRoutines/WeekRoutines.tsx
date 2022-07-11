@@ -3,11 +3,11 @@ import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow
 import { IClassGroupRoutine, IRoutineData, routinesService, IRoutineSubject } from '../../services/routines.service';
 import { AppLoading } from '../AppLoading';
 
-export interface ITableCell extends React.FC<{ value: string; data: IRoutineSubject }> {}
+export interface ITableCell extends React.FC<{ subject: string; classGroup: string; data: IRoutineSubject }> {}
 
 interface Props {
   type: string;
-  id: string;
+  userId: string;
   Cell: ITableCell;
 }
 
@@ -15,7 +15,7 @@ interface Props {
  * Application WeekRoutines Tables
  * @param {ITableCell} [Cell] - Component to be rendered inside each cell
  */
-const WeekRoutines: React.FC<Props> = ({ Cell, id, type }) => {
+const WeekRoutines: React.FC<Props> = ({ Cell, userId, type }) => {
   const weekDays = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
 
   const mounted = useRef(false);
@@ -28,12 +28,8 @@ const WeekRoutines: React.FC<Props> = ({ Cell, id, type }) => {
     const fetchData = async () => {
       setLoading(true);
       let routines: IClassGroupRoutine[] = [];
-      if (type === 'student') {
-        routines = await routinesService.getRoutinesByClassGroup(id);
-      }
-      if (type === 'teacher') {
-        routines = await routinesService.getRoutinesByTeacher(id);
-      }
+
+      routines = await routinesService.getRoutinesByTeacher(userId);
 
       if (!mounted.current) {
         return;
@@ -61,7 +57,7 @@ const WeekRoutines: React.FC<Props> = ({ Cell, id, type }) => {
     };
 
     fetchData();
-  }, [id, type]);
+  }, [userId, type]);
 
   useEffect(() => {
     mounted.current = true;
@@ -98,15 +94,10 @@ const WeekRoutines: React.FC<Props> = ({ Cell, id, type }) => {
                 {showWeekDays.map((weekDay, index) => (
                   <TableCell key={weekDay} component="th" scope="row" align="center">
                     <Cell
-                      value={
-                        type === 'student'
-                          ? row.routineSubjects[index + 1].subject?.name
-                          : row.routineSubjects[index + 1].classGroup?.name +
-                            ' - ' +
-                            row.routineSubjects[index + 1].subject?.name
-                      }
+                      subject={row.routineSubjects[index + 1].subject?.name}
+                      classGroup={row.routineSubjects[index + 1].classGroup?.name}
                       data={{
-                        class_group_id: type === 'student' ? id : row.routineSubjects[index + 1].classGroup.id,
+                        class_group_id: type === 'student' ? userId : row.routineSubjects[index + 1].classGroup.id,
                         routine_id: row.id,
                         subject_id: row.routineSubjects[index + 1].subject.id,
                         week_day: index + 1,
