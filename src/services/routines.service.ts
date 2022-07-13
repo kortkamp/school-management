@@ -43,8 +43,8 @@ const saveRoutineSubjects = async (data: { routine_subjects: IRoutineSubject[] }
 const getRoutinesByClassGroup = async (id: string) =>
   (await api.get('/routines/class-group/' + id)).data.routines as IClassGroupRoutine[];
 
-const getRoutinesByTeacher = async (id: string) =>
-  (await api.get('/routines/teacher/' + id)).data.routines as IClassGroupRoutine[];
+const getRoutinesByUser = async (id: string) =>
+  (await api.get('/routines/user/' + id)).data.routines as IClassGroupRoutine[];
 
 // const create = async (data: object) => await api.post('/routines', data);
 
@@ -59,7 +59,7 @@ export const routinesService = {
   getRoutineSubjectsByClassGroup,
   saveRoutineSubjects,
   getRoutinesByClassGroup,
-  getRoutinesByTeacher,
+  getRoutinesByUser,
   // create,
   // remove,
   // update,

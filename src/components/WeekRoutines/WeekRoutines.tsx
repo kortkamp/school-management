@@ -29,7 +29,7 @@ const WeekRoutines: React.FC<Props> = ({ Cell, userId, type }) => {
       setLoading(true);
       let routines: IClassGroupRoutine[] = [];
 
-      routines = await routinesService.getRoutinesByTeacher(userId);
+      routines = await routinesService.getRoutinesByUser(userId);
 
       if (!mounted.current) {
         return;
