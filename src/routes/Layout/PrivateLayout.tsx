@@ -73,9 +73,22 @@ const SIDE_BAR_PRIVATE_ITEMS: Array<LinkToPage> = [
     icon: 'account',
   },
   {
-    title: 'Horários',
+    title: 'Definir Horários',
     path: '/horarios',
     icon: 'clock',
+    subMenus: [
+      {
+        title: 'Definir por Turma',
+        path: '/horarios/turma',
+        icon: 'search',
+      },
+
+      {
+        title: 'Definir por Professor',
+        path: '/horarios/professor',
+        icon: 'search',
+      },
+    ],
   },
   {
     title: 'Professores',
@@ -161,17 +174,17 @@ const SIDE_BAR_PRIVATE_ITEMS: Array<LinkToPage> = [
   },
 
   {
-    title: 'Provas',
+    title: 'Avaliações',
     path: '/exames',
     icon: 'exams',
     subMenus: [
       {
-        title: 'Listar Provas',
+        title: 'Listar Avaliações',
         path: '/exames',
         icon: 'exams',
       },
       {
-        title: 'Criar Provas',
+        title: 'Criar Avaliações',
         path: '/exames/criar',
         icon: 'exams',
       },

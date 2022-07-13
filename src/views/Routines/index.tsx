@@ -8,7 +8,7 @@ import RoutinesView from './RoutinesView';
 const TermsRoutes = () => {
   return (
     <Switch>
-      <Route component={RoutinesView} />
+      <Route path="/horarios/turma" component={RoutinesView} />
     </Switch>
   );
 };
