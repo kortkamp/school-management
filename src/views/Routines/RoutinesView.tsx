@@ -14,14 +14,12 @@ import {
   MenuItem,
 } from '@mui/material';
 import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
-import { AppButton, AppLink, AppLoading } from '../../components';
+import { AppButton, AppLoading } from '../../components';
 import AppAllocationSelect, { IAllocation } from '../../components/AppAllocationSelect/AppAllocationSelect';
-import { IListTerms, termsService } from '../../services/terms.service';
-import Moment from 'moment';
-import { CommonDialog } from '../../components/dialogs';
 import { useAppMessage } from '../../utils/message';
 import { IRoutine, routinesService } from '../../services/routines.service';
 import { subjectsService } from '../../services/subjects.service';
+import SubjectsTimeTable from '../../components/SubjectsTimeTable';
 
 interface ISubject {
   id: string;
@@ -39,23 +37,24 @@ interface IRoutineSubject {
   week_day: number;
 }
 
+interface ISubjectsTotalTime {
+  id: string;
+  name: string;
+  time: number;
+}
+
 /**
  * Renders "ListTermsView" view
  * url: /horarios/*
  */
 const RoutinesView = () => {
   const weekDays = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+
   const [routines, setRoutines] = useState<IRoutine[]>([]);
   const [routineSubjects, setRoutineSubjects] = useState<IRoutineSubject[]>([]);
   const [defaultRoutineSubjects, setDefaultRoutineSubjects] = useState<IRoutineSubject[]>([]);
   const [subjects, setSubjects] = useState<ISubject[]>([]);
-
-  const [selectedClassGroup, setSelectedClassGroup] = useState<any>();
-
-  const [loading, setLoading] = useState(false);
-
-  const [dataHasBeenUpdated, setDataHasBeenUpdated] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [subjectsTime, setSubjectsTime] = useState<ISubjectsTotalTime[]>([]);
 
   const [allocation, setAllocation] = useState<IAllocation>({
     segmentId: '',
@@ -63,9 +62,14 @@ const RoutinesView = () => {
     classGroupId: '',
   });
 
-  const [modal, setModal] = useState<ReactNode | null>(null);
+  const [selectedClassGroup, setSelectedClassGroup] = useState<any>();
 
+  const [loading, setLoading] = useState(false);
+  const [dataHasBeenUpdated, setDataHasBeenUpdated] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [AppMessage, setMessage] = useAppMessage();
+
+  const [modal, setModal] = useState<ReactNode | null>(null);
 
   const mounted = useRef(false);
 
@@ -93,27 +97,14 @@ const RoutinesView = () => {
     fetchData();
   }, []);
 
-  const loadSubjects = useCallback(async () => {
-    const fetchData = async () => {
-      const subjectsResponse = await subjectsService.getAll();
-
-      if (!mounted.current) {
-        return;
-      }
-
-      setSubjects(subjectsResponse.data.subjects);
-    };
-
-    fetchData();
-  }, []);
-
   const loadRoutineSubjects = useCallback(async () => {
     setMessage(undefined);
     setLoading(true);
 
     const data = await routinesService.getRoutineSubjectsByClassGroup(selectedClassGroup.id);
+
     setRoutineSubjects([...data]);
-    setDefaultRoutineSubjects(data);
+    setDefaultRoutineSubjects([...data]);
     setLoading(false);
   }, [selectedClassGroup]);
 
@@ -127,9 +118,25 @@ const RoutinesView = () => {
     loadData();
   }, [loadData]);
 
+  const generateSubjectsResume = () => {
+    const subjectsTime = subjects
+      .filter((subject) => subject.segment.id === selectedClassGroup?.grade?.segment.id)
+      .map((subject) => {
+        const subjectTimes = routineSubjects.filter(
+          (routineSubject) => routineSubject.subject_id === subject.id
+        ).length;
+
+        return { id: subject.id, name: subject.name, time: subjectTimes };
+      });
+    const total = subjectsTime.reduce((total, subjectTime) => total + subjectTime.time, 0);
+    subjectsTime.push({ id: 'total', name: 'Total', time: total });
+    setSubjectsTime(subjectsTime);
+  };
+
+  // update the subject total time resume
   useEffect(() => {
-    loadSubjects();
-  }, [loadSubjects]);
+    generateSubjectsResume();
+  }, [subjects, routineSubjects]);
 
   const onSelectRoutineSubject = (data: Omit<IRoutineSubject, 'class_group_id'>) => {
     setRoutineSubjects((routineSubjects) => {
@@ -147,6 +154,7 @@ const RoutinesView = () => {
 
       return routineSubjects;
     });
+    generateSubjectsResume();
   };
 
   const handleSaveRoutineSubjects = async () => {
@@ -253,6 +261,18 @@ const RoutinesView = () => {
               )}
             </CardContent>
           </Card>
+          {selectedClassGroup && (
+            <Card style={{ padding: '20px' }}>
+              <CardHeader
+                style={{ textAlign: 'center' }}
+                title="Carga Horária"
+                subheader="Carga Horária das disciplinas"
+              />
+              <CardContent aria-orientation="horizontal">
+                <SubjectsTimeTable data={subjectsTime} loading={loading} />
+              </CardContent>
+            </Card>
+          )}
         </Grid>
       </Grid>
     </>
