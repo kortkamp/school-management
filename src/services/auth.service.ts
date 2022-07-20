@@ -24,8 +24,8 @@ const loginWithEmail = async (values: IAuthValues) => {
 
 const confirmEmail = async (token: string) => {
   const response = await api.get('/users/confirm-user/?token=' + token);
-  const email = response.data;
-  return email;
+  const user = response.data.user;
+  return user;
 };
 
 export const sessionService = { loginWithEmail, confirmEmail };
