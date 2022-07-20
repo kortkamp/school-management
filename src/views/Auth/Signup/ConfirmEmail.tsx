@@ -1,8 +1,10 @@
 import { useCallback, useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { Card, CardHeader, CardContent, TextField } from '@mui/material';
+import { useHistory, useLocation } from 'react-router-dom';
+import { Card, CardHeader, CardContent, TextField, Grid, CardActions } from '@mui/material';
 import { SHARED_CONTROL_PROPS } from '../../../utils/form';
-import { AppAlert, AppForm } from '../../../components';
+import { AppAlert, AppButton, AppForm, AppLoading } from '../../../components';
+import { sessionService } from '../../../services/auth.service';
+import { useAppMessage } from '../../../utils/message';
 
 const TOKEN_QUERY_PARAM = 'token';
 
@@ -12,7 +14,14 @@ const TOKEN_QUERY_PARAM = 'token';
  */
 const ConfirmEmailView = () => {
   const [email, setEmail] = useState<string>('');
-  const [error, setError] = useState<string>();
+
+  const history = useHistory();
+
+  const [AppMessage, setMessage] = useAppMessage();
+
+  const [loading, setLoading] = useState(true);
+
+  const [success, setSuccess] = useState(true);
 
   function useQuery() {
     return new URLSearchParams(useLocation().search);
@@ -21,39 +30,50 @@ const ConfirmEmailView = () => {
   console.log('token:', token);
 
   useEffect(() => {
-    // Component Mount
     let componentMounted = true;
-
+    let email: string = '';
     async function fetchData() {
-      //TODO: Call any Async API here
-      if (!componentMounted) return; // Component was unmounted during the API call
-      //TODO: Verify API call here
+      try {
+        const response = await sessionService.confirmEmail(token);
+        email = response.email;
+        setMessage({ type: 'success', text: 'Confirmação de cadastro realizada com sucesso' });
+        setSuccess(true);
+      } catch (err: any) {
+        setMessage({ type: 'error', text: err.response.data.message });
+        console.log(err);
+      }
 
-      setEmail('example@domain.com');
+      if (!componentMounted) return;
+      setEmail(email);
+      setLoading(false);
     }
-    fetchData(); // Call API asynchronously
+    fetchData();
 
     return () => {
-      // Component Un-mount
       componentMounted = false;
     };
   }, []);
 
-  const handleCloseError = useCallback(() => setError(undefined), []);
+  if (loading) {
+    return <AppLoading />;
+  }
 
   return (
     <AppForm>
-      <Card>
-        <CardHeader title="Email Confirmation" />
-        <CardContent>
-          <TextField disabled label="Email" name="email" value={email} helperText=" " {...SHARED_CONTROL_PROPS} />
-          {error ? (
-            <AppAlert severity="error" onClose={handleCloseError}>
-              {error}
-            </AppAlert>
-          ) : null}
-        </CardContent>
-      </Card>
+      <Grid marginTop={10}>
+        <Card>
+          <CardHeader title="Confirmação de Cadastro" />
+          <CardContent>
+            <TextField disabled label="Email" name="email" value={email} helperText=" " {...SHARED_CONTROL_PROPS} />
+            <AppMessage />
+          </CardContent>
+          <CardActions>
+            <Grid container justifyContent={'center'}>
+              {success && <AppButton href="/auth/login">Acessar o Sistema</AppButton>}
+            </Grid>
+          </CardActions>
+        </Card>
+      </Grid>
     </AppForm>
   );
 };
