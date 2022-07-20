@@ -61,7 +61,65 @@ function updateDocumentTitle(role: string) {
 /**
  * "Link to Page" items in Sidebar
  */
-const SIDE_BAR_PRIVATE_ITEMS: Array<LinkToPage> = [
+const SIDE_BAR_GUEST_ITEMS: Array<LinkToPage> = [
+  {
+    title: 'Home',
+    path: '/',
+    icon: 'home',
+  },
+  {
+    title: 'Profile',
+    path: '/user',
+    icon: 'account',
+  },
+];
+const SIDE_BAR_STUDENT_ITEMS: Array<LinkToPage> = [
+  {
+    title: 'Home',
+    path: '/',
+    icon: 'home',
+  },
+  {
+    title: 'Profile',
+    path: '/user',
+    icon: 'account',
+  },
+];
+const SIDE_BAR_TEACHER_ITEMS: Array<LinkToPage> = [
+  {
+    title: 'Home',
+    path: '/',
+    icon: 'home',
+  },
+  {
+    title: 'Profile',
+    path: '/user',
+    icon: 'account',
+  },
+  {
+    title: 'Avaliações',
+    path: '/exames',
+    icon: 'exams',
+    subMenus: [
+      {
+        title: 'Listar Avaliações',
+        path: '/exames',
+        icon: 'exams',
+      },
+      {
+        title: 'Criar Avaliações',
+        path: '/exames/criar',
+        icon: 'exams',
+      },
+      {
+        title: 'Notas',
+        path: '/exames/notas',
+        icon: 'exams',
+      },
+    ],
+  },
+];
+const SIDE_BAR_ADMIN_ITEMS: Array<LinkToPage> = [
   {
     title: 'Home',
     path: '/',
@@ -202,11 +260,20 @@ const SIDE_BAR_PRIVATE_ITEMS: Array<LinkToPage> = [
   },
 ];
 
+const SideBarItens: Record<string, Array<LinkToPage>> = {
+  admin: SIDE_BAR_ADMIN_ITEMS,
+  teacher: SIDE_BAR_TEACHER_ITEMS,
+  student: SIDE_BAR_STUDENT_ITEMS,
+  guest: SIDE_BAR_GUEST_ITEMS,
+};
+
 /**
  * Renders "Private Layout" composition
  */
 const PrivateLayout: React.FC = ({ children }) => {
   const [state] = useAppStore();
+
+  const role = state.currentUser?.role;
   const [openSideBar, setOpenSideBar] = useState(false);
   const theme = useTheme();
   const classes = useStyles();
@@ -247,7 +314,7 @@ const PrivateLayout: React.FC = ({ children }) => {
           anchor={isDesktop ? DESKTOP_SIDEBAR_ANCHOR : MOBILE_SIDEBAR_ANCHOR}
           open={shouldOpenSideBar}
           variant={isDesktop ? 'persistent' : 'temporary'}
-          items={SIDE_BAR_PRIVATE_ITEMS}
+          items={SideBarItens[role || 'guest']}
           onClose={handleSideBarClose}
         />
       </Grid>
