@@ -132,6 +132,7 @@ const SignupView = () => {
 
   return (
     <AppForm onSubmit={handleFormSubmit}>
+      <Grid marginTop={5}></Grid>
       <Card>
         <CardHeader title="Cadastro de Responsável pela Escola" />
         <CardContent>
@@ -249,7 +250,7 @@ const SignupView = () => {
             <Grid item md={12} sm={12} xs={12}>
               <FormControlLabel
                 control={<Checkbox required name="agree" checked={agree} onChange={handleAgreeClick} />}
-                label="Concordo com os termos e políticas de privacidade *"
+                label="Concordo com os termos de uso e políticas de privacidade *"
               />
             </Grid>
 
