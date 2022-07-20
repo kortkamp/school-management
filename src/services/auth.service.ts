@@ -22,4 +22,10 @@ const loginWithEmail = async (values: IAuthValues) => {
   return userData;
 };
 
-export const sessionService = { loginWithEmail };
+const confirmEmail = async (token: string) => {
+  const response = await api.get('/users/confirm-user/?token=' + token);
+  const email = response.data;
+  return email;
+};
+
+export const sessionService = { loginWithEmail, confirmEmail };

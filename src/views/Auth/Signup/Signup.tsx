@@ -10,66 +10,40 @@ import {
   FormControlLabel,
   InputAdornment,
   LinearProgress,
+  MenuItem,
 } from '@mui/material';
 import { useAppStore } from '../../../store';
 import { AppButton, AppIconButton, AppAlert, AppForm } from '../../../components';
 import { useAppForm, SHARED_CONTROL_PROPS, eventPreventDefault } from '../../../utils/form';
 
-const VALIDATE_FORM_SIGNUP = {
-  email: {
-    email: true,
-    presence: true,
-  },
-  phone: {
-    type: 'string',
-    format: {
-      pattern: '^$|[- .+()0-9]+', // Note: We have to allow empty in the pattern
-      message: 'should contain numbers',
-    },
-    // length: {
-    // 	is: 10,
-    // 	message: 'must be exactly 10 digits',
-    // },
-  },
-  firstName: {
-    type: 'string',
-    presence: { allowEmpty: false },
-    format: {
-      pattern: '^[A-Za-z ]+$', // Note: Allow only alphabets and space
-      message: 'should contain only alphabets',
-    },
-  },
-  lastName: {
-    type: 'string',
-    presence: { allowEmpty: false },
-    format: {
-      pattern: '^[A-Za-z ]+$', // Note: Allow only alphabets and space
-      message: 'should contain only alphabets',
-    },
-  },
-  password: {
-    presence: true,
-    length: {
-      minimum: 8,
-      maximum: 32,
-      message: 'must be between 8 and 32 characters',
-    },
-  },
-};
+import * as yup from 'yup';
+import { usersService } from '../../../services/users.service';
+import { useAppMessage } from '../../../utils/message';
+import { rolesService } from '../../../services/roles.service';
 
-const VALIDATE_EXTENSION = {
-  confirmPassword: {
-    equality: 'password',
-  },
+const createUserSchema = {
+  email: yup.string().email('Email inválido'),
+  phone: yup.string().required('O campo é obrigatório'),
+  name: yup
+    .string()
+    .matches(/^[A-Za-z ]+$/, 'Apenas letras são permitidas')
+    .required('O campo é obrigatório'),
+  CPF: yup.string(),
+  // password: yup.string().min(6, 'Mínimo de 6 caracteres').max(12, 'Máximo de 12 caracteres'),\
+  password: yup.string().min(6, 'Mínimo de 6 caracteres').max(12, 'Máximo de 12 caracteres').required(),
+  password_confirmation: yup.string().oneOf([yup.ref('password'), null], 'As senhas não conferem!'),
+  sex: yup.string().required('O campo é obrigatório'),
+  birth: yup.date().required('O campo é obrigatório'),
 };
 
 interface FormStateValues {
-  firstName: string;
-  lastName: string;
+  name: string;
+  sex: 'M' | 'F' | '';
+  birth: string;
   email: string;
   phone: string;
   password: string;
-  confirmPassword?: string;
+  password_confirmation?: string;
 }
 
 /**
@@ -79,25 +53,28 @@ interface FormStateValues {
 const SignupView = () => {
   const history = useHistory();
   const [, dispatch] = useAppStore();
-  const [validationSchema, setValidationSchema] = useState<any>({
-    ...VALIDATE_FORM_SIGNUP,
-    ...VALIDATE_EXTENSION,
-  });
+
+  const [isSaving, setIsSaving] = useState(false);
+
+  const [AppMessage, setMessage] = useAppMessage();
+
+  const [roleId, setRoleId] = useState('');
+
   const [formState, , /* setFormState */ onFieldChange, fieldGetError, fieldHasError] = useAppForm({
-    validationSchema: validationSchema, // the state value, so could be changed in time
+    validationSchema: createUserSchema,
     initialValues: {
-      firstName: '',
-      lastName: '',
+      name: '',
+      sex: '',
+      birth: '',
       email: '',
       phone: '',
       password: '',
-      confirmPassword: '',
+      password_confirmation: '',
     } as FormStateValues,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [agree, setAgree] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>();
   const values = formState.values as FormStateValues; // Typed alias to formState.values as the "Source of Truth"
 
   useEffect(() => {
@@ -106,9 +83,15 @@ const SignupView = () => {
 
     async function fetchData() {
       //TODO: Call any Async API here
+      const roles = await rolesService.getAll();
+      const guestRole = roles.find((role) => role.name === 'guest');
+
       if (!componentMounted) return; // Component was unmounted during the API call
       //TODO: Verify API call here
 
+      if (guestRole) {
+        setRoleId(guestRole?.id);
+      }
       setLoading(false); // Reset "Loading..." indicator
     }
     fetchData(); // Call API asynchronously
@@ -118,17 +101,6 @@ const SignupView = () => {
       componentMounted = false;
     };
   }, []);
-
-  useEffect(() => {
-    // Update Validation Schema when Show/Hide password changed
-    let newSchema;
-    if (showPassword) {
-      newSchema = VALIDATE_FORM_SIGNUP; // Validation without .confirmPassword
-    } else {
-      newSchema = { ...VALIDATE_FORM_SIGNUP, ...VALIDATE_EXTENSION }; // Full validation
-    }
-    setValidationSchema(newSchema);
-  }, [showPassword]);
 
   const handleShowPasswordClick = useCallback(() => {
     setShowPassword((oldValue) => !oldValue);
@@ -142,120 +114,159 @@ const SignupView = () => {
     async (event: SyntheticEvent) => {
       event.preventDefault();
 
-      const apiResult = true; // await api.auth.signup(values);
+      setIsSaving(true);
 
-      if (!apiResult) {
-        setError('Can not create user for given email, if you already have account please sign in');
-        return; // Unsuccessful signup
+      try {
+        const apiResult = await usersService.initialRegistration({ ...values, role_id: roleId });
+        return history.replace('/auth/signup/confirm-registration');
+      } catch (err: any) {
+        console.log(err);
+        setMessage({ type: 'error', text: err.response.data.message });
+        setIsSaving(false);
       }
-
-      dispatch({ type: 'SIGN_UP' });
-      return history.replace('/');
     },
-    [dispatch, /*values,*/ history]
+    [values, history, roleId]
   );
-
-  const handleCloseError = useCallback(() => setError(undefined), []);
 
   if (loading) return <LinearProgress />;
 
   return (
     <AppForm onSubmit={handleFormSubmit}>
       <Card>
-        <CardHeader title="Sign Up" />
+        <CardHeader title="Cadastro de Responsável pela Escola" />
         <CardContent>
-          <TextField
-            required
-            label="Email"
-            name="email"
-            value={values.email}
-            error={fieldHasError('email')}
-            helperText={fieldGetError('email') || ' '}
-            onChange={onFieldChange}
-            {...SHARED_CONTROL_PROPS}
-          />
-          <TextField
-            required
-            label="Phone"
-            name="phone"
-            value={values.phone}
-            error={fieldHasError('phone')}
-            helperText={fieldGetError('phone') || ' '}
-            onChange={onFieldChange}
-            {...SHARED_CONTROL_PROPS}
-          />
-          <TextField
-            required
-            label="First Name"
-            name="firstName"
-            value={values.firstName}
-            error={fieldHasError('firstName')}
-            helperText={fieldGetError('firstName') || ' '}
-            onChange={onFieldChange}
-            {...SHARED_CONTROL_PROPS}
-          />
-          <TextField
-            required
-            label="Last Name"
-            name="lastName"
-            value={values.lastName}
-            error={fieldHasError('lastName')}
-            helperText={fieldGetError('lastName') || ' '}
-            onChange={onFieldChange}
-            {...SHARED_CONTROL_PROPS}
-          />
-          <TextField
-            required
-            type={showPassword ? 'text' : 'password'}
-            label="Password"
-            name="password"
-            value={values.password}
-            error={fieldHasError('password')}
-            helperText={fieldGetError('password') || ' '}
-            onChange={onFieldChange}
-            {...SHARED_CONTROL_PROPS}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <AppIconButton
-                    aria-label="toggle password visibility"
-                    icon={showPassword ? 'visibilityon' : 'visibilityoff'}
-                    title={showPassword ? 'Hide Password' : 'Show Password'}
-                    onClick={handleShowPasswordClick}
-                    onMouseDown={eventPreventDefault}
-                  />
-                </InputAdornment>
-              ),
-            }}
-          />
-          {!showPassword && (
-            <TextField
-              required
-              type="password"
-              label="Confirm Password"
-              name="confirmPassword"
-              value={values.confirmPassword}
-              error={fieldHasError('confirmPassword')}
-              helperText={fieldGetError('confirmPassword') || ' '}
-              onChange={onFieldChange}
-              {...SHARED_CONTROL_PROPS}
-            />
-          )}
-          <FormControlLabel
-            control={<Checkbox required name="agree" checked={agree} onChange={handleAgreeClick} />}
-            label="You must agree with Terms of Use and Privacy Policy to use our service *"
-          />
+          <Grid container spacing={1}>
+            <Grid item md={12} sm={12} xs={12}>
+              <TextField
+                required
+                label="Nome Completo"
+                name="name"
+                value={values.name}
+                error={fieldHasError('name')}
+                helperText={fieldGetError('name') || ' '}
+                onChange={onFieldChange}
+                {...SHARED_CONTROL_PROPS}
+              />
+            </Grid>
 
-          {error ? (
+            <Grid item md={6} sm={12} xs={12}>
+              <TextField
+                required
+                // disabled={}
+                select
+                label="Sexo"
+                name="sex"
+                value={values.sex}
+                onChange={onFieldChange}
+                error={fieldHasError('sex')}
+                helperText={fieldGetError('sex') || ' '}
+                {...SHARED_CONTROL_PROPS}
+              >
+                <MenuItem value="M">Masculino</MenuItem>
+                <MenuItem value="F">Feminino</MenuItem>
+              </TextField>
+            </Grid>
+
+            <Grid item md={6} sm={12} xs={12}>
+              <TextField
+                required
+                type="date"
+                InputLabelProps={{ shrink: true }}
+                label="Nascimento"
+                name="birth"
+                value={values.birth}
+                onChange={onFieldChange}
+                error={fieldHasError('birth')}
+                helperText={fieldGetError('birth') || ' '}
+                {...SHARED_CONTROL_PROPS}
+              />
+            </Grid>
+            <Grid item md={12} sm={12} xs={12}>
+              <TextField
+                required
+                label="Telefone"
+                name="phone"
+                value={values.phone}
+                error={fieldHasError('phone')}
+                helperText={fieldGetError('phone') || ' '}
+                onChange={onFieldChange}
+                {...SHARED_CONTROL_PROPS}
+              />
+            </Grid>
+            <Grid item md={12} sm={12} xs={12}>
+              <TextField
+                required
+                label="Email"
+                name="email"
+                value={values.email}
+                error={fieldHasError('email')}
+                helperText={fieldGetError('email') || ' '}
+                onChange={onFieldChange}
+                {...SHARED_CONTROL_PROPS}
+              />
+            </Grid>
+            <Grid item md={6} sm={12} xs={12}>
+              <TextField
+                required
+                type={showPassword ? 'text' : 'password'}
+                label="Password"
+                name="password"
+                value={values.password}
+                error={fieldHasError('password')}
+                helperText={fieldGetError('password') || ' '}
+                onChange={onFieldChange}
+                {...SHARED_CONTROL_PROPS}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <AppIconButton
+                        aria-label="toggle password visibility"
+                        icon={showPassword ? 'visibilityon' : 'visibilityoff'}
+                        title={showPassword ? 'Hide Password' : 'Show Password'}
+                        onClick={handleShowPasswordClick}
+                        onMouseDown={eventPreventDefault}
+                      />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+            <Grid item md={6} sm={12} xs={12}>
+              {!showPassword && (
+                <TextField
+                  required
+                  type="password"
+                  label="Confirm Password"
+                  name="password_confirmation"
+                  value={values.password_confirmation}
+                  error={fieldHasError('password_confirmation')}
+                  helperText={fieldGetError('password_confirmation') || ' '}
+                  onChange={onFieldChange}
+                  {...SHARED_CONTROL_PROPS}
+                />
+              )}
+            </Grid>
+            <Grid item md={12} sm={12} xs={12}>
+              <FormControlLabel
+                control={<Checkbox required name="agree" checked={agree} onChange={handleAgreeClick} />}
+                label="Concordo com os termos e políticas de privacidade *"
+              />
+            </Grid>
+
+            {/* {error ? (
             <AppAlert severity="error" onClose={handleCloseError}>
               {error}
             </AppAlert>
-          ) : null}
+          ) : null} */}
+            <Grid item md={12} sm={12} xs={12}>
+              <AppMessage />
+            </Grid>
 
-          <Grid container justifyContent="center" alignItems="center">
-            <AppButton type="submit" disabled={!(formState.isValid && agree)}>
-              Confirm and Sign Up
-            </AppButton>
+            <Grid container justifyContent="center" alignItems="center">
+              <AppButton type="submit" loading={isSaving} disabled={!(formState.isValid && agree) || isSaving}>
+                Confirmar e Cadastrar
+              </AppButton>
+            </Grid>
           </Grid>
         </CardContent>
       </Card>
