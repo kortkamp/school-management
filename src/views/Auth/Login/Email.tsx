@@ -57,58 +57,60 @@ const LoginEmailView = () => {
 
   return (
     <AppForm onSubmit={handleFormSubmit}>
-      <Card>
-        <CardHeader title="Entrar com Email" />
-        <CardContent>
-          <TextField
-            required
-            label="Email"
-            name="email"
-            value={values.email}
-            error={fieldHasError('email')}
-            helperText={fieldGetError('email') || ' '}
-            onChange={onFieldChange}
-            {...SHARED_CONTROL_PROPS}
-          />
-          <TextField
-            required
-            type={showPassword ? 'text' : 'password'}
-            label="Password"
-            name="password"
-            value={values.password}
-            error={fieldHasError('password')}
-            helperText={fieldGetError('password') || ' '}
-            onChange={onFieldChange}
-            {...SHARED_CONTROL_PROPS}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <AppIconButton
-                    aria-label="toggle password visibility"
-                    icon={showPassword ? 'visibilityon' : 'visibilityoff'}
-                    title={showPassword ? 'Hide Password' : 'Show Password'}
-                    onClick={handleShowPasswordClick}
-                    onMouseDown={eventPreventDefault}
-                  />
-                </InputAdornment>
-              ),
-            }}
-          />
-          {error ? (
-            <AppAlert severity="error" onClose={handleCloseError}>
-              {error}
-            </AppAlert>
-          ) : null}
-          <Grid container justifyContent="center" alignItems="center">
-            <AppButton type="submit" disabled={!formState.isValid}>
-              Entrar com Email
-            </AppButton>
-            <Button variant="text" color="inherit" component={AppLink} to="/auth/recovery/password">
-              Esqueci minha senha
-            </Button>
-          </Grid>
-        </CardContent>
-      </Card>
+      <Grid marginTop={10}>
+        <Card>
+          <CardHeader title="Entrar com Email" />
+          <CardContent>
+            <TextField
+              required
+              label="Email"
+              name="email"
+              value={values.email}
+              error={fieldHasError('email')}
+              helperText={fieldGetError('email') || ' '}
+              onChange={onFieldChange}
+              {...SHARED_CONTROL_PROPS}
+            />
+            <TextField
+              required
+              type={showPassword ? 'text' : 'password'}
+              label="Password"
+              name="password"
+              value={values.password}
+              error={fieldHasError('password')}
+              helperText={fieldGetError('password') || ' '}
+              onChange={onFieldChange}
+              {...SHARED_CONTROL_PROPS}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <AppIconButton
+                      aria-label="toggle password visibility"
+                      icon={showPassword ? 'visibilityon' : 'visibilityoff'}
+                      title={showPassword ? 'Hide Password' : 'Show Password'}
+                      onClick={handleShowPasswordClick}
+                      onMouseDown={eventPreventDefault}
+                    />
+                  </InputAdornment>
+                ),
+              }}
+            />
+            {error ? (
+              <AppAlert severity="error" onClose={handleCloseError}>
+                {error}
+              </AppAlert>
+            ) : null}
+            <Grid container justifyContent="center" alignItems="center">
+              <AppButton type="submit" disabled={!formState.isValid}>
+                Entrar com Email
+              </AppButton>
+              <Button variant="text" color="inherit" component={AppLink} to="/auth/recovery/password">
+                Esqueci minha senha
+              </Button>
+            </Grid>
+          </CardContent>
+        </Card>
+      </Grid>
     </AppForm>
   );
 };
