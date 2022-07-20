@@ -49,7 +49,7 @@ const UserInfo = ({ className, showAvatar = false, user, ...restOfProps }: UserI
           <Avatar alt={fullName || 'User Avatar'} className={classes.avatar} src={srcAvatar} />
         </AppLink>
       ) : null}
-      <Typography className={classes.name} variant="h6">
+      <Typography className={classes.name} variant="h6" textAlign={'center'}>
         {fullName || 'Current User'}
       </Typography>
       <Typography variant="body2">{userPhoneOrEmail || 'Loading...'}</Typography>
