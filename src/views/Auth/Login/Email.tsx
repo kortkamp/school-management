@@ -43,9 +43,17 @@ const LoginEmailView = () => {
 
       try {
         const result = await sessionService.loginWithEmail(values);
-
         dispatch({ type: 'LOG_IN', payload: result });
-        history.replace('/');
+        const { role } = result;
+        switch (role) {
+          case 'guest':
+            history.replace('/escola/criar');
+            break;
+
+          default:
+            history.replace('/');
+            break;
+        }
       } catch (err) {
         setError('Please check email and password');
       }
