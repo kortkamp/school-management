@@ -6,7 +6,7 @@
     "extends": [
         "plugin:react/recommended",
         // "airbnb",
-        // "airbnb-typescript",
+        "airbnb-typescript",
         // "plugin:@typescript-eslint/recommended",
         "plugin:prettier/recommended"
     ],
@@ -20,13 +20,14 @@
         "project": "./tsconfig.json"
     },
     "plugins": [
+        "import",
         "react", 
         "react-hooks", 
         "@typescript-eslint", 
         "prettier"
     ],
     "rules": {
-        // "import/no-unresolved": "error",
+        "import/no-unresolved": "error",
         "react/jsx-uses-react": "off",
         "react/react-in-jsx-scope": "off",
         "react/jsx-props-no-spreading": "off",
