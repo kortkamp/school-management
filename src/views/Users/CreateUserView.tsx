@@ -1,15 +1,16 @@
-import { SyntheticEvent, useCallback, useState, useEffect } from 'react';
+import { SyntheticEvent, useCallback, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Grid, TextField, CardHeader, MenuItem, FormControlLabel, Checkbox } from '@mui/material';
 
 import * as yup from 'yup';
 
-import { AppButton, AppAlert, AppForm } from '../../components';
+import { AppForm } from '../../components';
 import { useAppForm, SHARED_CONTROL_PROPS } from '../../utils/form';
 import { studentsService } from '../../services/students.service';
 import AppStepSelector from '../../components/AppStepSelector';
 import { teachersService } from '../../services/teachers.service';
 import { useAppMessage } from '../../utils/message';
+import AppAddressForm from '../../components/AppAddressForm/AppAddressForm';
 
 const createStudentSchema = {
   email: yup.string().email('Email inválido'),
@@ -95,7 +96,7 @@ function CreateUserView({ role }: { role: 'student' | 'teacher' }) {
 
   const [AppMessage, setMessage] = useAppMessage();
 
-  const [saving, setSaving] = useState(false);
+  const [, setSaving] = useState(false);
 
   const createUserSchema = roleData[role].createUserSchema;
 
@@ -142,9 +143,164 @@ function CreateUserView({ role }: { role: 'student' | 'teacher' }) {
     [values, history]
   );
 
-  const [formStep, setFormStep] = useState(0);
-
   const stepsTitles = [roleData[role].name, 'Endereço', 'Outros'];
+
+  const mainForm = (
+    <Grid container spacing={1}>
+      <Grid item md={12} sm={12} xs={12}>
+        <TextField
+          required={isFieldRequired('name')}
+          label="Nome"
+          name="name"
+          value={values.name}
+          onChange={onFieldChange}
+          error={fieldHasError('name')}
+          helperText={fieldGetError('name') || ' '}
+          {...SHARED_CONTROL_PROPS}
+        />
+      </Grid>
+      <Grid item md={6} sm={12} xs={12}>
+        <TextField
+          required={isFieldRequired('birth')}
+          type="date"
+          InputLabelProps={{ shrink: true }}
+          label="Nascimento"
+          name="birth"
+          value={values.birth}
+          onChange={onFieldChange}
+          error={fieldHasError('birth')}
+          helperText={fieldGetError('birth') || ' '}
+          {...SHARED_CONTROL_PROPS}
+        />
+      </Grid>
+
+      <Grid item md={6} sm={12} xs={12}>
+        <TextField
+          required={isFieldRequired('CPF')}
+          label="CPF"
+          name="CPF"
+          value={values.CPF}
+          onChange={onFieldChange}
+          style={{ minWidth: '100%' }}
+          error={fieldHasError('CPF')}
+          helperText={fieldGetError('CPF') || ' '}
+          {...SHARED_CONTROL_PROPS}
+        />
+      </Grid>
+
+      {role === 'student' && (
+        <Grid item md={6} sm={12} xs={12}>
+          <TextField
+            required={isFieldRequired('enroll_id')}
+            type="number"
+            label="Matrícula"
+            name="enroll_id"
+            value={values.enroll_id}
+            onChange={onFieldChange}
+            style={{ minWidth: '100%' }}
+            error={fieldHasError('enroll_id')}
+            helperText={fieldGetError('enroll_id') || ' '}
+            {...SHARED_CONTROL_PROPS}
+          />
+        </Grid>
+      )}
+
+      <Grid item md={6} sm={12} xs={12}>
+        <TextField
+          required
+          label="Telefone"
+          type="phone"
+          name="phone"
+          value={values.phone}
+          onChange={onFieldChange}
+          error={fieldHasError('phone')}
+          helperText={fieldGetError('phone') || ' '}
+          {...SHARED_CONTROL_PROPS}
+        />
+      </Grid>
+
+      <Grid item md={6} sm={12} xs={12}>
+        <TextField
+          required
+          // disabled={}
+          select
+          label="Sexo"
+          name="sex"
+          value={values.sex}
+          onChange={onFieldChange}
+          error={fieldHasError('sex')}
+          helperText={fieldGetError('sex') || ' '}
+          {...SHARED_CONTROL_PROPS}
+        >
+          <MenuItem value="M">Masculino</MenuItem>
+          <MenuItem value="F">Feminino</MenuItem>
+        </TextField>
+      </Grid>
+
+      {!roleData[role].mandatoryLoginAccount && (
+        <Grid item md={12} sm={12} xs={12}>
+          <FormControlLabel
+            control={<Checkbox name="willLogin" checked={values.willLogin} onChange={onFieldChange} />}
+            label="O aluno vai poder logar no sistema?"
+          />
+        </Grid>
+      )}
+
+      {values.willLogin && (
+        <>
+          <Grid item md={12} sm={12} xs={12}>
+            <TextField
+              label="Email"
+              name="email"
+              required={isFieldRequired('email')}
+              // type="email"
+              value={values.email}
+              error={fieldHasError('email')}
+              helperText={fieldGetError('email') || ' '}
+              onChange={onFieldChange}
+              {...SHARED_CONTROL_PROPS}
+            />
+          </Grid>
+
+          <Grid item md={6} sm={12} xs={12}>
+            <TextField
+              type="password"
+              label="Password"
+              name="password"
+              required={isFieldRequired('password')}
+              value={values.password}
+              error={fieldHasError('password')}
+              helperText={fieldGetError('password') || ' '}
+              onChange={onFieldChange}
+              {...SHARED_CONTROL_PROPS}
+            />
+          </Grid>
+          <Grid item md={6} sm={12} xs={12}>
+            <TextField
+              type="password"
+              label="Confirmação de Password"
+              name="password_confirmation"
+              required={isFieldRequired('password_confirmation')}
+              value={values.password_confirmation}
+              error={fieldHasError('password_confirmation')}
+              helperText={fieldGetError('password_confirmation') || ' '}
+              onChange={onFieldChange}
+              {...SHARED_CONTROL_PROPS}
+            />
+          </Grid>
+        </>
+      )}
+    </Grid>
+  );
+
+  const complementForm = (
+    <Grid>
+      <h1>123</h1>
+      <Grid item md={12} sm={12} xs={12}>
+        <AppMessage />
+      </Grid>
+    </Grid>
+  );
 
   return (
     <AppForm style={{ minWidth: '100%' }} onSubmit={handleFormSubmit}>
@@ -153,161 +309,11 @@ function CreateUserView({ role }: { role: 'student' | 'teacher' }) {
         title={roleData[role].title}
         subheader={roleData[role].subheader}
       />
-      <AppStepSelector step={formStep} setStep={setFormStep} titles={stepsTitles}>
-        <Grid container spacing={1}>
-          <Grid item md={8} sm={12} xs={12}>
-            <TextField
-              required={isFieldRequired('name')}
-              label="Nome"
-              name="name"
-              value={values.name}
-              onChange={onFieldChange}
-              error={fieldHasError('name')}
-              helperText={fieldGetError('name') || ' '}
-              {...SHARED_CONTROL_PROPS}
-            />
-          </Grid>
-          <Grid item md={4} sm={12} xs={12}>
-            <TextField
-              required={isFieldRequired('birth')}
-              type="date"
-              InputLabelProps={{ shrink: true }}
-              label="Nascimento"
-              name="birth"
-              value={values.birth}
-              onChange={onFieldChange}
-              error={fieldHasError('birth')}
-              helperText={fieldGetError('birth') || ' '}
-              {...SHARED_CONTROL_PROPS}
-            />
-          </Grid>
 
-          <Grid item md={6} sm={12} xs={12}>
-            <TextField
-              required={isFieldRequired('CPF')}
-              label="CPF"
-              name="CPF"
-              value={values.CPF}
-              onChange={onFieldChange}
-              style={{ minWidth: '100%' }}
-              error={fieldHasError('CPF')}
-              helperText={fieldGetError('CPF') || ' '}
-              {...SHARED_CONTROL_PROPS}
-            />
-          </Grid>
-
-          {role === 'student' && (
-            <Grid item md={6} sm={12} xs={12}>
-              <TextField
-                required={isFieldRequired('enroll_id')}
-                type="number"
-                label="Matrícula"
-                name="enroll_id"
-                value={values.enroll_id}
-                onChange={onFieldChange}
-                style={{ minWidth: '100%' }}
-                error={fieldHasError('enroll_id')}
-                helperText={fieldGetError('enroll_id') || ' '}
-                {...SHARED_CONTROL_PROPS}
-              />
-            </Grid>
-          )}
-
-          <Grid item md={6} sm={12} xs={12}>
-            <TextField
-              required
-              label="Telefone"
-              type="phone"
-              name="phone"
-              value={values.phone}
-              onChange={onFieldChange}
-              error={fieldHasError('phone')}
-              helperText={fieldGetError('phone') || ' '}
-              {...SHARED_CONTROL_PROPS}
-            />
-          </Grid>
-
-          <Grid item md={6} sm={12} xs={12}>
-            <TextField
-              required
-              // disabled={}
-              select
-              label="Sexo"
-              name="sex"
-              value={values.sex}
-              onChange={onFieldChange}
-              error={fieldHasError('sex')}
-              helperText={fieldGetError('sex') || ' '}
-              {...SHARED_CONTROL_PROPS}
-            >
-              <MenuItem value="M">Masculino</MenuItem>
-              <MenuItem value="F">Feminino</MenuItem>
-            </TextField>
-          </Grid>
-
-          {!roleData[role].mandatoryLoginAccount && (
-            <Grid item md={12} sm={12} xs={12}>
-              <FormControlLabel
-                control={<Checkbox name="willLogin" checked={values.willLogin} onChange={onFieldChange} />}
-                label="O aluno vai poder logar no sistema?"
-              />
-            </Grid>
-          )}
-
-          {values.willLogin && (
-            <>
-              <Grid item md={12} sm={12} xs={12}>
-                <TextField
-                  label="Email"
-                  name="email"
-                  required={isFieldRequired('email')}
-                  // type="email"
-                  value={values.email}
-                  error={fieldHasError('email')}
-                  helperText={fieldGetError('email') || ' '}
-                  onChange={onFieldChange}
-                  {...SHARED_CONTROL_PROPS}
-                />
-              </Grid>
-
-              <Grid item md={6} sm={12} xs={12}>
-                <TextField
-                  type="password"
-                  label="Password"
-                  name="password"
-                  required={isFieldRequired('password')}
-                  value={values.password}
-                  error={fieldHasError('password')}
-                  helperText={fieldGetError('password') || ' '}
-                  onChange={onFieldChange}
-                  {...SHARED_CONTROL_PROPS}
-                />
-              </Grid>
-              <Grid item md={6} sm={12} xs={12}>
-                <TextField
-                  type="password"
-                  label="Confirmação de Password"
-                  name="password_confirmation"
-                  required={isFieldRequired('password_confirmation')}
-                  value={values.password_confirmation}
-                  error={fieldHasError('password_confirmation')}
-                  helperText={fieldGetError('password_confirmation') || ' '}
-                  onChange={onFieldChange}
-                  {...SHARED_CONTROL_PROPS}
-                />
-              </Grid>
-            </>
-          )}
-          <Grid item md={12} sm={12} xs={12}>
-            <AppMessage />
-          </Grid>
-          <Grid container justifyContent="center" alignItems="center">
-            <AppButton type="submit" disabled={!formState.isValid || saving} loading={saving}>
-              Cadastrar
-            </AppButton>
-          </Grid>
-        </Grid>
-      </AppStepSelector>
+      <AppStepSelector
+        forms={[mainForm, <AppAddressForm key={'address'} />, complementForm]}
+        titles={stepsTitles}
+      ></AppStepSelector>
     </AppForm>
   );
 }
