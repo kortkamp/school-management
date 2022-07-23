@@ -1,10 +1,8 @@
-import { Card, CardActions, CardContent, CardHeader, Grid, CircularProgress, Button } from '@mui/material';
+import { Card, CardContent, CardHeader, Grid } from '@mui/material';
 import { DataGrid, GridOverlay } from '@mui/x-data-grid';
 import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { useHistory } from 'react-router';
-import { AppButton, AppLink, AppLoading } from '../../components';
-import AppAllocationSelect, { IAllocation } from '../../components/AppAllocationSelect/AppAllocationSelect';
-import { classGroupsService } from '../../services/classGroups.service';
+import { AppButton } from '../../components';
 import { IListTerms, termsService } from '../../services/terms.service';
 import Moment from 'moment';
 import { CommonDialog } from '../../components/dialogs';
@@ -56,7 +54,7 @@ const ListTermsView = () => {
     setLoading(true);
     try {
       await termsService.remove(termId);
-      setTerms((terms) => terms.filter((term) => term.id !== termId));
+      setTerms((t) => t.filter((term) => term.id !== termId));
     } catch (err: any) {
       setMessage({ type: 'error', text: err.response.data.message });
       // console.log(err);

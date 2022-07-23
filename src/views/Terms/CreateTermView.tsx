@@ -3,7 +3,7 @@ import { useHistory, useParams } from 'react-router-dom';
 import { Grid, TextField, Card, CardHeader, CardContent, MenuItem } from '@mui/material';
 import { useAppStore } from '../../store';
 import { AppButton, AppAlert, AppForm } from '../../components';
-import { useAppForm, SHARED_CONTROL_PROPS, eventPreventDefault, DEFAULT_FORM_STATE } from '../../utils/form';
+import { useAppForm, SHARED_CONTROL_PROPS, DEFAULT_FORM_STATE } from '../../utils/form';
 
 import Moment from 'moment';
 
@@ -72,9 +72,9 @@ function CreateTermView() {
 
       try {
         if (isEditing) {
-          const apiResult = await termsService.update(id, values);
+          await termsService.update(id, values);
         } else {
-          const apiResult = await termsService.create(values);
+          await termsService.create(values);
         }
         history.replace('/bimestres');
       } catch (err: any) {
