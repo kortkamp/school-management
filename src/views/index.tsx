@@ -8,6 +8,7 @@ import Exams from './Exams';
 import Terms from './Terms';
 import Routines from './Routines';
 import Home from './Home';
+import Schools from './Schools';
 
 // import Welcome from './Welcome';
 
@@ -22,4 +23,5 @@ export {
   Exams,
   Terms,
   Routines,
+  Schools,
 };

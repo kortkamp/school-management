@@ -24,6 +24,7 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 import CalendarToday from '@mui/icons-material/CalendarToday';
 import WatchLaterIcon from '@mui/icons-material/WatchLater';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 
 /**
  * How to use:
@@ -62,6 +63,7 @@ const ICONS: Record<string, React.ComponentType> = {
   teacher: BusinessCenterIcon,
   calendar: CalendarToday,
   clock: WatchLaterIcon,
+  school: AccountBalanceIcon,
 };
 
 /**

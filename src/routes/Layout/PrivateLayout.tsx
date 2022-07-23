@@ -63,14 +63,14 @@ function updateDocumentTitle(role: string) {
  */
 const SIDE_BAR_GUEST_ITEMS: Array<LinkToPage> = [
   {
-    title: 'Home',
-    path: '/',
-    icon: 'home',
-  },
-  {
     title: 'Profile',
     path: '/user',
     icon: 'account',
+  },
+  {
+    title: 'Cadastrar Escola',
+    path: '/escola/criar',
+    icon: 'school',
   },
 ];
 const SIDE_BAR_STUDENT_ITEMS: Array<LinkToPage> = [
@@ -129,6 +129,18 @@ const SIDE_BAR_ADMIN_ITEMS: Array<LinkToPage> = [
     title: 'Profile',
     path: '/user',
     icon: 'account',
+  },
+  {
+    title: 'Escola',
+    path: '/escola',
+    icon: 'school',
+    subMenus: [
+      {
+        title: 'Editar Dados',
+        path: '/escola/atualizar',
+        icon: 'search',
+      },
+    ],
   },
   {
     title: 'Definir Horários',
