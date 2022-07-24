@@ -1,11 +1,10 @@
-import { Card, CardActions, CardContent, CardHeader, Grid } from '@mui/material';
-import { AppButton, AppLink } from '../../components';
+import { Card, CardContent, CardHeader, Grid } from '@mui/material';
 import OpenExams from '../../components/OpenExams';
 import WeekRoutines from '../../components/WeekRoutines';
 import { ITableCell } from '../../components/WeekRoutines/WeekRoutines';
 import { useAppStore } from '../../store';
 
-const cellTable: ITableCell = ({ subject, classGroup, data }) => {
+const cellTable: ITableCell = ({ subject, classGroup }) => {
   return (
     <Grid container direction={'column'}>
       <span>{classGroup}</span>

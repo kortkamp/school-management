@@ -1,15 +1,17 @@
+/* eslint-disable @typescript-eslint/no-shadow */
 import { SyntheticEvent, useCallback, useState, useEffect } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import { Grid, TextField, Card, CardHeader, CardContent, LinearProgress, MenuItem } from '@mui/material';
 import { useAppStore } from '../../store';
 import { AppButton, AppForm } from '../../components';
 import { useAppForm, SHARED_CONTROL_PROPS, DEFAULT_FORM_STATE } from '../../utils/form';
-import { examsService, IExam } from '../../services/exams.service';
+import { examsService } from '../../services/exams.service';
 import Moment from 'moment';
 import { teacherClassGroupsService } from '../../services/teacherClassGroups.service';
 import { useAppMessage } from '../../utils/message';
 import { IListTerms, termsService } from '../../services/terms.service';
 import { examSubType, examType } from '../../services/IExam';
+// import * as yup from 'yup';
 
 interface FormStateValues {
   type: string;
@@ -41,12 +43,22 @@ interface ITeacherClassGroupResponse {
   teacherClassGroups: ITeacherClassGroup[];
 }
 
-const VALIDATE_FORM = {};
-
 interface Props {
   examId?: string;
   getExamData?: (data: FormStateValues) => void;
 }
+
+const createExamSchema = {
+  // name: yup.string().required('O campo é obrigatório'),
+  // start_at: yup.date().required('O campo é obrigatório'),
+  // address: yup.string().required('O campo é obrigatório'),
+  // number: yup.string().required('O campo é obrigatório'),
+  // complement: yup.string().required('O campo é obrigatório'),
+  // district: yup.string().required('O campo é obrigatório'),
+  // city: yup.string().required('O campo é obrigatório'),
+  // state: yup.string().required('O campo é obrigatório'),
+  // CEP: yup.string().required('O campo é obrigatório'),
+};
 
 /**
  * Renders "Create Exam" view
@@ -60,11 +72,8 @@ const CreateExamView: React.FC<Props> = ({ examId, getExamData }) => {
 
   const [AppMessage, setMessage] = useAppMessage();
 
-  const [validationSchema, setValidationSchema] = useState<any>({
-    ...VALIDATE_FORM,
-  });
-  const [formState, setFormState, onFieldChange, fieldGetError, fieldHasError, , setField] = useAppForm({
-    validationSchema, // the state value, so could be changed in time
+  const [formState, setFormState, onFieldChange, , , , setField] = useAppForm({
+    validationSchema: createExamSchema, // the state value, so could be changed in time
     initialValues: {
       type: '',
       sub_type: '',
@@ -97,8 +106,7 @@ const CreateExamView: React.FC<Props> = ({ examId, getExamData }) => {
       try {
         if (state.currentUser?.id) {
           const response = await teacherClassGroupsService.getAllbyTeacher(state.currentUser.id);
-          const teacherClassesResponse = response.data.teacherClasses as ITeacherClassGroupResponse[];
-          // const a = teacherClassesResponse.reduce((result, teacherClass) => [teacherClass], []);
+
           setClassGroups(response.data.teacherClasses);
         }
 
@@ -167,7 +175,7 @@ const CreateExamView: React.FC<Props> = ({ examId, getExamData }) => {
       event.preventDefault();
       try {
         if (editingExamId) {
-          const apiResult = await examsService.update(editingExamId, {
+          await examsService.update(editingExamId, {
             type: values.type,
             sub_type: values.sub_type,
             reference_id: values.reference_id,
@@ -177,7 +185,7 @@ const CreateExamView: React.FC<Props> = ({ examId, getExamData }) => {
             term_id: values.term_id,
           });
         } else {
-          const apiResult = await examsService.create(values);
+          await examsService.create(values);
         }
         if (getExamData) {
           getExamData(values);

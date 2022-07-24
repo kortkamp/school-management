@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { SyntheticEvent, useCallback, useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Grid, TextField, Card, CardHeader, CardContent, LinearProgress, MenuItem } from '@mui/material';
 import { useAppStore } from '../../store';
 import { AppButton, AppAlert, AppForm } from '../../components';
-import { useAppForm, SHARED_CONTROL_PROPS, eventPreventDefault } from '../../utils/form';
+import { useAppForm, SHARED_CONTROL_PROPS } from '../../utils/form';
 import { classGroupsService } from '../../services/classGroups.service';
 import { segmentsService } from '../../services/segments.service';
 import { gradesService } from '../../services/grades.service';
@@ -49,23 +50,23 @@ function CreateClassView() {
     let componentMounted = true;
 
     async function fetchData() {
-      let segments = [];
-      let grades = [];
+      let segmentsData = [];
+      let gradesData = [];
 
       try {
         const segmentsResponse = await segmentsService.getAll();
-        segments = segmentsResponse.data.segments;
+        segmentsData = segmentsResponse.data.segments;
 
         const gradesResponse = await gradesService.getAll();
-        grades = gradesResponse.data.grades;
+        gradesData = gradesResponse.data.grades;
       } catch (err: any) {
         console.log(err);
       }
 
       if (!componentMounted) return;
 
-      setSegments(segments.sort((a: any, b: any) => a.name.localeCompare(b.name)));
-      setGrades(grades.sort((a: any, b: any) => a.name.localeCompare(b.name)));
+      setSegments(segmentsData.sort((a: any, b: any) => a.name.localeCompare(b.name)));
+      setGrades(gradesData.sort((a: any, b: any) => a.name.localeCompare(b.name)));
 
       setLoading(false); // Reset "Loading..." indicator
     }

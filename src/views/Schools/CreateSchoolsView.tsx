@@ -3,7 +3,7 @@ import { useHistory, useParams } from 'react-router-dom';
 import { Grid, TextField, Card, CardHeader, CardContent, MenuItem } from '@mui/material';
 import { useAppStore } from '../../store';
 import { AppButton, AppForm } from '../../components';
-import { useAppForm, SHARED_CONTROL_PROPS, DEFAULT_FORM_STATE } from '../../utils/form';
+import { useAppForm, SHARED_CONTROL_PROPS } from '../../utils/form';
 
 import * as yup from 'yup';
 import { termsService } from '../../services/terms.service';
@@ -88,7 +88,7 @@ function CreateSchoolsView() {
     };
   }, []);
 
-  const [formState, setFormState, onFieldChange, fieldGetError, fieldHasError, , setField] = useAppForm({
+  const [formState, , onFieldChange, fieldGetError, fieldHasError, , setField] = useAppForm({
     validationSchema: createTermSchema,
     initialValues: {
       name: '',
@@ -147,24 +147,9 @@ function CreateSchoolsView() {
       });
   };
 
-  const loadData = useCallback(() => {
-    async function fetchData() {
-      try {
-        const { name, year, start_at, end_at } = await termsService.getById(id);
-
-        if (!mounted.current) return;
-
-        setFormState({ ...DEFAULT_FORM_STATE, isValid: true, values: { name, year, start_at, end_at } });
-      } catch (err: any) {
-        console.log(err);
-      }
-    }
-    fetchData();
-  }, [id]);
-
   useEffect(() => {
     if (id) {
-      loadData();
+      // loadData();
     }
   }, [id]);
 

@@ -27,15 +27,15 @@ const WeekRoutines: React.FC<Props> = ({ Cell, userId, type }) => {
   const loadData = useCallback(async () => {
     const fetchData = async () => {
       setLoading(true);
-      let routines: IClassGroupRoutine[] = [];
+      let routinesData: IClassGroupRoutine[] = [];
 
-      routines = await routinesService.getRoutinesByUser(userId);
+      routinesData = await routinesService.getRoutinesByUser(userId);
 
       if (!mounted.current) {
         return;
       }
 
-      routines.forEach((routine) => {
+      routinesData.forEach((routine) => {
         const fullWeekRoutineSubjects: IRoutineData[] = [];
 
         for (let i = 0; i <= 6; i += 1) {
@@ -52,7 +52,7 @@ const WeekRoutines: React.FC<Props> = ({ Cell, userId, type }) => {
         routine.routineSubjects = fullWeekRoutineSubjects;
       });
 
-      setRoutines(routines);
+      setRoutines(routinesData);
       setLoading(false);
     };
 

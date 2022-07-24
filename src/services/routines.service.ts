@@ -38,7 +38,7 @@ const getRoutineSubjectsByClassGroup = async (id: string) =>
   (await api.get('/routines/subjects/class-group/' + id)).data.routineSubjects as IRoutineSubject[];
 
 const saveRoutineSubjects = async (data: { routine_subjects: IRoutineSubject[] }) =>
-  await api.post('/routines/subjects', data);
+  api.post('/routines/subjects', data);
 
 const getRoutinesByClassGroup = async (id: string) =>
   (await api.get('/routines/class-group/' + id)).data.routines as IClassGroupRoutine[];

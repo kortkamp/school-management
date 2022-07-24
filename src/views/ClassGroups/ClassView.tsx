@@ -1,8 +1,8 @@
-import { Card, CardActions, CardContent, CardHeader, Grid, CircularProgress, Button } from '@mui/material';
+import { Card, CardContent, CardHeader, Grid, Button } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { useCallback, useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router';
-import { AppButton, AppLoading } from '../../components';
+import { AppLoading } from '../../components';
 import { classGroupsService } from '../../services/classGroups.service';
 
 /**

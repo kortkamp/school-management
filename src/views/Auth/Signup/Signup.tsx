@@ -12,8 +12,7 @@ import {
   LinearProgress,
   MenuItem,
 } from '@mui/material';
-import { useAppStore } from '../../../store';
-import { AppButton, AppIconButton, AppAlert, AppForm } from '../../../components';
+import { AppButton, AppIconButton, AppForm } from '../../../components';
 import { useAppForm, SHARED_CONTROL_PROPS, eventPreventDefault } from '../../../utils/form';
 
 import * as yup from 'yup';
@@ -52,7 +51,6 @@ interface FormStateValues {
  */
 const SignupView = () => {
   const history = useHistory();
-  const [, dispatch] = useAppStore();
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -117,7 +115,7 @@ const SignupView = () => {
       setIsSaving(true);
 
       try {
-        const apiResult = await usersService.initialRegistration({ ...values, role_id: roleId });
+        await usersService.initialRegistration({ ...values, role_id: roleId });
         return history.replace('/auth/signup/confirm-registration');
       } catch (err: any) {
         console.log(err);

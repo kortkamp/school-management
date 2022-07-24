@@ -1,20 +1,10 @@
-import {
-  Card,
-  CardActions,
-  CardContent,
-  CardHeader,
-  Grid,
-  CircularProgress,
-  TextField,
-  MenuItem,
-  Box,
-} from '@mui/material';
+import { Card, CardContent, CardHeader, Grid, CircularProgress, TextField, MenuItem } from '@mui/material';
 import { useCallback, useEffect, useState } from 'react';
-import { AppButton, AppLink } from '../../components';
+import { AppButton } from '../../components';
 import { teachersService } from '../../services/teachers.service';
 import { subjectsService } from '../../services/subjects.service';
 import { SHARED_CONTROL_PROPS, useAppForm } from '../../utils/form';
-import { DataGrid, GridNoRowsOverlay, GridOverlay } from '@mui/x-data-grid';
+import { DataGrid, GridOverlay } from '@mui/x-data-grid';
 import { segmentsService } from '../../services/segments.service';
 import { useParams } from 'react-router-dom';
 
@@ -35,6 +25,8 @@ interface FormStateValues {
   subjects_ids: string[];
 }
 
+const teacherSubjectSchema = {};
+
 /**
  * Renders "TeacherSubjectView" view
  * url: /professores/disciplina
@@ -51,11 +43,9 @@ const TeacherSubjectView = () => {
 
   const [loading, setLoading] = useState(true);
   const [loadingTeacher, setLoadingTeacher] = useState(false);
-  const [validationSchema, setValidationSchema] = useState<any>({
-    ...{},
-  });
-  const [formState, setFormState, onFieldChange, fieldGetError, fieldHasError] = useAppForm({
-    validationSchema, // the state value, so could be changed in time
+
+  const [formState, , onFieldChange] = useAppForm({
+    validationSchema: teacherSubjectSchema, // the state value, so could be changed in time
     initialValues: {
       teacher_id: teacherIdPAram || '',
       segment_id: '',

@@ -40,8 +40,6 @@ interface IExam {
  * url: /exames/*
  */
 function ExamListView() {
-  const [isSeaching, SetIsSearching] = useState(false);
-
   const [statusFilter, setStatusFilter] = useState('open');
   const [typeFilter, setTypeFilter] = useState('');
 
@@ -50,11 +48,56 @@ function ExamListView() {
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<ReactNode | null>(null);
 
-  const [Error, setError] = useState<ReactNode | null>(null);
-
   const history = useHistory();
 
   const onDialogClose = useCallback(() => {
+    setModal(null);
+  }, []);
+
+  const loadExamList = useCallback(async () => {
+    setLoading(true);
+
+    let filter = {
+      by: '',
+      value: '',
+      type: '',
+    };
+
+    if (statusFilter !== 'all') {
+      filter = {
+        by: 'status',
+        value: statusFilter,
+        type: 'eq',
+      };
+    }
+
+    try {
+      const examsData = await examsService.getAll(1000, 1, filter.by, filter.value, filter.type);
+      setExams(examsData.result);
+    } catch (err: any) {
+      console.log(err);
+      // setError(ErrorAPI(404));
+    }
+    setLoading(false);
+  }, [statusFilter]);
+
+  const handleDeleteExam = useCallback(
+    async (id: string) => {
+      const apiResult = await examsService.remove(id);
+
+      if (!apiResult) {
+        // setError('Não foi possível excluir o exame');
+        return;
+      }
+
+      // setExams(exams.filter((exam) => exam.id !== id));
+      loadExamList();
+    },
+    [history]
+  );
+
+  const onConfirmDialogConfirm = useCallback((data) => {
+    handleDeleteExam(data.id);
     setModal(null);
   }, []);
 
@@ -83,53 +126,6 @@ function ExamListView() {
       />
     );
   };
-
-  const onConfirmDialogConfirm = useCallback((data) => {
-    handleDeleteExam(data.id);
-    setModal(null);
-  }, []);
-
-  const handleDeleteExam = useCallback(
-    async (id: string) => {
-      const apiResult = await examsService.remove(id);
-
-      if (!apiResult) {
-        setError('Não foi possível excluir o exame');
-        return;
-      }
-
-      // setExams(exams.filter((exam) => exam.id !== id));
-      loadExamList();
-    },
-    [history]
-  );
-
-  const loadExamList = useCallback(async () => {
-    setLoading(true);
-
-    let filter = {
-      by: '',
-      value: '',
-      type: '',
-    };
-
-    if (statusFilter !== 'all') {
-      filter = {
-        by: 'status',
-        value: statusFilter,
-        type: 'eq',
-      };
-    }
-
-    try {
-      const exams = await examsService.getAll(1000, 1, filter.by, filter.value, filter.type);
-      setExams(exams.result);
-    } catch (err: any) {
-      console.log(err);
-      // setError(ErrorAPI(404));
-    }
-    setLoading(false);
-  }, [statusFilter]);
 
   useEffect(() => {
     loadExamList();
@@ -169,8 +165,8 @@ function ExamListView() {
           <CreateExamView
             examId={examId}
             getExamData={(examData) => {
-              setExams((exams) => {
-                return exams.map((exam) => {
+              setExams((prevExams) => {
+                return prevExams.map((exam) => {
                   if (exam.id === examId) {
                     return {
                       ...exam,
@@ -340,7 +336,7 @@ function ExamListView() {
                     <MenuItem value={'prova'}>Prova</MenuItem>
                     <MenuItem value={'trabalho'}>Trabalho</MenuItem>
                     <MenuItem value={'trabalho em grupo'}>Trabalho em grupo</MenuItem>
-                    <MenuItem value={'exercice'}>Exercício</MenuItem>
+                    <MenuItem value={'exercise'}>Exercício</MenuItem>
                   </TextField>
                 </Grid>
               </Grid>

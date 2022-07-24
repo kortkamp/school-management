@@ -1,27 +1,18 @@
+/* eslint-disable @typescript-eslint/no-shadow */
 import { Button, Card, CardContent, CardHeader, Grid, Theme } from '@mui/material';
-import { DataGrid, GridColDef, GridColumnHeaderParams, GridOverlay } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridOverlay } from '@mui/x-data-grid';
 import { useCallback, useEffect, useState } from 'react';
 import Moment from 'moment';
 
-import { SHARED_CONTROL_PROPS } from '../../utils/form';
 import { examsService, IExam } from '../../services/exams.service';
 import makeStyles from '@mui/styles/makeStyles';
 import AppSubjectClassSelector from '../../components/AppSubjectClassSelector';
-import { IStudentResults, studentsService } from '../../services/students.service';
+import { studentsService } from '../../services/students.service';
 import { sortByField } from '../../utils/sort';
 import { IListTerms, termsService } from '../../services/terms.service';
-import { AppButton } from '../../components';
 import { examSubType, examType } from '../../services/IExam';
 
 const passingNote = 7;
-
-interface IResult {
-  value: number;
-  student: {
-    id: string;
-    name: string;
-  };
-}
 
 interface IDisplayColumnResults {
   id: string;
@@ -172,7 +163,7 @@ function ExamResultView() {
 
       typeExams.forEach((exam) => {
         let examResult = 0;
-        const result = results.find((result) => result.exam_id === exam.id);
+        const result = results.find((item) => item.exam_id === exam.id);
         if (result) {
           examResult += result.value * exam.weight;
 
@@ -315,16 +306,16 @@ function ExamResultView() {
               termMeans.push(mean);
             }
 
-            resultWeightModification.forEach((weigthModification) => {
-              if (rows[studentIndex][weigthModification.exam_id]) {
-                rows[studentIndex][weigthModification.exam_id].weight = weigthModification.weight;
+            resultWeightModification.forEach((weightModification) => {
+              if (rows[studentIndex][weightModification.exam_id]) {
+                rows[studentIndex][weightModification.exam_id].weight = weightModification.weight;
               }
             });
             rows[studentIndex][term.id] = { result: mean, weight: 1 };
           });
 
           const final = termMeans.reduce((total, mean) => mean + total) / termMeans.length;
-          rows[studentIndex]['final'] = { result: final, weight: 1 };
+          rows[studentIndex].final = { result: final, weight: 1 };
         });
 
         console.log(rows);
@@ -390,14 +381,14 @@ function ExamResultView() {
 
           cellClassName: (params) => {
             const weightModificator = params.row[displayColumn.id]?.weight === 0 ? 'traced ' : '';
-            const resultMoficator = params.row[displayColumn.id]?.result < passingNote ? 'reproved ' : '';
+            const resultModificator = params.row[displayColumn.id]?.result < passingNote ? 'reproved ' : '';
             if (displayColumn.isResume) {
-              return resultMoficator + 'resume-' + displayColumn.term.id;
+              return resultModificator + 'resume-' + displayColumn.term.id;
             }
             return weightModificator + 'term-' + displayColumn.term.id;
           },
 
-          renderHeader: (params: GridColumnHeaderParams) => (
+          renderHeader: () => (
             <>
               <span>{displayColumn.term.name}</span>
               <span style={{ textAlign: 'center' }}>
@@ -438,7 +429,8 @@ function ExamResultView() {
             <Grid container spacing={1}>
               <AppSubjectClassSelector
                 onChange={(data) => {
-                  setSubjectId(data.subjectId), setClassGroupId(data.classGroupId);
+                  setSubjectId(data.subjectId);
+                  setClassGroupId(data.classGroupId);
                 }}
               />
             </Grid>

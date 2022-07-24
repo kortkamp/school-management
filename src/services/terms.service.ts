@@ -10,11 +10,11 @@ export interface IListTerms {
 
 const getAll = async () => (await api.get(`/terms`)).data.terms as IListTerms[];
 
-const create = async (data: object) => await api.post('/terms', data);
+const create = async (data: object) => api.post('/terms', data);
 
-const remove = async (id: string) => await api.delete('/terms/' + id);
+const remove = async (id: string) => api.delete('/terms/' + id);
 
-const update = async (id: string, data: object) => await api.put('/terms/' + id, data);
+const update = async (id: string, data: object) => api.put('/terms/' + id, data);
 
 const getById = async (id: string) => (await api.get('/terms/' + id)).data.term as IListTerms;
 

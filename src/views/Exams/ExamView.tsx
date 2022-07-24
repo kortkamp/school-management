@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import { useCallback, useEffect, useReducer, useState } from 'react';
 import { useParams } from 'react-router';
-import { AppAlert, AppButton, AppLoading } from '../../components';
+import { AppButton, AppLoading } from '../../components';
 import { examsService } from '../../services/exams.service';
 import { studentsService } from '../../services/students.service';
 import Moment from 'moment';
@@ -177,7 +177,7 @@ const ExamView: React.FC<Props> = ({ examId }) => {
     loadClassGroupsList();
   }, [loadClassGroupsList]);
 
-  const resultsAreValid = results.every(({ value }) => (value || value === 0) && value >= 0 && value <= exam.value);
+  // const resultsAreValid = results.every(({ value }) => (value || value === 0) && value >= 0 && value <= exam.value);
 
   if (loading) return <AppLoading />;
 
@@ -211,7 +211,7 @@ const ExamView: React.FC<Props> = ({ examId }) => {
                 <b>Notas</b>
               </CardContent>
               <List>
-                {results.map((result, index) => {
+                {results.map((result) => {
                   return (
                     <ResultRow
                       className={classes.studentResultRow}

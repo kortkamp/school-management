@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useReducer } from 'react';
-import { Box, Grid, MenuItem, TextField } from '@mui/material';
+import { Grid, MenuItem, TextField } from '@mui/material';
 
 import { SHARED_CONTROL_PROPS } from '../../utils/form';
 import { segmentsService } from '../../services/segments.service';
@@ -29,7 +29,7 @@ interface AllocationAction {
 
 const AppAllocationSelect: React.FC<Props> = ({ onChange, getClassGroup }) => {
   function allocationReducer(state: IAllocation, action: AllocationAction) {
-    const { type, payload } = action;
+    const { payload } = action;
 
     return { ...state, ...payload };
   }
@@ -40,7 +40,9 @@ const AppAllocationSelect: React.FC<Props> = ({ onChange, getClassGroup }) => {
   });
 
   useEffect(() => {
-    onChange && onChange({ classGroupId, gradeId, segmentId });
+    if (onChange) {
+      onChange({ classGroupId, gradeId, segmentId });
+    }
   }, [classGroupId, gradeId, segmentId]);
 
   const [segments, setSegments] = useState<any[]>([]);

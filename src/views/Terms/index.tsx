@@ -1,6 +1,5 @@
 import { Route, Switch } from 'react-router-dom';
 import ListTermsView from './ListTermsView';
-import TermView from './TermView';
 import CreateTermView from './CreateTermView';
 
 /**

@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, Grid, CircularProgress, TextField, MenuItem, Box } from '@mui/material';
+import { Card, CardContent, CardHeader, Grid, CircularProgress, TextField, MenuItem } from '@mui/material';
 import { useCallback, useEffect, useState } from 'react';
-import { AppButton, AppLink } from '../../components';
+import { AppButton } from '../../components';
 import { teachersService } from '../../services/teachers.service';
 import { subjectsService } from '../../services/subjects.service';
 import { SHARED_CONTROL_PROPS, useAppForm } from '../../utils/form';
@@ -54,7 +54,7 @@ interface FormStateValues {
   segment_id: string;
   grade_id: string;
 }
-
+const teacherClassGroupSchema = {};
 /**
  * Renders "TeacherClassGroupView" view
  * url: /professores/turmas/*
@@ -75,11 +75,9 @@ const TeacherClassGroupView = () => {
 
   const [loading, setLoading] = useState(true);
   const [loadingTeacher, setLoadingTeacher] = useState(false);
-  const [validationSchema, setValidationSchema] = useState<any>({
-    ...{},
-  });
-  const [formState, setFormState, onFieldChange, fieldGetError, fieldHasError] = useAppForm({
-    validationSchema, // the state value, so could be changed in time
+
+  const [formState, setFormState, onFieldChange] = useAppForm({
+    validationSchema: teacherClassGroupSchema, // the state value, so could be changed in time
     initialValues: {
       teacher_id: teacherIdPAram || '',
       segment_id: '',
@@ -182,10 +180,10 @@ const TeacherClassGroupView = () => {
   // }, [values.segment_id]);
 
   useEffect(() => {
-    setFormState((formState) => ({
-      ...formState,
+    setFormState((state) => ({
+      ...state,
       values: {
-        ...formState.values,
+        ...state.values,
         grade_id: '',
       },
     }));
@@ -204,7 +202,7 @@ const TeacherClassGroupView = () => {
 
   const handleRemoveTeacherClassGroup = async ({ teacher_id, subject_id, class_group_id }: ITeacherClassGroup) => {
     try {
-      const response = await teacherClassGroupsService.remove({ teacher_id, subject_id, class_group_id });
+      await teacherClassGroupsService.remove({ teacher_id, subject_id, class_group_id });
 
       setTeacherClassGroups(
         teacherClassGroups.filter(
@@ -223,14 +221,14 @@ const TeacherClassGroupView = () => {
       );
     };
 
-    const subjects_ids = selectedSubjects.filter((subject_id) => !teacherClassExists(classGroup.id, subject_id));
+    const subjectsIDs = selectedSubjects.filter((subject_id) => !teacherClassExists(classGroup.id, subject_id));
 
-    if (!subjects_ids.length) {
+    if (!subjectsIDs.length) {
       return;
     }
 
     const teacherClassGroup = {
-      subject_ids: subjects_ids,
+      subject_ids: subjectsIDs,
       class_group_id: classGroup.id,
       teacher_id: values.teacher_id,
     };
@@ -244,7 +242,7 @@ const TeacherClassGroupView = () => {
           class_group_id,
           teacher_id,
           subject: teacherSubjects.find((subject) => subject.id === subject_id),
-          classGroup: classGroups.find((classGroup) => classGroup.id === class_group_id),
+          classGroup: classGroups.find((c) => c.id === class_group_id),
         })
       );
 

@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardContent, TextField, Typography, Grid } from '@mui/material';
+import { Card, CardHeader, CardContent, Typography, Grid } from '@mui/material';
 
 /**
  * Renders "Confirm Registration Success" view for Signup flow

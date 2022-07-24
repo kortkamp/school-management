@@ -1,8 +1,7 @@
-import { Card, CardActions, CardContent, CardHeader, Grid, CircularProgress, Button } from '@mui/material';
+import { Card, CardContent, CardHeader, Grid, CircularProgress, Button } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { useCallback, useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
-import { AppButton, AppLink } from '../../components';
 import AppAllocationSelect, { IAllocation } from '../../components/AppAllocationSelect/AppAllocationSelect';
 import { classGroupsService } from '../../services/classGroups.service';
 
@@ -14,7 +13,7 @@ const ClassGroupsView = () => {
   const [classGroups, setClassGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [allocation, setAllocation] = useState<IAllocation>({
+  const [, setAllocation] = useState<IAllocation>({
     segmentId: '',
     gradeId: '',
     classGroupId: '',

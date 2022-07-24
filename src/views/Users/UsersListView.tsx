@@ -1,4 +1,4 @@
-import { Card, CardActions, CardContent, CardHeader, Grid, CircularProgress, Button, Box } from '@mui/material';
+import { Card, CardContent, CardHeader, Grid, CircularProgress, Button, Box } from '@mui/material';
 import { DataGrid, GridOverlay, GridPagination } from '@mui/x-data-grid';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useHistory } from 'react-router';
@@ -29,8 +29,6 @@ const ListView = ({ role }: { role: 'student' | 'teacher' }) => {
 
   const mounted = useRef(false);
 
-  const [selected, setSelected] = useState<any[]>([]);
-
   const [allocation, setAllocation] = useState<IAllocation>({
     segmentId: '',
     gradeId: '',
@@ -44,7 +42,7 @@ const ListView = ({ role }: { role: 'student' | 'teacher' }) => {
 
   const history = useHistory();
 
-  const datagridStudentscolumns = [
+  const dataGridStudentsColumns = [
     { field: 'name', headerName: 'Nome', width: 150 },
     { field: 'enroll_id', headerName: 'Matrícula', width: 150 },
 
@@ -93,7 +91,7 @@ const ListView = ({ role }: { role: 'student' | 'teacher' }) => {
     },
   ];
 
-  const datagridTeacherscolumns = [
+  const dataGridTeachersColumns = [
     { field: 'name', headerName: 'Nome', width: 150 },
     { field: 'enroll_id', headerName: 'Matrícula', width: 150 },
 
@@ -103,11 +101,6 @@ const ListView = ({ role }: { role: 'student' | 'teacher' }) => {
       width: 350,
       sortable: false,
       renderCell: (params: any) => {
-        const onClick = (e: any) => {
-          e.stopPropagation(); // don't select this row after clicking
-          history.push('/turmas/' + params.row.id);
-        };
-
         return (
           <>
             <AppButton onClick={() => history.push(`/professores/disciplinas/${params.row.id}`)}>Matérias</AppButton>
@@ -123,13 +116,13 @@ const ListView = ({ role }: { role: 'student' | 'teacher' }) => {
       service: studentsService,
       title: 'Alunos',
       subheader: 'Lista de alunos',
-      datagridColumns: datagridStudentscolumns,
+      dataGridColumns: dataGridStudentsColumns,
     },
     teacher: {
       service: teachersService,
       title: 'Professores',
       subheader: 'Lista de professores',
-      datagridColumns: datagridTeacherscolumns,
+      dataGridColumns: dataGridTeachersColumns,
     },
   };
 
@@ -190,8 +183,8 @@ const ListView = ({ role }: { role: 'student' | 'teacher' }) => {
       </Grid>
     );
 
-  const handleSelectAllocation = (allocation: IAllocation) => {
-    setAllocation(allocation);
+  const handleSelectAllocation = (newAllocation: IAllocation) => {
+    setAllocation(newAllocation);
   };
 
   return (
@@ -210,7 +203,7 @@ const ListView = ({ role }: { role: 'student' | 'teacher' }) => {
               <Grid item md={12} sm={12} xs={12}>
                 <DataGrid
                   rows={users.result}
-                  columns={roleData[role].datagridColumns}
+                  columns={roleData[role].dataGridColumns}
                   onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
                   onPageChange={(newPage) => setPage(newPage + 1)}
                   pagination
@@ -222,9 +215,6 @@ const ListView = ({ role }: { role: 'student' | 'teacher' }) => {
                   checkboxSelection
                   loading={isDataLoading}
                   autoHeight
-                  onSelectionModelChange={(ids) => {
-                    setSelected(ids.map((item: any) => item.id));
-                  }}
                   initialState={{
                     pagination: {
                       page: 1,

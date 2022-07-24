@@ -13,7 +13,7 @@ import {
   TextField,
   MenuItem,
 } from '@mui/material';
-import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppButton, AppLoading } from '../../components';
 import AppAllocationSelect, { IAllocation } from '../../components/AppAllocationSelect/AppAllocationSelect';
 import { useAppMessage } from '../../utils/message';
@@ -69,8 +69,6 @@ const RoutinesView = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [AppMessage, setMessage] = useAppMessage();
 
-  const [modal, setModal] = useState<ReactNode | null>(null);
-
   const mounted = useRef(false);
 
   useEffect(() => {
@@ -119,7 +117,7 @@ const RoutinesView = () => {
   }, [loadData]);
 
   const generateSubjectsResume = () => {
-    const subjectsTime = subjects
+    const newSubjectsTime = subjects
       .filter((subject) => subject.segment.id === selectedClassGroup?.grade?.segment.id)
       .map((subject) => {
         const subjectTimes = routineSubjects.filter(
@@ -128,9 +126,9 @@ const RoutinesView = () => {
 
         return { id: subject.id, name: subject.name, time: subjectTimes };
       });
-    const total = subjectsTime.reduce((total, subjectTime) => total + subjectTime.time, 0);
-    subjectsTime.push({ id: 'total', name: 'Total', time: total });
-    setSubjectsTime(subjectsTime);
+    const total = newSubjectsTime.reduce((totalTime, subjectTime) => totalTime + subjectTime.time, 0);
+    newSubjectsTime.push({ id: 'total', name: 'Total', time: total });
+    setSubjectsTime(newSubjectsTime);
   };
 
   // update the subject total time resume
@@ -139,8 +137,8 @@ const RoutinesView = () => {
   }, [subjects, routineSubjects]);
 
   const onSelectRoutineSubject = (data: Omit<IRoutineSubject, 'class_group_id'>) => {
-    setRoutineSubjects((routineSubjects) => {
-      const routineSubjectExists = routineSubjects.find(
+    setRoutineSubjects((prevRoutineSubjects) => {
+      const routineSubjectExists = prevRoutineSubjects.find(
         (item) => item.routine_id === data.routine_id && item.week_day === data.week_day
       );
       if (routineSubjectExists?.subject_id !== data.subject_id) {
@@ -149,10 +147,10 @@ const RoutinesView = () => {
       if (routineSubjectExists) {
         routineSubjectExists.subject_id = data.subject_id;
       } else {
-        routineSubjects.push({ ...data, class_group_id: selectedClassGroup.id });
+        prevRoutineSubjects.push({ ...data, class_group_id: selectedClassGroup.id });
       }
 
-      return routineSubjects;
+      return prevRoutineSubjects;
     });
     generateSubjectsResume();
   };
@@ -172,7 +170,6 @@ const RoutinesView = () => {
 
   return (
     <>
-      {modal}
       <Grid container spacing={3}>
         <Grid item xs={12} md={12}>
           <Card style={{ padding: '20px' }}>
@@ -208,8 +205,7 @@ const RoutinesView = () => {
                                 </TableCell>
                                 {weekDays.map((weekDay, index) => {
                                   const routineSubject = defaultRoutineSubjects.find(
-                                    (routineSubject) =>
-                                      routineSubject.week_day === index && routineSubject.routine_id === row.id
+                                    (item) => item.week_day === index && item.routine_id === row.id
                                   );
                                   const value = routineSubject?.subject_id || '';
                                   if (index > 0 && index < 6)

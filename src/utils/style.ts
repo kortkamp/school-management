@@ -24,6 +24,7 @@ export const paperStyle = (theme: Theme) => ({
 /**
  * Makes style for Forms across the App
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const formStyle = (theme: Theme) => ({
   width: '100%',
   maxWidth: '40rem', // 640px

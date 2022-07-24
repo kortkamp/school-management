@@ -1,6 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
-import { IClassGroupRoutine, IRoutineData, routinesService, IRoutineSubject } from '../../services/routines.service';
 import { AppLoading } from '../AppLoading';
 
 interface ISubjectsTotalTime {

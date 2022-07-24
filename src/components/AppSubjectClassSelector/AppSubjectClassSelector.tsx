@@ -24,16 +24,16 @@ interface Props {
 }
 
 const AppSubjectClassSelector: React.FC<Props> = ({ onChange = () => {}, selectorAll = false }) => {
-  const [state, _] = useAppStore();
+  const [state] = useAppStore();
 
   const [data, setData] = useState<IData>({ subjectId: '', classGroupId: '' });
 
   const [subjects, setSubjects] = useState<any[]>([]);
 
-  const [classSubjects, setClassSubjets] = useState<IClassSubjects[]>([]);
+  const [classSubjects, setClassSubjects] = useState<IClassSubjects[]>([]);
 
   const handleSelectClassGroup = (id: string) => {
-    setData((prevState) => ({ classGroupId: id, subjectId: '' }));
+    setData({ classGroupId: id, subjectId: '' });
     setSubjects(classSubjects.find((classSubject) => classSubject.id === id)?.subjects || []);
   };
 
@@ -47,7 +47,7 @@ const AppSubjectClassSelector: React.FC<Props> = ({ onChange = () => {}, selecto
 
   const loadData = useCallback(async () => {
     let componentMounted = true;
-    let classSubjects: IClassSubjects[];
+    let classSubjectsData: IClassSubjects[];
 
     async function fetchData() {
       try {
@@ -55,12 +55,14 @@ const AppSubjectClassSelector: React.FC<Props> = ({ onChange = () => {}, selecto
           case 'student':
             const response = await studentsService.getById(state.currentUser?.id as string);
             const student = response.data.student;
-            classSubjects = [{ id: student.class_group_id, name: student.classGroup.name, subjects: student.subjects }];
+            classSubjectsData = [
+              { id: student.class_group_id, name: student.classGroup.name, subjects: student.subjects },
+            ];
 
             break;
           case 'teacher':
             const teacherResponse = await teacherClassGroupsService.getAllbyTeacher(state.currentUser?.id as string);
-            classSubjects = teacherResponse.data.teacherClasses.map((teacherClass: any) => ({
+            classSubjectsData = teacherResponse.data.teacherClasses.map((teacherClass: any) => ({
               id: teacherClass.id,
               name: teacherClass.name,
               subjects: teacherClass.teacherClassGroups.map((teacherSubject: any) => ({
@@ -78,11 +80,11 @@ const AppSubjectClassSelector: React.FC<Props> = ({ onChange = () => {}, selecto
           return;
         }
 
-        setClassSubjets(classSubjects);
+        setClassSubjects(classSubjectsData);
 
-        if (classSubjects.length === 1) {
-          handleSelectClassGroup(classSubjects[0].id);
-          setSubjects(classSubjects[0].subjects);
+        if (classSubjectsData.length === 1) {
+          handleSelectClassGroup(classSubjectsData[0].id);
+          setSubjects(classSubjectsData[0].subjects);
         }
       } catch (err: any) {
         console.log(err);

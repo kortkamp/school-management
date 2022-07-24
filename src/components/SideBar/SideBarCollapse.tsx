@@ -1,11 +1,7 @@
-import clsx from 'clsx';
-import Button from '@mui/material/Button';
-import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import { Theme } from '@mui/material/styles';
 import makeStyles from '@mui/styles/makeStyles';
 import AppIcon from '../AppIcon';
-import SideBarLink from './SideBarLink';
 import { LinkToPage } from '../../utils/type';
 import { useState } from 'react';
 import { Collapse, ListItemButton } from '@mui/material';
@@ -52,7 +48,7 @@ interface Props {
   showIcons?: boolean;
   afterLinkClick?: React.MouseEventHandler;
 }
-const SideBarCollapse: React.FC<Props> = ({ className, item, showIcons = false, afterLinkClick, ...restOfProps }) => {
+const SideBarCollapse: React.FC<Props> = ({ className, item, showIcons = false, afterLinkClick }) => {
   const [open, setOpen] = useState(false);
 
   const handleClick = () => {

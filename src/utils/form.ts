@@ -84,7 +84,7 @@ export function useAppForm({ validationSchema, initialValues = {} }: UseAppFormP
 
   // Create Form state and apply initialValues if set
   const [formState, setFormState] = useState({ ...DEFAULT_FORM_STATE, values: initialValues });
-  const [yupValidationSchema, setYupValidationSchema] = useState<any>(yup.object().shape(validationSchema));
+  const [yupValidationSchema] = useState<any>(yup.object().shape(validationSchema));
 
   const validate = useCallback(async () => {
     let errors: any = {}; //validate(formState.values, validationSchema);
@@ -115,28 +115,28 @@ export function useAppForm({ validationSchema, initialValues = {} }: UseAppFormP
         ? event.target?.checked // Checkbox Input
         : event.target?.value; // Any other Input
 
-    setFormState((formState) => ({
-      ...formState,
+    setFormState((state) => ({
+      ...state,
       values: {
-        ...formState.values,
+        ...state.values,
         [name]: value,
       },
       touched: {
-        ...formState.touched,
+        ...state.touched,
         [name]: true,
       },
     }));
   }, []);
 
   const setField = (name: string, value: any) => {
-    setFormState((formState) => ({
-      ...formState,
+    setFormState((state) => ({
+      ...state,
       values: {
-        ...formState.values,
+        ...state.values,
         [name]: value,
       },
       touched: {
-        ...formState.touched,
+        ...state.touched,
         [name]: true,
       },
     }));

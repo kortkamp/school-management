@@ -1,8 +1,8 @@
-import { useCallback, useState, useEffect } from 'react';
-import { useHistory, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Card, CardHeader, CardContent, TextField, Grid, CardActions } from '@mui/material';
 import { SHARED_CONTROL_PROPS } from '../../../utils/form';
-import { AppAlert, AppButton, AppForm, AppLoading } from '../../../components';
+import { AppButton, AppForm, AppLoading } from '../../../components';
 import { sessionService } from '../../../services/auth.service';
 import { useAppMessage } from '../../../utils/message';
 
@@ -14,8 +14,6 @@ const TOKEN_QUERY_PARAM = 'token';
  */
 const ConfirmEmailView = () => {
   const [email, setEmail] = useState<string>('');
-
-  const history = useHistory();
 
   const [AppMessage, setMessage] = useAppMessage();
 
@@ -31,11 +29,11 @@ const ConfirmEmailView = () => {
 
   useEffect(() => {
     let componentMounted = true;
-    let email: string = '';
+    let gotEmail: string = '';
     async function fetchData() {
       try {
         const response = await sessionService.confirmEmail(token);
-        email = response.email;
+        gotEmail = response.email;
         setMessage({ type: 'success', text: 'Confirmação de cadastro realizada com sucesso' });
         setSuccess(true);
       } catch (err: any) {
@@ -44,7 +42,7 @@ const ConfirmEmailView = () => {
       }
 
       if (!componentMounted) return;
-      setEmail(email);
+      setEmail(gotEmail);
       setLoading(false);
     }
     fetchData();
