@@ -150,7 +150,7 @@ const AppAddressForm: React.FC<Props> = ({}) => {
         />
       </Grid>
 
-      <Grid item md={6} sm={12} xs={12}>
+      <Grid item md={6} sm={6} xs={6}>
         <TextField
           required
           label="Complemento"
@@ -162,7 +162,7 @@ const AppAddressForm: React.FC<Props> = ({}) => {
           {...SHARED_CONTROL_PROPS}
         />
       </Grid>
-      <Grid item md={6} sm={12} xs={12}>
+      <Grid item md={6} sm={6} xs={6}>
         <TextField
           required
           label="Bairro"
@@ -174,7 +174,7 @@ const AppAddressForm: React.FC<Props> = ({}) => {
           {...SHARED_CONTROL_PROPS}
         />
       </Grid>
-      <Grid item md={8} sm={12} xs={12}>
+      <Grid item md={8} sm={8} xs={8}>
         <TextField
           required
           label="Cidade"
@@ -186,7 +186,7 @@ const AppAddressForm: React.FC<Props> = ({}) => {
           {...SHARED_CONTROL_PROPS}
         />
       </Grid>
-      <Grid item md={4} sm={12} xs={12}>
+      <Grid item md={4} sm={4} xs={4}>
         <TextField
           required
           select
