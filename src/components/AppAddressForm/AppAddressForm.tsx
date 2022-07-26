@@ -152,7 +152,6 @@ const AppAddressForm: React.FC<Props> = ({}) => {
 
       <Grid item md={6} sm={6} xs={6}>
         <TextField
-          required
           label="Complemento"
           name="complement"
           value={values.complement}
