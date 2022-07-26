@@ -84,13 +84,14 @@ export function useAppForm({ validationSchema, initialValues = {} }: UseAppFormP
 
   // Create Form state and apply initialValues if set
   const [formState, setFormState] = useState({ ...DEFAULT_FORM_STATE, values: initialValues });
-  const [yupValidationSchema] = useState<any>(yup.object().shape(validationSchema));
 
-  const validate = useCallback(async () => {
+  const [yupSchema, setYupSchema] = useState(yup.object().shape(validationSchema));
+
+  const validate = async () => {
     let errors: any = {}; //validate(formState.values, validationSchema);
     let isValid: any = false;
     try {
-      isValid = await yupValidationSchema.validate(formState.values, { abortEarly: false, stripUnknown: true });
+      isValid = await yupSchema.validate(formState.values, { abortEarly: false, stripUnknown: true });
     } catch (err: any) {
       const { inner } = err as yup.ValidationError;
       inner.forEach((error: any) => (errors[error.path] = [error.message]));
@@ -101,11 +102,15 @@ export function useAppForm({ validationSchema, initialValues = {} }: UseAppFormP
       isValid,
       errors: errors || {},
     }));
-  }, [validationSchema, formState.values]);
+  };
 
   useEffect(() => {
     validate();
-  }, [validationSchema, formState.values]);
+  }, [yupSchema, formState.values]);
+
+  useEffect(() => {
+    setYupSchema(yup.object().shape(validationSchema));
+  }, [validationSchema]);
 
   // Event to call on every Input change. Note: the "name" props of the Input control must be set!
   const onFieldChange = useCallback((event) => {
@@ -144,7 +149,7 @@ export function useAppForm({ validationSchema, initialValues = {} }: UseAppFormP
 
   const isFieldRequired = (field: string) => {
     return (
-      yupValidationSchema
+      (yupSchema as any)
         .describe()
         .fields[field]?.tests.findIndex(({ name }: { name: string }) => name === 'required') >= 0
     );
