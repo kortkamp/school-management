@@ -1,6 +1,6 @@
 import { Route, Switch } from 'react-router-dom';
-import { CreateTeacherView } from '../Users/CreateUserView';
 import { TeachersListView } from '../Users/UsersListView';
+import { CreateTeacherView } from './CreateTeacherView';
 import TeacherClassGroupView from './TeacherClassGroupView';
 import TeacherSubjectView from './TeacherSubjectView';
 
