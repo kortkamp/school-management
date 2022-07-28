@@ -43,7 +43,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   stepContainer: {
     position: 'relative',
     overflow: 'hidden',
-    height: '600px',
+    height: '640px',
   },
 
   card: {
@@ -54,13 +54,17 @@ const useStyles = makeStyles((theme: Theme) => ({
     // zIndex: 999,
   },
 }));
-
-interface Props {
-  titles: string[];
-  forms: ReactNode[];
-  isSaving?: boolean;
+interface IStepTitle {
+  name: string;
+  isValid: boolean;
 }
-const AppStepSelector: React.FC<Props> = ({ titles, forms, isSaving = false }) => {
+interface Props {
+  stepTitles: IStepTitle[];
+  forms: ReactNode[];
+  isValid?: boolean;
+  onStepChange?: (step: number) => void;
+}
+const AppStepSelector: React.FC<Props> = ({ stepTitles, forms, isValid = true, onStepChange = () => {} }) => {
   const classes = useStyles();
 
   const [step, setStep] = useState(0);
@@ -68,7 +72,14 @@ const AppStepSelector: React.FC<Props> = ({ titles, forms, isSaving = false }) =
   // const stepClasses = titles.reduce((stepClassesReduce, tittle) => ({ ...stepClassesReduce, [tittle]: 2 }), {});
 
   const handleClickStep = (addStep: number) => {
-    setStep((s) => s + addStep);
+    setStep((prevStep) => {
+      onStepChange(prevStep + addStep);
+      return prevStep + addStep;
+    });
+  };
+  const handleStepTitleClick = (id: number) => {
+    setStep(id);
+    onStepChange(id);
   };
 
   const getStepClassName = (index: number) => {
@@ -78,7 +89,7 @@ const AppStepSelector: React.FC<Props> = ({ titles, forms, isSaving = false }) =
   const StepButton = ({ id, title, size }: { id: number; title: String; size: number }) => (
     <Grid item md={size} sm={size} xs={size}>
       <Button
-        onClick={() => setStep(id)}
+        onClick={() => handleStepTitleClick(id)}
         color="secondary"
         className={clsx(classes.stepForm, step === id && classes.selected)}
         disabled={step === id}
@@ -91,8 +102,8 @@ const AppStepSelector: React.FC<Props> = ({ titles, forms, isSaving = false }) =
   return (
     <Paper style={{ minWidth: '100%' }} className={classes.card}>
       <Grid container spacing={0} style={{ minWidth: '100%' }}>
-        {titles.map((title, index) => (
-          <StepButton key={index} id={index} title={title} size={12 / titles.length} />
+        {stepTitles.map((title, index) => (
+          <StepButton key={index} id={index} title={title.name} size={12 / stepTitles.length} />
         ))}
       </Grid>
       <CardContent style={{ minWidth: '100%' }}>
@@ -101,12 +112,10 @@ const AppStepSelector: React.FC<Props> = ({ titles, forms, isSaving = false }) =
             <Grid item key={index} className={getStepClassName(index)}>
               {form}
               <Grid container justifyContent="center" alignItems="center">
-                {step === forms.length - 1 ? (
-                  <AppButton loading={isSaving} disabled={isSaving} type="submit">
-                    Salvar
+                {step < forms.length - 1 && (
+                  <AppButton disabled={!isValid} onClick={() => handleClickStep(1)}>
+                    Próximo
                   </AppButton>
-                ) : (
-                  <AppButton onClick={() => handleClickStep(1)}>Próximo</AppButton>
                 )}
               </Grid>
             </Grid>

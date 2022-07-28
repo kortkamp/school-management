@@ -1,6 +1,6 @@
 import { SyntheticEvent, useCallback, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { Grid, TextField, CardHeader, MenuItem, FormControlLabel, Checkbox } from '@mui/material';
+import { Grid, TextField, CardHeader, MenuItem } from '@mui/material';
 
 import * as yup from 'yup';
 
@@ -10,39 +10,41 @@ import { studentsService } from '../../services/students.service';
 import AppStepSelector from '../../components/AppStepSelector';
 import { teachersService } from '../../services/teachers.service';
 import { useAppMessage } from '../../utils/message';
-import AppAddressForm from '../../components/AppAddressForm/AppAddressForm';
+// import AppAddressForm from '../../components/AppAddressForm/AppAddressForm';
 
-const createStudentSchema = {
-  email: yup.string().email('Email inválido'),
-  phone: yup.string().required('O campo é obrigatório'),
+const createStudentMainSchema = {
   enroll_id: yup.number().required('O campo é obrigatório').positive().integer(),
   name: yup
     .string()
-    .matches(/^[A-Za-z ]+$/, 'Apenas letras')
+    .matches(/^[A-Za-z ]+$/, 'Apenas letras são permitidas')
     .required('O campo é obrigatório'),
-  CPF: yup.string(),
-  // password: yup.string().min(6, 'Mínimo de 6 caracteres').max(12, 'Máximo de 12 caracteres'),\
-  willLogin: yup.boolean(),
-  password: yup.string().when('willLogin', {
-    is: true,
-    then: yup.string().min(6, 'Mínimo de 6 caracteres').max(12, 'Máximo de 12 caracteres').required(),
-  }),
-  password_confirmation: yup.string().oneOf([yup.ref('password'), null], 'As senhas não conferem!'),
-  sex: yup.string().required('O campo é obrigatório'),
   birth: yup.date().required('O campo é obrigatório'),
+  CPF: yup.string().length(11, 'CPF inválido'),
+  phone: yup.string().required('O campo é obrigatório'),
+  sex: yup.string().required('O campo é obrigatório'),
+
+  // willLogin: yup.boolean(),
+  // email: yup.string().email('Email inválido'),
+  // password: yup.string().when('willLogin', {
+  //   is: true,
+  //   then: yup.string().min(6, 'Mínimo de 6 caracteres').max(12, 'Máximo de 12 caracteres').required(),
+  // }),
+  // password_confirmation: yup.string().oneOf([yup.ref('password'), null], 'As senhas não conferem!'),
 };
 
-const createTeacherSchema = {
-  email: yup.string().email('Email inválido').required('O campo é obrigatório'),
-  phone: yup.string().required('O campo é obrigatório'),
-  // enroll_id: yup.number().required('O campo é obrigatório').positive().integer(),
+const createTeacherMainSchema = {
   name: yup
     .string()
     .matches(/^[A-Za-z ]+$/, 'Apenas letras')
     .required('O campo é obrigatório'),
+  birth: yup.date().required('O campo é obrigatório'),
   CPF: yup.string().required('O campo é obrigatório'),
+  phone: yup.string().required('O campo é obrigatório'),
+  sex: yup.string().required('O campo é obrigatório'),
+};
 
-  // password: yup.string().min(6, 'Mínimo de 6 caracteres').max(12, 'Máximo de 12 caracteres'),\
+const complementaryDataSchema = {
+  email: yup.string().email('Email inválido').required('O campo é obrigatório'),
   password: yup
     .string()
     .min(6, 'Mínimo de 6 caracteres')
@@ -52,14 +54,12 @@ const createTeacherSchema = {
     .string()
     .oneOf([yup.ref('password'), null], 'As senhas não conferem!')
     .required('O campo é obrigatório'),
-  sex: yup.string().required('O campo é obrigatório'),
-  birth: yup.date().required('O campo é obrigatório'),
 };
 
 const roleData = {
   student: {
     service: studentsService,
-    createUserSchema: createStudentSchema,
+    createUserSchema: createStudentMainSchema,
     name: 'aluno',
     title: 'Alunos',
     subheader: 'Cadastro de alunos',
@@ -67,7 +67,7 @@ const roleData = {
   },
   teacher: {
     service: teachersService,
-    createUserSchema: createTeacherSchema,
+    createUserSchema: createTeacherMainSchema,
     name: 'professor',
     title: 'Professores',
     subheader: 'Cadastro de professores',
@@ -96,12 +96,12 @@ function CreateUserView({ role }: { role: 'student' | 'teacher' }) {
 
   const [AppMessage, setMessage] = useAppMessage();
 
-  const [, setSaving] = useState(false);
-
   const createUserSchema = roleData[role].createUserSchema;
 
+  const [stepValidationSchema, setStepValidationSchema] = useState<object>(createUserSchema);
+
   const [formState, , /* setFormState */ onFieldChange, fieldGetError, fieldHasError, isFieldRequired] = useAppForm({
-    validationSchema: createUserSchema,
+    validationSchema: stepValidationSchema,
     initialValues: {
       email: '',
       name: '',
@@ -110,7 +110,6 @@ function CreateUserView({ role }: { role: 'student' | 'teacher' }) {
       phone: '',
       sex: '',
       birth: '',
-      willLogin: roleData[role].mandatoryLoginAccount,
       password: '',
       password_confirmation: '',
       segment_id: '',
@@ -125,11 +124,9 @@ function CreateUserView({ role }: { role: 'student' | 'teacher' }) {
     async (event: SyntheticEvent) => {
       event.preventDefault();
 
-      setSaving(true);
-
       const createUserService = roleData[role].service;
 
-      const { willLogin, ...data } = values;
+      const data = values;
 
       try {
         await createUserService.create(data);
@@ -138,19 +135,27 @@ function CreateUserView({ role }: { role: 'student' | 'teacher' }) {
         console.log(err);
         setMessage({ type: 'error', text: err.response.data.message });
       }
-      setSaving(false);
     },
     [values, history]
   );
 
-  const stepsTitles = [roleData[role].name, 'Endereço', 'Outros'];
+  const stepsTitles = [
+    {
+      name: roleData[role].name,
+      isValid: ['name', 'birth', 'CPF', 'phone', 'sex'].every((field) => !fieldHasError(field)),
+    },
+    { name: 'Endereço', isValid: [].every((field) => fieldHasError(field)) },
+    { name: 'Outros', isValid: [].every((field) => fieldHasError(field)) },
+  ];
+
+  const stepsValidationSchema = [createUserSchema, {}, complementaryDataSchema];
 
   const mainForm = (
     <Grid container spacing={1}>
       <Grid item md={12} sm={12} xs={12}>
         <TextField
           required={isFieldRequired('name')}
-          label="Nome"
+          label="Nome Completo"
           name="name"
           value={values.name}
           onChange={onFieldChange}
@@ -236,66 +241,52 @@ function CreateUserView({ role }: { role: 'student' | 'teacher' }) {
           <MenuItem value="F">Feminino</MenuItem>
         </TextField>
       </Grid>
-
-      {!roleData[role].mandatoryLoginAccount && (
-        <Grid item md={12} sm={12} xs={12}>
-          <FormControlLabel
-            control={<Checkbox name="willLogin" checked={values.willLogin} onChange={onFieldChange} />}
-            label="O aluno vai poder logar no sistema?"
-          />
-        </Grid>
-      )}
-
-      {values.willLogin && (
-        <>
-          <Grid item md={12} sm={12} xs={12}>
-            <TextField
-              label="Email"
-              name="email"
-              required={isFieldRequired('email')}
-              // type="email"
-              value={values.email}
-              error={fieldHasError('email')}
-              helperText={fieldGetError('email') || ' '}
-              onChange={onFieldChange}
-              {...SHARED_CONTROL_PROPS}
-            />
-          </Grid>
-
-          <Grid item md={6} sm={12} xs={12}>
-            <TextField
-              type="password"
-              label="Password"
-              name="password"
-              required={isFieldRequired('password')}
-              value={values.password}
-              error={fieldHasError('password')}
-              helperText={fieldGetError('password') || ' '}
-              onChange={onFieldChange}
-              {...SHARED_CONTROL_PROPS}
-            />
-          </Grid>
-          <Grid item md={6} sm={12} xs={12}>
-            <TextField
-              type="password"
-              label="Confirmação de Password"
-              name="password_confirmation"
-              required={isFieldRequired('password_confirmation')}
-              value={values.password_confirmation}
-              error={fieldHasError('password_confirmation')}
-              helperText={fieldGetError('password_confirmation') || ' '}
-              onChange={onFieldChange}
-              {...SHARED_CONTROL_PROPS}
-            />
-          </Grid>
-        </>
-      )}
     </Grid>
   );
 
   const complementForm = (
-    <Grid>
-      <h1>123</h1>
+    <Grid container spacing={1}>
+      <Grid item md={12} sm={12} xs={12}>
+        <TextField
+          label="Email"
+          name="email"
+          required={isFieldRequired('email')}
+          // type="email"
+          value={values.email}
+          error={fieldHasError('email')}
+          helperText={fieldGetError('email') || ' '}
+          onChange={onFieldChange}
+          {...SHARED_CONTROL_PROPS}
+        />
+      </Grid>
+
+      <Grid item md={6} sm={12} xs={12}>
+        <TextField
+          type="password"
+          label="Password"
+          name="password"
+          required={isFieldRequired('password')}
+          value={values.password}
+          error={fieldHasError('password')}
+          helperText={fieldGetError('password') || ' '}
+          onChange={onFieldChange}
+          {...SHARED_CONTROL_PROPS}
+        />
+      </Grid>
+      <Grid item md={6} sm={12} xs={12}>
+        <TextField
+          type="password"
+          label="Confirmação de Password"
+          name="password_confirmation"
+          required={isFieldRequired('password_confirmation')}
+          value={values.password_confirmation}
+          error={fieldHasError('password_confirmation')}
+          helperText={fieldGetError('password_confirmation') || ' '}
+          onChange={onFieldChange}
+          {...SHARED_CONTROL_PROPS}
+        />
+      </Grid>
+
       <Grid item md={12} sm={12} xs={12}>
         <AppMessage />
       </Grid>
@@ -311,8 +302,12 @@ function CreateUserView({ role }: { role: 'student' | 'teacher' }) {
       />
 
       <AppStepSelector
-        forms={[mainForm, <AppAddressForm key={'address'} />, complementForm]}
-        titles={stepsTitles}
+        forms={[mainForm, complementForm]}
+        stepTitles={stepsTitles}
+        isValid={formState.isValid}
+        onStepChange={(step) => {
+          setStepValidationSchema(stepsValidationSchema[step]);
+        }}
       ></AppStepSelector>
     </AppForm>
   );

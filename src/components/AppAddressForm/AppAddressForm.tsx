@@ -1,23 +1,8 @@
 import { Grid, MenuItem, TextField } from '@mui/material';
 import { useEffect, useRef } from 'react';
-// import * as yup from 'yup';
+import NumberFormat from 'react-number-format';
 
-import { SHARED_CONTROL_PROPS, useAppForm } from '../../utils/form';
-
-interface Props {
-  onChange?: () => void;
-}
-
-const createTermSchema = {
-  // start_at: yup.date().required('O campo é obrigatório'),
-  // address: yup.string().required('O campo é obrigatório'),
-  // number: yup.string().required('O campo é obrigatório'),
-  // complement: yup.string().required('O campo é obrigatório'),
-  // district: yup.string().required('O campo é obrigatório'),
-  // city: yup.string().required('O campo é obrigatório'),
-  // state: yup.string().required('O campo é obrigatório'),
-  // CEP: yup.string().required('O campo é obrigatório'),
-};
+import { SHARED_CONTROL_PROPS } from '../../utils/form';
 
 const UFList = [
   ['Acre', 'AC'],
@@ -59,20 +44,16 @@ interface FormStateValues {
   CEP: string;
 }
 
-const AppAddressForm: React.FC<Props> = ({}) => {
-  const [formState, , onFieldChange, fieldGetError, fieldHasError, , setField] = useAppForm({
-    validationSchema: createTermSchema,
-    initialValues: {
-      address: '',
-      number: '',
-      complement: '',
-      district: '',
-      city: '',
-      state: '',
-      CEP: '',
-    } as FormStateValues,
-  });
+interface Props {
+  values: FormStateValues;
+  onFieldChange: (event: any) => void;
+  fieldGetError: (fieldName: string) => string;
+  fieldHasError: (fieldName: string) => boolean;
+  setField: (name: string, value: any) => void;
+  key?: string;
+}
 
+const AppAddressForm: React.FC<Props> = ({ values, onFieldChange, fieldGetError, fieldHasError, setField }) => {
   const mounted = useRef(false);
 
   useEffect(() => {
@@ -81,8 +62,6 @@ const AppAddressForm: React.FC<Props> = ({}) => {
       mounted.current = false;
     };
   }, []);
-
-  const values = formState.values as FormStateValues;
 
   const handleSetCEP = (CEP: string) => {
     if (CEP.length !== 8) {
@@ -108,7 +87,7 @@ const AppAddressForm: React.FC<Props> = ({}) => {
   return (
     <Grid container spacing={1}>
       <Grid item md={12} sm={12} xs={12}>
-        <TextField
+        {/* <TextField
           required
           label="CEP"
           name="CEP"
@@ -121,6 +100,19 @@ const AppAddressForm: React.FC<Props> = ({}) => {
           error={fieldHasError('CEP')}
           helperText={fieldGetError('CEP') || ' '}
           {...SHARED_CONTROL_PROPS}
+        /> */}
+        <NumberFormat
+          {...SHARED_CONTROL_PROPS}
+          label="CEP"
+          value={values.CEP}
+          name="CEP"
+          format="#####-###"
+          customInput={TextField}
+          type="text"
+          onValueChange={({ value: v }) => {
+            onFieldChange({ target: { name: 'CEP', value: v } });
+            handleSetCEP(v);
+          }}
         />
       </Grid>
 
@@ -128,7 +120,7 @@ const AppAddressForm: React.FC<Props> = ({}) => {
         <TextField
           required
           type="address"
-          label="Endereço"
+          label="Logradouro"
           name="address"
           value={values.address}
           onChange={onFieldChange}
