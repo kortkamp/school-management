@@ -201,31 +201,9 @@ function CreateTeacherView() {
             onFieldChange({ target: { name: 'CPF', value: v } });
           }}
         />
-        {/* <TextField
-          required={isFieldRequired('CPF')}
-          label="CPF"
-          name="CPF"
-          value={values.CPF}
-          onChange={onFieldChange}
-          style={{ minWidth: '100%' }}
-          error={fieldHasError('CPF')}
-          helperText={fieldGetError('CPF') || ' '}
-          {...SHARED_CONTROL_PROPS}
-        /> */}
       </Grid>
 
       <Grid item md={6} sm={12} xs={12}>
-        {/* <TextField
-          required
-          label="Telefone"
-          type="phone"
-          name="phone"
-          value={values.phone}
-          onChange={onFieldChange}
-          error={fieldHasError('phone')}
-          helperText={fieldGetError('phone') || ' '}
-          {...SHARED_CONTROL_PROPS}
-        /> */}
         <NumberFormat
           {...SHARED_CONTROL_PROPS}
           label="Telefone"
