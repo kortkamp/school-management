@@ -110,14 +110,18 @@ const AppStepSelector: React.FC<Props> = ({ stepTitles, forms, isValid = true, o
         <Grid container className={classes.stepContainer}>
           {forms.map((form, index) => (
             <Grid item key={index} className={getStepClassName(index)}>
-              {form}
-              <Grid container justifyContent="center" alignItems="center">
-                {step < forms.length - 1 && (
-                  <AppButton disabled={!isValid} onClick={() => handleClickStep(1)}>
-                    Próximo
-                  </AppButton>
-                )}
-              </Grid>
+              {index === step && (
+                <>
+                  {form}
+                  <Grid container justifyContent="center" alignItems="center">
+                    {step < forms.length - 1 && (
+                      <AppButton disabled={!isValid} onClick={() => handleClickStep(1)}>
+                        Próximo
+                      </AppButton>
+                    )}
+                  </Grid>
+                </>
+              )}
             </Grid>
           ))}
         </Grid>
