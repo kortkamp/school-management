@@ -1,60 +1,27 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { SyntheticEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
-import { Grid, TextField, Card, CardHeader, CardContent, MenuItem } from '@mui/material';
+import { Grid, TextField, Card, CardHeader, CardContent, Divider } from '@mui/material';
 import { useAppStore } from '../../store';
 import { AppButton, AppForm } from '../../components';
 import { useAppForm, SHARED_CONTROL_PROPS } from '../../utils/form';
 
+import AppStepSelector from '../../components/AppStepSelector';
+import AppAddressForm from '../../components/AppAddressForm/AppAddressForm';
+
 import * as yup from 'yup';
-import { termsService } from '../../services/terms.service';
 import { useAppMessage } from '../../utils/message';
-
-const createTermSchema = {
-  name: yup.string().required('O campo é obrigatório'),
-  phone: yup.string().required('O campo é obrigatório'),
-  // start_at: yup.date().required('O campo é obrigatório'),
-  // address: yup.string().required('O campo é obrigatório'),
-  // number: yup.string().required('O campo é obrigatório'),
-  // complement: yup.string().required('O campo é obrigatório'),
-  // district: yup.string().required('O campo é obrigatório'),
-  // city: yup.string().required('O campo é obrigatório'),
-  // state: yup.string().required('O campo é obrigatório'),
-  // CEP: yup.string().required('O campo é obrigatório'),
-};
-
-const UFList = [
-  ['Acre', 'AC'],
-  ['Alagoas', 'AL'],
-  ['Amapá', 'AP'],
-  ['Amazonas', 'AM'],
-  ['Bahia', 'BA'],
-  ['Ceará', 'CE'],
-  ['Distrito Federal', 'DF'],
-  ['Espírito Santo', 'ES'],
-  ['Goiás', 'GO'],
-  ['Maranhão', 'MA'],
-  ['Mato Grosso', 'MT'],
-  ['Mato Grosso do Sul', 'MS'],
-  ['Minas Gerais', 'MG'],
-  ['Pará', 'PA'],
-  ['Paraíba ', 'PB'],
-  ['Paraná', 'PR'],
-  ['Pernambuco', 'PE'],
-  ['Piauí', 'PI'],
-  ['Rio de Janeiro', 'RJ'],
-  ['Rio Grande do Norte', 'RN'],
-  ['Rio Grande do Sul ', 'RS'],
-  ['Rondônia', 'RO'],
-  ['Roraima', 'RR'],
-  ['Santa Catarina ', 'SC'],
-  ['São Paulo ', 'SP'],
-  ['Sergipe', 'SE'],
-  ['Tocantins', 'TO'],
-];
+import NumberFormat from 'react-number-format';
+import { schoolsService } from '../../services/schools.service';
 
 interface FormStateValues {
   name: string;
+  full_name: string;
+  CNPJ: string;
+  email: string;
   phone: string;
+  mobile: string;
+
   address: string;
   number: string;
   complement: string;
@@ -63,6 +30,26 @@ interface FormStateValues {
   state: string;
   CEP: string;
 }
+
+const createSchoolMainSchema = {
+  name: yup.string().required('O campo é obrigatório'),
+  full_name: yup.string().required('O campo é obrigatório'),
+  // CNPJ: yup.string().length(14, 'CNPJ inválido'),
+  CNPJ: yup.string().test('len', 'CNPJ inválido', (val) => val === '' || val?.length === 14),
+  email: yup.string().email('Email inválido'),
+  phone: yup.string().test('len', 'Telefone inválido', (val) => val === '' || val?.length === 10),
+  mobile: yup.string().test('len', 'Celular inválido', (val) => val === '' || val?.length === 11),
+};
+
+const addressDataSchema = {
+  address: yup.string().required('O campo é obrigatório'),
+  number: yup.string().required('O campo é obrigatório'),
+  complement: yup.string(),
+  district: yup.string().required('O campo é obrigatório'),
+  city: yup.string().required('O campo é obrigatório'),
+  state: yup.string().required('O campo é obrigatório'),
+  CEP: yup.string().required('O campo é obrigatório'),
+};
 
 /**
  * Renders "Create ClassGroup" view
@@ -77,6 +64,8 @@ function CreateSchoolsView() {
 
   const [isSaving, setIsSaving] = useState(false);
 
+  const [stepValidationSchema, setStepValidationSchema] = useState<object>(createSchoolMainSchema);
+
   const [AppMessage, setMessage] = useAppMessage();
 
   const mounted = useRef(false);
@@ -89,10 +78,14 @@ function CreateSchoolsView() {
   }, []);
 
   const [formState, , onFieldChange, fieldGetError, fieldHasError, , setField] = useAppForm({
-    validationSchema: createTermSchema,
+    validationSchema: stepValidationSchema,
     initialValues: {
       name: '',
+      full_name: '',
+      CNPJ: '',
+      email: '',
       phone: '',
+      mobile: '',
       address: '',
       number: '',
       complement: '',
@@ -110,13 +103,34 @@ function CreateSchoolsView() {
       event.preventDefault();
       setIsSaving(true);
 
+      const { name, full_name, CNPJ, email, phone, mobile, address, number, complement, district, city, state, CEP } =
+        values;
+
+      const data = {
+        name,
+        full_name,
+        CNPJ,
+        email,
+        phone,
+        mobile,
+        address: {
+          street: address,
+          number,
+          complement,
+          district,
+          city,
+          state,
+          CEP,
+        },
+      };
+
       try {
         if (isEditing) {
-          await termsService.update(id, values);
+          // await schoolsService.update(id, values);
         } else {
-          await termsService.create(values);
+          const response = await schoolsService.create(data);
+          history.replace('/escola/configurar/' + response.school.id);
         }
-        history.replace('/bimestres');
       } catch (err: any) {
         setIsSaving(false);
         console.error(err);
@@ -126,33 +140,304 @@ function CreateSchoolsView() {
     [dispatch, values, history]
   );
 
-  const handleSetCEP = (CEP: string) => {
-    if (CEP.length !== 8) {
-      return;
-    }
-
-    fetch(`https://viacep.com.br/ws/${CEP}/json/`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (!data.erro) {
-          setField('address', data.logradouro);
-          setField('complement', data.complemento);
-          setField('district', data.bairro);
-          setField('city', data.localidade);
-          setField('state', data.uf);
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  };
-
   useEffect(() => {
     if (id) {
       // loadData();
     }
   }, [id]);
 
+  const mainSchoolForm = (
+    <Grid container spacing={1}>
+      <Grid item md={12} sm={12} xs={12}>
+        <TextField
+          required
+          label="Nome Abreviado"
+          name="name"
+          value={values.name}
+          onChange={onFieldChange}
+          error={fieldHasError('name')}
+          helperText={fieldGetError('name') || ' '}
+          {...SHARED_CONTROL_PROPS}
+        />
+      </Grid>
+
+      <Grid item md={12} sm={12} xs={12}>
+        <TextField
+          required
+          label="Nome Completo"
+          name="full_name"
+          value={values.full_name}
+          onChange={onFieldChange}
+          error={fieldHasError('full_name')}
+          helperText={fieldGetError('full_name') || ' '}
+          {...SHARED_CONTROL_PROPS}
+        />
+      </Grid>
+
+      <Grid item md={12} sm={12} xs={12}>
+        <NumberFormat
+          {...SHARED_CONTROL_PROPS}
+          label="CNPJ"
+          value={values.CNPJ}
+          name="CPF"
+          format="##.###.###/####-##"
+          customInput={TextField}
+          type="text"
+          error={fieldHasError('CNPJ')}
+          helperText={fieldGetError('CNPJ') || ' '}
+          onValueChange={({ value: v }) => {
+            onFieldChange({ target: { name: 'CNPJ', value: v } });
+          }}
+        />
+      </Grid>
+      <Grid item md={6} sm={12} xs={12}>
+        <NumberFormat
+          {...SHARED_CONTROL_PROPS}
+          label="Telefone Fixo"
+          value={values.phone}
+          name="phone"
+          format="(##) ####-####"
+          customInput={TextField}
+          type="text"
+          error={fieldHasError('phone')}
+          helperText={fieldGetError('phone') || ' '}
+          onValueChange={({ value: v }) => {
+            onFieldChange({ target: { name: 'phone', value: v } });
+          }}
+        />
+      </Grid>
+      <Grid item md={6} sm={12} xs={12}>
+        <NumberFormat
+          {...SHARED_CONTROL_PROPS}
+          label="Celular"
+          value={values.mobile}
+          name="phone"
+          format="(##) #####-####"
+          customInput={TextField}
+          type="text"
+          error={fieldHasError('mobile')}
+          helperText={fieldGetError('mobile') || ' '}
+          onValueChange={({ value: v }) => {
+            onFieldChange({ target: { name: 'mobile', value: v } });
+          }}
+        />
+      </Grid>
+      <Grid item md={12} sm={12} xs={12}>
+        <TextField
+          label="Email"
+          name="email"
+          // type="email"
+          value={values.email}
+          error={fieldHasError('email')}
+          helperText={fieldGetError('email') || ' '}
+          onChange={onFieldChange}
+          {...SHARED_CONTROL_PROPS}
+        />
+      </Grid>
+    </Grid>
+  );
+
+  const confirmationForm = (
+    <Grid container spacing={1}>
+      <Grid item md={6} sm={12} xs={12}>
+        <TextField
+          label="Nome"
+          name="name"
+          value={values.name}
+          inputProps={{ readOnly: true }}
+          {...SHARED_CONTROL_PROPS}
+          variant="standard"
+        />
+      </Grid>
+
+      <Grid item md={5} sm={5} xs={5}>
+        <TextField
+          label="CNPJ"
+          name="CNPJ"
+          value={values.CNPJ.replace(/\D/g, '')
+            .replace(/(\d{2})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d)/, '$1/$2')
+            .replace(/(\d{4})(\d)/, '$1-$2')}
+          inputProps={{ readOnly: true }}
+          {...SHARED_CONTROL_PROPS}
+          variant="standard"
+        />
+      </Grid>
+
+      <Grid item md={12} sm={12} xs={12}>
+        <TextField
+          label="Nome Completo"
+          name="full_name"
+          value={values.full_name}
+          inputProps={{ readOnly: true }}
+          {...SHARED_CONTROL_PROPS}
+          variant="standard"
+        />
+      </Grid>
+
+      <Grid item md={12} sm={12} xs={12}>
+        <Divider />
+      </Grid>
+
+      <Grid item md={10} sm={10} xs={10}>
+        <TextField
+          label="Logradouro"
+          name="address"
+          value={values.address}
+          inputProps={{ readOnly: true }}
+          {...SHARED_CONTROL_PROPS}
+          variant="standard"
+        />
+      </Grid>
+      <Grid item md={2} sm={2} xs={2}>
+        <TextField
+          label="Número"
+          name="number"
+          value={values.number}
+          inputProps={{ readOnly: true }}
+          {...SHARED_CONTROL_PROPS}
+          variant="standard"
+        />
+      </Grid>
+
+      <Grid item md={6} sm={6} xs={6}>
+        <TextField
+          label="Complemento"
+          name="complement"
+          value={values.complement}
+          inputProps={{ readOnly: true }}
+          {...SHARED_CONTROL_PROPS}
+          variant="standard"
+        />
+      </Grid>
+
+      <Grid item md={6} sm={6} xs={6}>
+        <TextField
+          label="Bairro"
+          name="district"
+          value={values.district}
+          inputProps={{ readOnly: true }}
+          {...SHARED_CONTROL_PROPS}
+          variant="standard"
+        />
+      </Grid>
+
+      <Grid item md={5} sm={5} xs={5}>
+        <TextField
+          label="Complemento"
+          name="complement"
+          value={values.city}
+          inputProps={{ readOnly: true }}
+          {...SHARED_CONTROL_PROPS}
+          variant="standard"
+        />
+      </Grid>
+
+      <Grid item md={2} sm={2} xs={2}>
+        <TextField
+          label="UF"
+          name="state"
+          value={values.state}
+          inputProps={{ readOnly: true }}
+          {...SHARED_CONTROL_PROPS}
+          variant="standard"
+        />
+      </Grid>
+
+      <Grid item md={5} sm={5} xs={5}>
+        <TextField
+          label="Bairro"
+          name="district"
+          value={values.CEP}
+          inputProps={{ readOnly: true }}
+          {...SHARED_CONTROL_PROPS}
+          variant="standard"
+        />
+      </Grid>
+
+      <Grid item md={12} sm={12} xs={12}>
+        <Divider />
+      </Grid>
+
+      <Grid item md={6} sm={12} xs={12}>
+        <TextField
+          label="Email"
+          name="email"
+          value={values.email}
+          inputProps={{ readOnly: true }}
+          {...SHARED_CONTROL_PROPS}
+          variant="standard"
+        />
+      </Grid>
+
+      <Grid item md={6} sm={12} xs={12}>
+        <TextField
+          label="Telefone Fixo"
+          name="phone"
+          value={values.phone
+            .replace(/\D/g, '')
+            .replace(/(\d{2})(\d)/, '($1) $2')
+            .replace(/(\d{4})(\d)/, '$1-$2')}
+          inputProps={{ readOnly: true }}
+          {...SHARED_CONTROL_PROPS}
+          variant="standard"
+        />
+      </Grid>
+
+      <Grid item md={6} sm={12} xs={12}>
+        <TextField
+          label="Celular"
+          name="mobile"
+          value={values.phone
+            .replace(/\D/g, '')
+            .replace(/(\d{2})(\d)/, '($1) $2')
+            .replace(/(\d{5})(\d)/, '$1-$2')}
+          inputProps={{ readOnly: true }}
+          {...SHARED_CONTROL_PROPS}
+          variant="standard"
+        />
+      </Grid>
+
+      <Grid item md={12} sm={12} xs={12}>
+        <AppMessage />
+      </Grid>
+
+      <Grid container justifyContent="center" alignItems="center">
+        <AppButton loading={isSaving} disabled={isSaving || !formState.isValid} type="submit">
+          Cadastrar
+        </AppButton>
+      </Grid>
+    </Grid>
+  );
+
+  const stepForms = [
+    mainSchoolForm,
+    <AppAddressForm
+      key={'address'}
+      values={formState.values as FormStateValues}
+      onFieldChange={onFieldChange}
+      fieldGetError={fieldGetError}
+      fieldHasError={fieldHasError}
+      setField={setField}
+    />,
+    confirmationForm,
+  ];
+
+  const stepsTitles = [
+    {
+      name: 'Escola',
+      isValid: true,
+    },
+    { name: 'Endereço', isValid: true },
+    { name: 'Confirmar', isValid: true },
+  ];
+
+  const stepsValidationSchema = [
+    createSchoolMainSchema,
+    addressDataSchema,
+    { ...createSchoolMainSchema, ...addressDataSchema },
+  ];
   return (
     <AppForm onSubmit={handleFormSubmit} style={{ minWidth: '100%', marginTop: '50px' }}>
       <Card>
@@ -162,142 +447,14 @@ function CreateSchoolsView() {
           subheader={isEditing ? 'Editar Dados da Escola' : 'Cadastrar uma nova Escola'}
         />
         <CardContent>
-          <Grid container spacing={1}>
-            <Grid item md={12} sm={12} xs={12}>
-              <TextField
-                required
-                label="Nome"
-                name="name"
-                value={values.name}
-                onChange={onFieldChange}
-                error={fieldHasError('name')}
-                helperText={fieldGetError('name') || ' '}
-                {...SHARED_CONTROL_PROPS}
-              />
-            </Grid>
-
-            <Grid item md={6} sm={12} xs={12}>
-              <TextField
-                required
-                type="phone"
-                label="Telefone"
-                name="phone"
-                value={values.phone}
-                onChange={onFieldChange}
-                error={fieldHasError('phone')}
-                helperText={fieldGetError('phone') || ' '}
-                {...SHARED_CONTROL_PROPS}
-              />
-            </Grid>
-
-            <Grid item md={6} sm={12} xs={12}>
-              <TextField
-                required
-                label="CEP"
-                name="CEP"
-                type="number"
-                value={values.CEP}
-                onChange={(event: any) => {
-                  onFieldChange(event);
-                  handleSetCEP(event.target.value);
-                }}
-                error={fieldHasError('CEP')}
-                helperText={fieldGetError('CEP') || ' '}
-                {...SHARED_CONTROL_PROPS}
-              />
-            </Grid>
-
-            <Grid item md={10} sm={12} xs={12}>
-              <TextField
-                required
-                type="address"
-                label="Endereço"
-                name="address"
-                value={values.address}
-                onChange={onFieldChange}
-                error={fieldHasError('address')}
-                helperText={fieldGetError('address') || ' '}
-                {...SHARED_CONTROL_PROPS}
-              />
-            </Grid>
-            <Grid item md={2} sm={12} xs={12}>
-              <TextField
-                required
-                label="Número"
-                name="number"
-                value={values.number}
-                onChange={onFieldChange}
-                error={fieldHasError('number')}
-                helperText={fieldGetError('number') || ' '}
-                {...SHARED_CONTROL_PROPS}
-              />
-            </Grid>
-
-            <Grid item md={6} sm={12} xs={12}>
-              <TextField
-                required
-                label="Complemento"
-                name="complement"
-                value={values.complement}
-                onChange={onFieldChange}
-                error={fieldHasError('complement')}
-                helperText={fieldGetError('complement') || ' '}
-                {...SHARED_CONTROL_PROPS}
-              />
-            </Grid>
-            <Grid item md={6} sm={12} xs={12}>
-              <TextField
-                required
-                label="Bairro"
-                name="district"
-                value={values.district}
-                onChange={onFieldChange}
-                error={fieldHasError('district')}
-                helperText={fieldGetError('district') || ' '}
-                {...SHARED_CONTROL_PROPS}
-              />
-            </Grid>
-            <Grid item md={8} sm={12} xs={12}>
-              <TextField
-                required
-                label="Cidade"
-                name="city"
-                value={values.city}
-                onChange={onFieldChange}
-                error={fieldHasError('city')}
-                helperText={fieldGetError('city') || ' '}
-                {...SHARED_CONTROL_PROPS}
-              />
-            </Grid>
-            <Grid item md={4} sm={12} xs={12}>
-              <TextField
-                required
-                select
-                label="Estado"
-                name="state"
-                value={values.state}
-                onChange={onFieldChange}
-                error={fieldHasError('state')}
-                helperText={fieldGetError('state') || ' '}
-                {...SHARED_CONTROL_PROPS}
-              >
-                {UFList.map((uf) => (
-                  <MenuItem key={uf[1]} value={uf[1]}>
-                    {uf[0]}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-
-            <Grid item md={12} sm={12} xs={12}>
-              <AppMessage />
-            </Grid>
-          </Grid>
-          <Grid container justifyContent="center" alignItems="center">
-            <AppButton type="submit" disabled={!formState.isValid || isSaving} loading={isSaving}>
-              {isEditing ? 'Salvar' : 'Cadastrar'}
-            </AppButton>
-          </Grid>
+          <AppStepSelector
+            forms={stepForms}
+            stepTitles={stepsTitles}
+            isValid={formState.isValid}
+            onStepChange={(step) => {
+              setStepValidationSchema(stepsValidationSchema[step]);
+            }}
+          ></AppStepSelector>
         </CardContent>
       </Card>
     </AppForm>
