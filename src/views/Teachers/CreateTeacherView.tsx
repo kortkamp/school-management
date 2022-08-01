@@ -13,6 +13,7 @@ import AppStepSelector from '../../components/AppStepSelector';
 import { teachersService } from '../../services/teachers.service';
 import { useAppMessage } from '../../utils/message';
 import AppAddressForm from '../../components/AppAddressForm/AppAddressForm';
+import { useAppStore } from '../../store';
 
 const createTeacherMainSchema = {
   name: yup
@@ -21,7 +22,6 @@ const createTeacherMainSchema = {
     .required('O campo é obrigatório'),
   birth: yup.date().required('O campo é obrigatório'),
   CPF: yup.string().required('O campo é obrigatório'),
-  phone: yup.string().required('O campo é obrigatório'),
   sex: yup.string().required('O campo é obrigatório'),
 };
 
@@ -37,15 +37,7 @@ const addressDataSchema = {
 
 const complementaryDataSchema = {
   email: yup.string().email('Email inválido').required('O campo é obrigatório'),
-  password: yup
-    .string()
-    .min(6, 'Mínimo de 6 caracteres')
-    .max(12, 'Máximo de 12 caracteres')
-    .required('O campo é obrigatório'),
-  password_confirmation: yup
-    .string()
-    .oneOf([yup.ref('password'), null], 'As senhas não conferem!')
-    .required('O campo é obrigatório'),
+  phone: yup.string().required('O campo é obrigatório'),
 };
 
 interface FormStateValues {
@@ -62,8 +54,6 @@ interface FormStateValues {
   city: string;
   state: string;
   CEP: string;
-  password: string;
-  password_confirmation: string;
 }
 
 /**
@@ -71,6 +61,8 @@ interface FormStateValues {
  * url: /professores/criar
  */
 function CreateTeacherView() {
+  const [appState] = useAppStore();
+
   const history = useHistory();
 
   const [AppMessage, setMessage] = useAppMessage();
@@ -96,8 +88,6 @@ function CreateTeacherView() {
         state: '',
         CEP: '',
         email: '',
-        password: '',
-        password_confirmation: '',
       } as FormStateValues,
     });
 
@@ -109,23 +99,7 @@ function CreateTeacherView() {
 
       setIsSaving(true);
 
-      const {
-        name,
-        CPF,
-        phone,
-        sex,
-        birth,
-        address,
-        number,
-        complement,
-        district,
-        city,
-        state,
-        CEP,
-        email,
-        password,
-        password_confirmation,
-      } = values;
+      const { name, CPF, phone, sex, birth, address, number, complement, district, city, state, CEP, email } = values;
 
       const data = {
         name,
@@ -143,12 +117,10 @@ function CreateTeacherView() {
           CEP,
         },
         email,
-        password,
-        password_confirmation,
       };
 
       try {
-        await teachersService.create(data);
+        await teachersService.create(appState.currentSchool?.id as string, data);
         history.replace(`/professores`);
       } catch (err: any) {
         console.log(err);
@@ -173,7 +145,7 @@ function CreateTeacherView() {
           {...SHARED_CONTROL_PROPS}
         />
       </Grid>
-      <Grid item md={6} sm={12} xs={12}>
+      <Grid item md={12} sm={12} xs={12}>
         <TextField
           required={isFieldRequired('birth')}
           type="date"
@@ -188,11 +160,12 @@ function CreateTeacherView() {
         />
       </Grid>
 
-      <Grid item md={6} sm={12} xs={12}>
+      <Grid item md={12} sm={12} xs={12}>
         <NumberFormat
           {...SHARED_CONTROL_PROPS}
           label="CPF"
           value={values.CPF}
+          required={isFieldRequired('CPF')}
           name="CPF"
           format="###.###.###-##"
           customInput={TextField}
@@ -200,25 +173,12 @@ function CreateTeacherView() {
           onValueChange={({ value: v }) => {
             onFieldChange({ target: { name: 'CPF', value: v } });
           }}
+          error={fieldHasError('CPF')}
+          helperText={fieldGetError('CPF') || ' '}
         />
       </Grid>
 
-      <Grid item md={6} sm={12} xs={12}>
-        <NumberFormat
-          {...SHARED_CONTROL_PROPS}
-          label="Telefone"
-          value={values.phone}
-          name="CPF"
-          format="(##) #####-####"
-          customInput={TextField}
-          type="text"
-          onValueChange={({ value: v }) => {
-            onFieldChange({ target: { name: 'phone', value: v } });
-          }}
-        />
-      </Grid>
-
-      <Grid item md={6} sm={12} xs={12}>
+      <Grid item md={12} sm={12} xs={12}>
         <TextField
           required
           // disabled={}
@@ -253,31 +213,18 @@ function CreateTeacherView() {
           {...SHARED_CONTROL_PROPS}
         />
       </Grid>
-
-      <Grid item md={6} sm={12} xs={12}>
-        <TextField
-          type="password"
-          label="Password"
-          name="password"
-          required={isFieldRequired('password')}
-          value={values.password}
-          error={fieldHasError('password')}
-          helperText={fieldGetError('password') || ' '}
-          onChange={onFieldChange}
+      <Grid item md={12} sm={12} xs={12}>
+        <NumberFormat
           {...SHARED_CONTROL_PROPS}
-        />
-      </Grid>
-      <Grid item md={6} sm={12} xs={12}>
-        <TextField
-          type="password"
-          label="Confirmação de Password"
-          name="password_confirmation"
-          required={isFieldRequired('password_confirmation')}
-          value={values.password_confirmation}
-          error={fieldHasError('password_confirmation')}
-          helperText={fieldGetError('password_confirmation') || ' '}
-          onChange={onFieldChange}
-          {...SHARED_CONTROL_PROPS}
+          label="Telefone"
+          value={values.phone}
+          name="CPF"
+          format="(##) #####-####"
+          customInput={TextField}
+          type="text"
+          onValueChange={({ value: v }) => {
+            onFieldChange({ target: { name: 'phone', value: v } });
+          }}
         />
       </Grid>
     </Grid>

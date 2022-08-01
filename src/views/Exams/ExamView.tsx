@@ -19,6 +19,7 @@ import { studentsService } from '../../services/students.service';
 import Moment from 'moment';
 import { createStyles, makeStyles } from '@mui/styles';
 import { useAppMessage } from '../../utils/message';
+import { useAppStore } from '../../store';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -103,6 +104,8 @@ const ExamView: React.FC<Props> = ({ examId }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  const [appState] = useAppStore();
+
   const { id } = useParams<{ id: string }>();
 
   const [results, resultsDispatch] = useReducer(resultReducer, []);
@@ -134,7 +137,14 @@ const ExamView: React.FC<Props> = ({ examId }) => {
 
   const loadStudentsFromClass = useCallback(async () => {
     try {
-      const studentsResponse = await studentsService.getAll(1000, 1, 'class_group_id', exam.class_id, 'eq');
+      const studentsResponse = await studentsService.getAll(
+        appState?.currentSchool?.id as string,
+        1000,
+        1,
+        'class_group_id',
+        exam.class_id,
+        'eq'
+      );
 
       const studentsData = studentsResponse.data.result as any[];
 

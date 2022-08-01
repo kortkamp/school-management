@@ -7,6 +7,7 @@ import { SHARED_CONTROL_PROPS, useAppForm } from '../../utils/form';
 import { DataGrid, GridOverlay } from '@mui/x-data-grid';
 import { segmentsService } from '../../services/segments.service';
 import { useParams } from 'react-router-dom';
+import { useAppStore } from '../../store';
 
 interface ISegment {
   id: string;
@@ -32,6 +33,7 @@ const teacherSubjectSchema = {};
  * url: /professores/disciplina
  */
 const TeacherSubjectView = () => {
+  const [appState] = useAppStore();
   const [teachers, setTeachers] = useState<any[]>([]);
 
   const { id: teacherIdPAram } = useParams<{ id: string }>();
@@ -57,7 +59,7 @@ const TeacherSubjectView = () => {
 
   const loadTeacherList = useCallback(async () => {
     try {
-      const response = await teachersService.getAll();
+      const response = await teachersService.getAll(appState?.currentSchool?.id as string);
       setTeachers(response.data.result);
     } catch (err: any) {
       console.log(err);
@@ -124,7 +126,10 @@ const TeacherSubjectView = () => {
 
   const handleRemoveTeacherSubject = async (teacher_id: string, subject_id: string) => {
     try {
-      const response = await teachersService.removeTeacherSubject({ teacher_id, subject_id });
+      const response = await teachersService.removeTeacherSubject(appState?.currentSchool?.id as string, {
+        teacher_id,
+        subject_id,
+      });
       console.log(response);
       setTeacherSubjects(teacherSubjects.filter((subject) => subject.id !== subject_id));
     } catch (err) {
@@ -134,7 +139,10 @@ const TeacherSubjectView = () => {
 
   const handleAddTeacherSubject = async (teacher_id: string, subject: ISubject) => {
     try {
-      const response = await teachersService.addTeacherSubjects({ teacher_id, subjects_ids: [subject.id] });
+      const response = await teachersService.addTeacherSubjects(appState?.currentSchool?.id as string, {
+        teacher_id,
+        subjects_ids: [subject.id],
+      });
       console.log(response);
       setTeacherSubjects([...teacherSubjects, subject]);
     } catch (err) {

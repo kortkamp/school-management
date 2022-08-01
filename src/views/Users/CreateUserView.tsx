@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { SyntheticEvent, useCallback, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Grid, TextField, CardHeader, MenuItem } from '@mui/material';
@@ -10,6 +11,7 @@ import { studentsService } from '../../services/students.service';
 import AppStepSelector from '../../components/AppStepSelector';
 import { teachersService } from '../../services/teachers.service';
 import { useAppMessage } from '../../utils/message';
+import { useAppStore } from '../../store';
 // import AppAddressForm from '../../components/AppAddressForm/AppAddressForm';
 
 const createStudentMainSchema = {
@@ -92,6 +94,7 @@ interface FormStateValues {
 }
 
 function CreateUserView({ role }: { role: 'student' | 'teacher' }) {
+  // const [appState] = useAppStore();
   const history = useHistory();
 
   const [AppMessage, setMessage] = useAppMessage();
@@ -129,7 +132,7 @@ function CreateUserView({ role }: { role: 'student' | 'teacher' }) {
       const data = values;
 
       try {
-        await createUserService.create(data);
+        // await createUserService.create(data);
         history.replace(`/${roleData[role].title.toLowerCase()}`);
       } catch (err: any) {
         console.log(err);

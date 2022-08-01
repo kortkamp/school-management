@@ -2,6 +2,7 @@ import { Card, CardActions, CardContent, CardHeader, Grid, CircularProgress } fr
 import { useCallback, useEffect, useState } from 'react';
 import { AppButton, AppLink } from '../../components';
 import { teachersService } from '../../services/teachers.service';
+import { useAppStore } from '../../store';
 
 /**
  * Renders "Teachers" view
@@ -11,9 +12,11 @@ const TeachersView = () => {
   const [teachers, setTeachers] = useState<any[]>();
   const [loading, setLoading] = useState(true);
 
+  const [appState] = useAppStore();
+
   const loadTeacherList = useCallback(async () => {
     // try{
-    const response = await teachersService.getAll();
+    const response = await teachersService.getAll(appState?.currentSchool?.id as string);
     console.log(response);
     setTeachers(response.data.result);
     setLoading(false);

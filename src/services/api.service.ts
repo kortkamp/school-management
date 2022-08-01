@@ -1,9 +1,11 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { localStorageGet } from '../utils/localStorage';
 
+const baseURL = 'http://10.0.0.106:3003';
+
 const api = () => {
   const defaultOptions = {
-    baseURL: 'http://10.0.0.106:3003',
+    baseURL,
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Content-Type': 'application/json',

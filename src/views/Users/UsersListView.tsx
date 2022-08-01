@@ -6,6 +6,7 @@ import { AppButton } from '../../components';
 import AppAllocationSelect, { IAllocation } from '../../components/AppAllocationSelect/AppAllocationSelect';
 import { studentsService } from '../../services/students.service';
 import { teachersService } from '../../services/teachers.service';
+import { useAppStore } from '../../store';
 
 export function CustomFooterButtonsComponent() {
   return (
@@ -26,6 +27,8 @@ const ListView = ({ role }: { role: 'student' | 'teacher' }) => {
   const [users, setUsers] = useState<any>([]);
   const [loading, setLoading] = useState(true);
   const [isDataLoading, setIsDataLoading] = useState(true);
+
+  const [appState] = useAppStore();
 
   const mounted = useRef(false);
 
@@ -146,7 +149,14 @@ const ListView = ({ role }: { role: 'student' | 'teacher' }) => {
         filterType = 'eq';
         filterValue = `${classGroupId}`;
       }
-      const response = await roleData[role].service.getAll(pageSize, page, filterBy, filterValue, filterType);
+      const response = await roleData[role].service.getAll(
+        appState?.currentSchool?.id as string,
+        pageSize,
+        page,
+        filterBy,
+        filterValue,
+        filterType
+      );
 
       if (mounted.current) {
         setUsers(response.data);
