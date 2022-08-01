@@ -23,6 +23,12 @@ const AppReducer: React.Reducer<IAppState, any> = (state, action) => {
         isAuthenticated: true,
         currentUser: action.payload,
       };
+    case 'SELECT_SCHOOL':
+      localStorageSet('school', action.payload);
+      return {
+        ...state,
+        currentSchool: action.payload,
+      };
     case 'LOG_OUT':
       localStorageDelete('user');
       return {

@@ -51,7 +51,7 @@ const AppSubjectClassSelector: React.FC<Props> = ({ onChange = () => {}, selecto
 
     async function fetchData() {
       try {
-        switch (state.currentUser?.role) {
+        switch (state.currentSchool?.role) {
           case 'student':
             const response = await studentsService.getById(state.currentUser?.id as string);
             const student = response.data.student;

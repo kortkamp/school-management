@@ -5,13 +5,19 @@ interface IAuthValues {
   password: string;
 }
 
+export interface IAuthSchool {
+  role: string;
+  role_name: string;
+  id: string;
+  name: string;
+}
+
 export interface IAuthUserResult {
   id: string;
   name: string;
   email: string;
   avatar: string | null;
-  role: string;
-  class_group_id?: string;
+  schools: IAuthSchool[];
   token: string;
 }
 

@@ -26,6 +26,7 @@ interface UserInfoProps {
   className?: string;
   showAvatar?: boolean;
   user?: any;
+  school?: any;
 }
 
 /**
@@ -33,14 +34,15 @@ interface UserInfoProps {
  * @param {string} [className] - optional className for <div> tag
  * @param {boolean} [showAvatar] - user's avatar picture is shown when true
  * @param {object} [user] - logged user data {name, email, avatar...}
+ * @param {object} [school] - logged user school data {name, role...}
  */
-const UserInfo = ({ className, showAvatar = false, user, ...restOfProps }: UserInfoProps) => {
+const UserInfo = ({ className, showAvatar = false, user, school, ...restOfProps }: UserInfoProps) => {
   const classes = useStyles();
 
   const fullName = user?.name || [user?.nameFirst || '', user?.nameLast || ''].join(' ').trim();
   const srcAvatar = user?.avatar ? user?.avatar : undefined;
   const userPhoneOrEmail = user?.phone || (user?.email as string);
-  const userRole = user?.role;
+  const userRole = school?.role_name;
 
   return (
     <div {...restOfProps} className={clsx(classes.root, className)}>

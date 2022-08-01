@@ -41,17 +41,9 @@ const useStyles = makeStyles((theme: Theme) => ({
  * Centralized place in the App to update document.title
  */
 
-function updateDocumentTitle(role: string) {
-  const titleRole = {
-    admin: 'Administrador',
-    teacher: 'Professor',
-    student: 'Aluno',
-    responsible: 'Responsável',
-  };
-
-  const title = titleRole[role as keyof typeof titleRole];
-  if (title) {
-    document.title = `Área do ${title}`;
+function updateDocumentTitle(roleName: string) {
+  if (roleName) {
+    document.title = `Área do ${roleName}`;
   } else {
     document.title = TITLE_PRIVATE;
   }
@@ -277,6 +269,7 @@ const SideBarItens: Record<string, Array<LinkToPage>> = {
   teacher: SIDE_BAR_TEACHER_ITEMS,
   student: SIDE_BAR_STUDENT_ITEMS,
   guest: SIDE_BAR_GUEST_ITEMS,
+  principal: SIDE_BAR_ADMIN_ITEMS,
 };
 
 /**
@@ -285,7 +278,7 @@ const SideBarItens: Record<string, Array<LinkToPage>> = {
 const PrivateLayout: React.FC = ({ children }) => {
   const [state] = useAppStore();
 
-  const role = state.currentUser?.role;
+  const role = state.currentSchool?.role;
   const [openSideBar, setOpenSideBar] = useState(false);
   const theme = useTheme();
   const classes = useStyles();
@@ -309,7 +302,7 @@ const PrivateLayout: React.FC = ({ children }) => {
     [classes.root]: true,
     [classes.shiftContent]: isDesktop,
   });
-  const title = updateDocumentTitle(state?.currentUser?.role as string);
+  const title = updateDocumentTitle(state?.currentSchool?.role_name as string);
   const shouldOpenSideBar = isDesktop ? true : openSideBar;
 
   return (

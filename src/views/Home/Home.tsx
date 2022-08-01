@@ -20,7 +20,7 @@ const cellTable: ITableCell = ({ subject, classGroup }) => {
 const HomeView = () => {
   const [state] = useAppStore();
 
-  const routinesTableType = state.currentUser?.role as string;
+  const routinesTableType = state.currentSchool?.role as string;
 
   return (
     <Grid container spacing={2}>
