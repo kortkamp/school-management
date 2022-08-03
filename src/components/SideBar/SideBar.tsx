@@ -14,6 +14,7 @@ import SideBarNavigation from './SideBarNavigation';
 import { SIDEBAR_WIDTH } from '../../routes/Layout/PrivateLayout';
 import { LinkToPage } from '../../utils/type';
 import { useHistory } from 'react-router';
+import SchoolRoleSelector from '../SchoolRoleSelector';
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -97,6 +98,7 @@ const SideBar: React.FC<Props> = ({ anchor, className, open, variant, items, onC
         {state.isAuthenticated /*&& state?.currentUser*/ && (
           <>
             <UserInfo className={classes.profile} user={state.currentUser} school={state.currentSchool} showAvatar />
+            <SchoolRoleSelector />
             <Divider />
           </>
         )}
