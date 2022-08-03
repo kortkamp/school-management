@@ -88,7 +88,7 @@ const CreateExamView: React.FC<Props> = ({ examId, getExamData }) => {
   });
   const [classGroups, setClassGroups] = useState<ITeacherClassGroupResponse[]>([]);
   const [subjects, setSubjects] = useState<ITeacherClassGroup[]>([]);
-  const [terms, setTerms] = useState<IListTerms[]>([]);
+  const [terms, setTerms] = useState<IListTerms['terms']>([]);
   const values = formState.values as FormStateValues;
 
   const [loading, setLoading] = useState(true);
@@ -110,9 +110,9 @@ const CreateExamView: React.FC<Props> = ({ examId, getExamData }) => {
           setClassGroups(response.data.teacherClasses);
         }
 
-        const termsResponse = await termsService.getAll();
+        const termsResponse = await termsService.getAll({ schoolId: '', token: '', args: {} });
 
-        setTerms(termsResponse);
+        setTerms(termsResponse.terms);
 
         if (editingExamId) {
           const examResponse = await examsService.getById(editingExamId);
@@ -165,7 +165,7 @@ const CreateExamView: React.FC<Props> = ({ examId, getExamData }) => {
         }));
         setTermError(null);
       } else {
-        setTermError('A data não pertence a nunhum bimestre');
+        setTermError('A data não pertence a nenhum bimestre');
       }
     }
   }, [values.date]);

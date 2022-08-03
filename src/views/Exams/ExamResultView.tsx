@@ -179,7 +179,7 @@ function ExamResultView() {
     return { mean, resultWeightModification };
   };
 
-  const generateColumnClasses = (terms: IListTerms[]) => {
+  const generateColumnClasses = (terms: IListTerms['terms']) => {
     const termColors = ['#00b7ff', '#00ff00', '#fbff00', '#ffa600', '#ff0000'];
     const lighterOpacity = '10';
     const darkerOpacity = '20';
@@ -256,9 +256,9 @@ function ExamResultView() {
         }));
 
         // generate term mean columns
-        const termsResponse = await termsService.getAll();
+        const { terms: termsResponse } = await termsService.getAll({ schoolId: '', token: '', args: {} });
 
-        const termResumeColumns: IDisplayColumnResults[] = termsResponse.map((term) => ({
+        const termResumeColumns: IDisplayColumnResults[] = termsResponse.map((term: any) => ({
           id: term.id,
           title: 'média',
           date: term.end_at,
@@ -299,7 +299,7 @@ function ExamResultView() {
         studentsResults.forEach((studentResult) => {
           const termMeans: number[] = [];
           const studentIndex = rows.findIndex((row: any) => row.id === studentResult.id);
-          termsResponse.forEach((term) => {
+          termsResponse.forEach((term: any) => {
             const { mean, resultWeightModification } = generateMean(studentResult, exams, term.id);
 
             if (mean !== '') {

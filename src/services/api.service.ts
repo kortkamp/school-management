@@ -20,7 +20,7 @@ const api = () => {
     if (sessionParsed) {
       if (sessionParsed?.token && config?.headers) {
         // eslint-disable-next-line no-param-reassign
-        config.headers.Authorization = `Bearer ${sessionParsed.token}`;
+        // config.headers.Authorization = `Bearer ${sessionParsed.token}`;
       }
     }
 

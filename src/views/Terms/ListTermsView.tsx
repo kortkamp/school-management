@@ -1,20 +1,23 @@
 import { Card, CardContent, CardHeader, Grid } from '@mui/material';
 import { DataGrid, GridOverlay } from '@mui/x-data-grid';
-import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { useHistory } from 'react-router';
-import { AppButton } from '../../components';
-import { IListTerms, termsService } from '../../services/terms.service';
+import { AppButton, AppLoading } from '../../components';
+import { termsService } from '../../services/terms.service';
 import Moment from 'moment';
 import { CommonDialog } from '../../components/dialogs';
 import { useAppMessage } from '../../utils/message';
+
+import { useApi } from '../../api/useApi';
 
 /**
  * Renders "ListTermsView" view
  * url: /bimestres/*
  */
 const ListTermsView = () => {
-  const [terms, setTerms] = useState<IListTerms[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, loading } = useApi(termsService.getAll, {}); //as ApiType<typeof termsService.getAll>;
+
+  const terms = data?.terms || [];
 
   const [modal, setModal] = useState<ReactNode | null>(null);
 
@@ -22,47 +25,19 @@ const ListTermsView = () => {
 
   const history = useHistory();
 
-  const mounted = useRef(false);
-
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
-
-  const loadTermsList = useCallback(async () => {
-    const fetchData = async () => {
-      const termsResponse = await termsService.getAll();
-
-      if (!mounted.current) {
-        return;
-      }
-
-      setTerms(termsResponse);
-      setLoading(false);
-    };
-
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    loadTermsList();
-  }, [loadTermsList]);
-
   const confirmDeleteTerm = async (termId: string) => {
-    setLoading(true);
+    // setLoading(true);
     try {
       await termsService.remove(termId);
-      setTerms((t) => t.filter((term) => term.id !== termId));
+      // setTerms((t) => t.filter((term) => term.id !== termId));
     } catch (err: any) {
       setMessage({ type: 'error', text: err.response.data.message });
       // console.log(err);
     }
-    setLoading(false);
+    // setLoading(false);
   };
 
-  const handleDeleteTerm = async (term: IListTerms) => {
+  const handleDeleteTerm = async (term: any) => {
     setModal(
       <CommonDialog
         open
@@ -135,6 +110,10 @@ const ListTermsView = () => {
       },
     },
   ];
+
+  if (loading) {
+    return <AppLoading />;
+  }
 
   return (
     <>

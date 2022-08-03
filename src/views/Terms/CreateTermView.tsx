@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { SyntheticEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { SyntheticEvent, useCallback, useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import { Grid, TextField, Card, CardHeader, CardContent, MenuItem } from '@mui/material';
 import { useAppStore } from '../../store';
-import { AppButton, AppAlert, AppForm } from '../../components';
-import { useAppForm, SHARED_CONTROL_PROPS, DEFAULT_FORM_STATE } from '../../utils/form';
+import { AppButton, AppForm } from '../../components';
+import { useAppForm, SHARED_CONTROL_PROPS } from '../../utils/form';
 
 import Moment from 'moment';
 
@@ -19,7 +19,7 @@ const createTermSchema = {
   end_at: yup
     .date()
     .required('O campo é obrigatório')
-    .min(yup.ref('start_at'), 'A data de término precisa ser depois da data inicial'),
+    .min(yup.ref('start_at'), 'A data de término precisa ser posterior à data inicial'),
 };
 
 interface FormStateValues {
@@ -44,16 +44,7 @@ function CreateTermView() {
 
   const [AppMessage, setMessage] = useAppMessage();
 
-  const mounted = useRef(false);
-
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
-
-  const [formState, setFormState, onFieldChange, fieldGetError, fieldHasError] = useAppForm({
+  const [formState, , onFieldChange, fieldGetError, fieldHasError] = useAppForm({
     validationSchema: createTermSchema,
     initialValues: {
       name: '',
@@ -63,7 +54,6 @@ function CreateTermView() {
     } as FormStateValues,
   });
 
-  const [error, setError] = useState<string>();
   const values = formState.values as FormStateValues; // Typed alias to formState.values as the "Source of Truth"
 
   const handleFormSubmit = useCallback(
@@ -75,7 +65,7 @@ function CreateTermView() {
         if (isEditing) {
           await termsService.update(id, values);
         } else {
-          await termsService.create(values);
+          await termsService.create({ schoolId: '', token: '', args: values });
         }
         history.replace('/bimestres');
       } catch (err: any) {
@@ -87,28 +77,26 @@ function CreateTermView() {
     [dispatch, values, history]
   );
 
-  const loadData = useCallback(() => {
-    async function fetchData() {
-      try {
-        const { name, year, start_at, end_at } = await termsService.getById(id);
+  // const loadData = useCallback(() => {
+  //   async function fetchData() {
+  //     try {
+  //       const { name, year, start_at, end_at } = await termsService.getById(id);
 
-        if (!mounted.current) return;
+  //       if (!mounted.current) return;
 
-        setFormState({ ...DEFAULT_FORM_STATE, isValid: true, values: { name, year, start_at, end_at } });
-      } catch (err: any) {
-        console.log(err);
-      }
-    }
-    fetchData();
-  }, [id]);
+  //       setFormState({ ...DEFAULT_FORM_STATE, isValid: true, values: { name, year, start_at, end_at } });
+  //     } catch (err: any) {
+  //       console.log(err);
+  //     }
+  //   }
+  //   fetchData();
+  // }, [id]);
 
   useEffect(() => {
     if (id) {
-      loadData();
+      // loadData();
     }
   }, [id]);
-
-  const handleCloseError = useCallback(() => setError(undefined), []);
 
   return (
     <AppForm onSubmit={handleFormSubmit} style={{ minWidth: '100%', marginTop: '50px' }}>
@@ -170,11 +158,6 @@ function CreateTermView() {
             {...SHARED_CONTROL_PROPS}
           />
 
-          {error ? (
-            <AppAlert severity="error" onClose={handleCloseError}>
-              {error}
-            </AppAlert>
-          ) : null}
           <Grid item md={12} sm={12} xs={12}>
             <AppMessage />
           </Grid>

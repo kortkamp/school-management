@@ -4,7 +4,7 @@ import { useHistory, useParams } from 'react-router-dom';
 import { Grid, TextField, Card, CardHeader, CardContent, MenuItem } from '@mui/material';
 import { useAppStore } from '../../store';
 import { AppButton, AppAlert, AppForm } from '../../components';
-import { useAppForm, SHARED_CONTROL_PROPS, DEFAULT_FORM_STATE } from '../../utils/form';
+import { useAppForm, SHARED_CONTROL_PROPS } from '../../utils/form';
 
 import * as yup from 'yup';
 import { termsService } from '../../services/terms.service';
@@ -50,7 +50,7 @@ function CreateSchoolConfigurationsView() {
     };
   }, []);
 
-  const [formState, setFormState, onFieldChange] = useAppForm({
+  const [formState, , onFieldChange] = useAppForm({
     validationSchema: createTermSchema,
     initialValues: {
       termType: '',
@@ -71,7 +71,7 @@ function CreateSchoolConfigurationsView() {
         if (isEditing) {
           await termsService.update(id, values);
         } else {
-          await termsService.create(values);
+          // await termsService.create(values);
         }
         history.replace('/bimestres');
       } catch (err: any) {
@@ -83,26 +83,26 @@ function CreateSchoolConfigurationsView() {
     [dispatch, values, history]
   );
 
-  const loadData = useCallback(() => {
-    async function fetchData() {
-      try {
-        const { name, year, start_at, end_at } = await termsService.getById(id);
+  // const loadData = useCallback(() => {
+  //   async function fetchData() {
+  //     try {
+  //       const { name, year, start_at, end_at } = await termsService.getById(id);
 
-        if (!mounted.current) return;
+  //       if (!mounted.current) return;
 
-        setFormState({ ...DEFAULT_FORM_STATE, isValid: true, values: { name, year, start_at, end_at } });
-      } catch (err: any) {
-        console.log(err);
-      }
-    }
-    fetchData();
-  }, [id]);
+  //       setFormState({ ...DEFAULT_FORM_STATE, isValid: true, values: { name, year, start_at, end_at } });
+  //     } catch (err: any) {
+  //       console.log(err);
+  //     }
+  //   }
+  //   fetchData();
+  // }, [id]);
 
-  useEffect(() => {
-    if (id) {
-      loadData();
-    }
-  }, [id]);
+  // useEffect(() => {
+  //   if (id) {
+  //     loadData();
+  //   }
+  // }, [id]);
 
   const handleCloseError = useCallback(() => setError(undefined), []);
 
