@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Card, CardContent, CardHeader, Grid, CircularProgress, Button, Box } from '@mui/material';
 import { DataGrid, GridOverlay, GridPagination } from '@mui/x-data-grid';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useHistory } from 'react-router';
 import { AppButton } from '../../components';
 import AppAllocationSelect, { IAllocation } from '../../components/AppAllocationSelect/AppAllocationSelect';
-import { studentsService } from '../../services/students.service';
+// import { studentsService } from '../../services/students.service';
 import { teachersService } from '../../services/teachers.service';
 import { useAppStore } from '../../store';
 
@@ -116,7 +117,7 @@ const ListView = ({ role }: { role: 'student' | 'teacher' }) => {
 
   const roleData = {
     student: {
-      service: studentsService,
+      service: teachersService,
       title: 'Alunos',
       subheader: 'Lista de alunos',
       dataGridColumns: dataGridStudentsColumns,
@@ -149,17 +150,17 @@ const ListView = ({ role }: { role: 'student' | 'teacher' }) => {
         filterType = 'eq';
         filterValue = `${classGroupId}`;
       }
-      const response = await roleData[role].service.getAll(
-        appState?.currentSchool?.id as string,
-        pageSize,
-        page,
-        filterBy,
-        filterValue,
-        filterType
-      );
+      // const response = await roleData[role].service.getAll(
+      //   appState?.currentSchool?.id as string,
+      //   pageSize,
+      //   page,
+      //   filterBy,
+      //   filterValue,
+      //   filterType
+      // );
 
       if (mounted.current) {
-        setUsers(response.data);
+        setUsers('response.data');
         setLoading(false);
         setIsDataLoading(false);
       }
