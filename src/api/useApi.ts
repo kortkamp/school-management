@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAppStore } from '../store';
+import { toast } from 'react-toastify';
 
 export interface IApiFuncParams {
   token: string | undefined;
@@ -9,7 +10,7 @@ export interface IApiFuncParams {
 
 export type IApiFunc = (data: IApiFuncParams) => any;
 
-export const useApi = <T extends IApiFunc>(apiFunc: T, { ...args }) => {
+export const useApi = <T extends IApiFunc>(apiFunc: T, args?: Parameters<T>[0]['args']) => {
   const [data, setData] = useState<Awaited<ReturnType<typeof apiFunc>>>();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,17 +28,21 @@ export const useApi = <T extends IApiFunc>(apiFunc: T, { ...args }) => {
 
       setData(result);
     } catch (err: any) {
-      const message = err.message || 'Unexpected Error!';
-      console.log(message);
+      const message = err.response.data.message || err.message || 'Erro Inesperado!';
+      toast.error(message, { theme: 'colored' });
+      console.log(err);
       setError(message);
+      setData(undefined);
     } finally {
       setLoading(false);
     }
   };
 
+  const memoArgs = useMemo(() => args, Object.values(args || {}));
+
   useEffect(() => {
     callApi();
-  }, [appState.currentSchool]);
+  }, [appState.currentSchool, memoArgs]);
 
   return {
     data,
