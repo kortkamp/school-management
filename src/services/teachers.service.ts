@@ -1,11 +1,42 @@
+import { IApiFuncParams } from '../api/useApi';
 import api from './api.service';
 
-const getAll = async (school_id: string, per_page = 1000, page = 1, filterBy = '', filterValue = '', filterType = '') =>
-  api.get(
-    `/${school_id}/teachers?per_page=${per_page}&page=${page}&orderBy=name&orderType=ASC${
-      !!filterValue ? `&filterBy=${filterBy}&filterValue=${filterValue}&filterType=${filterType}` : ''
-    }`
-  );
+interface ITeachersList {
+  success: boolean;
+  result: [
+    {
+      id: string;
+      name: string;
+      phone: null;
+    }[]
+  ];
+  total_filtered: number;
+  page: number;
+  per_page: number;
+  total_pages: number;
+}
+
+interface IGetAllTeachersParams extends IApiFuncParams {
+  args?: {
+    page?: number;
+    per_page?: number;
+    filterBy?: string;
+    filterType?: string;
+    filterValue?: string;
+  };
+}
+
+const getAll = async ({ schoolId, token, args = {} }: IGetAllTeachersParams) =>
+  (
+    await api.get(
+      `/${schoolId}/teachers?per_page=${args.per_page || 10}&page=${args.page || 1}&orderBy=name&orderType=ASC${
+        !!args.filterValue
+          ? `&filterBy=${args.filterBy}&filterValue=${args.filterValue}&filterType=${args.filterType}`
+          : ''
+      }`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+  ).data as ITeachersList;
 
 const create = async (school_id: string, data: object) => api.post(`/${school_id}/teachers`, data);
 
