@@ -2,6 +2,8 @@ import { AppStore } from './store';
 import { AppRouter, Routes } from './routes';
 import { ErrorBoundary } from './components';
 import { AppThemeProvider } from './theme';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 /**
  * Root Application Component
@@ -10,6 +12,7 @@ import { AppThemeProvider } from './theme';
 const App = () => {
   return (
     <ErrorBoundary name="App">
+      <ToastContainer />
       <AppStore>
         <AppThemeProvider>
           <AppRouter>
