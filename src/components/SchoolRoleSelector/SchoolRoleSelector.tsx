@@ -9,7 +9,6 @@ const useStyles = makeStyles((theme: Theme) => ({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    // minHeight: 'fit-content',
   },
 
   school: {
@@ -17,17 +16,8 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }));
 
-// interface Props {
-//   currentSchool: IAuthSchool;
-//   schools: IAuthSchool[];
-// }
-
 /**
- * Renders User info with Avatar
- * @param {string} [className] - optional className for <div> tag
- * @param {boolean} [showAvatar] - user's avatar picture is shown when true
- * @param {object} [user] - logged user data {name, email, avatar...}
- * @param {object} [school] - logged user school data {name, role...}
+ * Show a selectable list of Schools/Roles
  */
 const SchoolRoleSelector = () => {
   const classes = useStyles();
@@ -36,23 +26,14 @@ const SchoolRoleSelector = () => {
 
   const schools = state.currentUser?.schools || [];
 
-  // const role = state.currentSchool?.role;
-
-  // const currentSchoolId = state.currentSchool?.id;
-
   const currentSchoolRole = `${state.currentSchool?.name}${state.currentSchool?.role}`;
 
   const handleSelectSchoolRole = (event: any) => {
+    // toast('Wow so easy!');
     const selectedSchool = state.currentUser?.schools.find(
       (school) => school.name + school.role === event.target.value
     );
     dispatch({ type: 'SELECT_SCHOOL', payload: selectedSchool });
-
-    // if (selectedSchool && state.currentSchool) {
-    //   if (selectedSchool.id !== state.currentSchool.id || selectedSchool?.role !== state.currentSchool.role) {
-    //     dispatch({ type: 'SELECT_SCHOOL', payload: selectedSchool });
-    //   }
-    // }
   };
 
   return (
