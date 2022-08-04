@@ -1,4 +1,4 @@
-import { SyntheticEvent, useCallback, useState, useEffect } from 'react';
+import { SyntheticEvent, useCallback, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import {
   Grid,
@@ -9,7 +9,6 @@ import {
   Checkbox,
   FormControlLabel,
   InputAdornment,
-  LinearProgress,
   MenuItem,
 } from '@mui/material';
 import { AppButton, AppIconButton, AppForm } from '../../../components';
@@ -18,7 +17,6 @@ import { useAppForm, SHARED_CONTROL_PROPS, eventPreventDefault } from '../../../
 import * as yup from 'yup';
 import { usersService } from '../../../services/users.service';
 import { useAppMessage } from '../../../utils/message';
-import { rolesService } from '../../../services/roles.service';
 
 const createUserSchema = {
   email: yup.string().email('Email inválido'),
@@ -56,8 +54,6 @@ const SignupView = () => {
 
   const [AppMessage, setMessage] = useAppMessage();
 
-  const [roleId, setRoleId] = useState('');
-
   const [formState, , /* setFormState */ onFieldChange, fieldGetError, fieldHasError] = useAppForm({
     validationSchema: createUserSchema,
     initialValues: {
@@ -72,33 +68,7 @@ const SignupView = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [agree, setAgree] = useState(false);
-  const [loading, setLoading] = useState(true);
   const values = formState.values as FormStateValues; // Typed alias to formState.values as the "Source of Truth"
-
-  useEffect(() => {
-    // Component Mount
-    let componentMounted = true;
-
-    async function fetchData() {
-      //TODO: Call any Async API here
-      const roles = await rolesService.getAll();
-      const guestRole = roles.find((role) => role.name === 'guest');
-
-      if (!componentMounted) return; // Component was unmounted during the API call
-      //TODO: Verify API call here
-
-      if (guestRole) {
-        setRoleId(guestRole?.id);
-      }
-      setLoading(false); // Reset "Loading..." indicator
-    }
-    fetchData(); // Call API asynchronously
-
-    return () => {
-      // Component Un-mount
-      componentMounted = false;
-    };
-  }, []);
 
   const handleShowPasswordClick = useCallback(() => {
     setShowPassword((oldValue) => !oldValue);
@@ -115,7 +85,7 @@ const SignupView = () => {
       setIsSaving(true);
 
       try {
-        await usersService.initialRegistration({ ...values, role_id: roleId });
+        await usersService.initialRegistration(values);
         return history.replace('/auth/signup/confirm-registration');
       } catch (err: any) {
         console.log(err);
@@ -123,10 +93,8 @@ const SignupView = () => {
         setIsSaving(false);
       }
     },
-    [values, history, roleId]
+    [values, history]
   );
-
-  if (loading) return <LinearProgress />;
 
   return (
     <AppForm onSubmit={handleFormSubmit}>

@@ -31,6 +31,7 @@ const AppReducer: React.Reducer<IAppState, any> = (state, action) => {
       };
     case 'LOG_OUT':
       localStorageDelete('user');
+      localStorageDelete('school');
       return {
         ...state,
         isAuthenticated: false,

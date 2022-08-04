@@ -20,14 +20,20 @@ interface ICreateSchoolResponseData {
       CEP: string;
       created_at: Date;
     };
+    userSchoolRoles: {
+      user_id: string;
+      role_id: string;
+      school_id: string;
+      created_at: Date;
+    }[];
     address_id: string;
     created_at: Date;
     updated_at: Date;
   };
 }
 
-const create = async (data: object) => {
-  const response = await api.post('/schools', data);
+const create = async (token: string, data: object) => {
+  const response = await api.post('/schools', data, { headers: { Authorization: `Bearer ${token}` } });
   return response.data as ICreateSchoolResponseData;
 };
 

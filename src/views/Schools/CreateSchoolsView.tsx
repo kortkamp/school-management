@@ -10,9 +10,11 @@ import AppStepSelector from '../../components/AppStepSelector';
 import AppAddressForm from '../../components/AppAddressForm/AppAddressForm';
 
 import * as yup from 'yup';
-import { useAppMessage } from '../../utils/message';
 import NumberFormat from 'react-number-format';
 import { schoolsService } from '../../services/schools.service';
+import { IAuthSchool } from '../../services/auth.service';
+import { useApi } from '../../api/useApi';
+import { rolesService } from '../../services/roles.service';
 
 interface FormStateValues {
   name: string;
@@ -57,7 +59,7 @@ const addressDataSchema = {
  */
 function CreateSchoolsView() {
   const history = useHistory();
-  const [, dispatch] = useAppStore();
+  const [appState, dispatch] = useAppStore();
 
   const { id } = useParams<{ id: string }>();
   const isEditing = id ? true : false;
@@ -66,7 +68,7 @@ function CreateSchoolsView() {
 
   const [stepValidationSchema, setStepValidationSchema] = useState<object>(createSchoolMainSchema);
 
-  const [AppMessage, setMessage] = useAppMessage();
+  const { data: roles } = useApi(rolesService.getAll);
 
   const mounted = useRef(false);
 
@@ -128,13 +130,26 @@ function CreateSchoolsView() {
         if (isEditing) {
           // await schoolsService.update(id, values);
         } else {
-          const response = await schoolsService.create(data);
+          const response = await schoolsService.create(appState?.currentUser?.token || '', data);
+
+          const userRole = roles?.find((role) => role.id === response.school.userSchoolRoles[0].role_id);
+
+          const school: IAuthSchool = {
+            id: response.school.id,
+            name: response.school.name,
+            role: userRole?.type || '',
+            role_name: userRole?.name || '',
+          };
+
+          const currentUser = appState.currentUser;
+          currentUser?.schools.push(school);
+          dispatch({ type: 'CURRENT_USER', payload: currentUser });
+          dispatch({ type: 'SELECT_SCHOOL', payload: school });
           history.replace('/escola/configurar/' + response.school.id);
         }
       } catch (err: any) {
         setIsSaving(false);
         console.error(err);
-        setMessage({ type: 'error', text: err.response.data.message });
       }
     },
     [dispatch, values, history]
@@ -397,10 +412,6 @@ function CreateSchoolsView() {
           {...SHARED_CONTROL_PROPS}
           variant="standard"
         />
-      </Grid>
-
-      <Grid item md={12} sm={12} xs={12}>
-        <AppMessage />
       </Grid>
 
       <Grid container justifyContent="center" alignItems="center">
