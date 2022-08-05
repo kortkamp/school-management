@@ -59,8 +59,8 @@ const TeacherSubjectView = () => {
 
   const loadTeacherList = useCallback(async () => {
     try {
-      const response = await teachersService.getAll(appState?.currentSchool?.id as string);
-      setTeachers(response.data.result);
+      const response = await teachersService.getAll({ schoolId: '', token: '' });
+      setTeachers(response.result);
     } catch (err: any) {
       console.log(err);
     }

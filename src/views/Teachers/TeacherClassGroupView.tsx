@@ -10,7 +10,6 @@ import { useParams } from 'react-router-dom';
 import { classGroupsService } from '../../services/classGroups.service';
 import { gradesService } from '../../services/grades.service';
 import { teacherClassGroupsService } from '../../services/teacherClassGroups.service';
-import { useAppStore } from '../../store';
 
 interface ISegment {
   id: string;
@@ -63,8 +62,6 @@ const teacherClassGroupSchema = {};
 const TeacherClassGroupView = () => {
   const [teachers, setTeachers] = useState<any[]>([]);
 
-  const [appState] = useAppStore();
-
   const { id: teacherIdPAram } = useParams<{ id: string }>();
 
   const [classGroups, setClassGroups] = useState<IClassGroup[]>([]);
@@ -92,8 +89,8 @@ const TeacherClassGroupView = () => {
 
   const loadTeacherList = useCallback(async () => {
     try {
-      const response = await teachersService.getAll(appState?.currentSchool?.id as string);
-      setTeachers(response.data.result);
+      const response = await teachersService.getAll({ token: '', schoolId: '', args: {} });
+      setTeachers(response.result);
     } catch (err: any) {
       console.log(err);
     }
