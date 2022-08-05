@@ -1,14 +1,29 @@
-import { Card, CardContent, CardHeader, Grid } from '@mui/material';
-import { DataGrid, GridOverlay } from '@mui/x-data-grid';
-import { ReactNode, useState } from 'react';
-import { useHistory } from 'react-router';
-import { AppButton, AppLoading } from '../../components';
-import { termsService } from '../../services/terms.service';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import {
+  Card,
+  CardActions,
+  CardContent,
+  CardHeader,
+  Grid,
+  MenuItem,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+} from '@mui/material';
+import { ReactNode, useEffect, useState } from 'react';
+import { AppButton, AppIcon, AppIconButton, AppLoading } from '../../components';
+import { IListTerms, termsService } from '../../services/terms.service';
 import Moment from 'moment';
 import { CommonDialog } from '../../components/dialogs';
-import { useAppMessage } from '../../utils/message';
 
 import { useApi } from '../../api/useApi';
+import { TermType } from '../../services/models/ITerm';
+import { sortByField } from '../../utils/sort';
 
 /**
  * Renders "ListTermsView" view
@@ -17,13 +32,16 @@ import { useApi } from '../../api/useApi';
 const ListTermsView = () => {
   const { data, loading } = useApi(termsService.getAll, {}); //as ApiType<typeof termsService.getAll>;
 
-  const terms = data?.terms || [];
+  const [terms, setTerms] = useState<IListTerms['terms']>([]);
 
   const [modal, setModal] = useState<ReactNode | null>(null);
 
-  const [AppMessage, setMessage] = useAppMessage();
-
-  const history = useHistory();
+  useEffect(() => {
+    if (data?.terms) {
+      setTerms(data?.terms);
+      console.log('set terms');
+    }
+  }, [data]);
 
   const confirmDeleteTerm = async (termId: string) => {
     // setLoading(true);
@@ -31,10 +49,37 @@ const ListTermsView = () => {
       await termsService.remove(termId);
       // setTerms((t) => t.filter((term) => term.id !== termId));
     } catch (err: any) {
-      setMessage({ type: 'error', text: err.response.data.message });
       // console.log(err);
     }
     // setLoading(false);
+  };
+
+  const handleChangeValue = (termId: string, event: any) => {
+    const updatedTerms = terms.map((term) => {
+      if (term.id === termId) {
+        return { ...term, [event.target.name as 'id']: event.target.value };
+      }
+      return term;
+    });
+
+    // updatedTerms[termIndex][event.target.name as 'id'] = event.target.value;
+
+    setTerms(updatedTerms);
+  };
+
+  const handleRemoveTerm = (termId: string) => {
+    // should request api to delete
+    const updatedTerms = terms.filter((term) => term.id !== termId);
+
+    setTerms(updatedTerms);
+  };
+
+  const handleAddTerm = () => {
+    // should request api to delete
+    const updatedTerms = terms.concat([
+      { id: String(Math.random()), name: '', start_at: new Date(), end_at: new Date(), type: TermType.STANDARD },
+    ]);
+    setTerms(updatedTerms);
   };
 
   const handleDeleteTerm = async (term: any) => {
@@ -61,88 +106,111 @@ const ListTermsView = () => {
     );
   };
 
-  // if (loading) return <AppLoading />;
-
-  const columns = [
-    { field: 'name', headerName: 'Nome', width: 150 },
-    {
-      field: 'year',
-      headerName: 'Ano',
-      width: 150,
-    },
-    {
-      field: 'start_at',
-      headerName: 'Início',
-      width: 150,
-      valueGetter: (params: any) => params && Moment(params.row.start_at).utcOffset('+0300').format('DD-MM-YYYY'),
-    },
-    {
-      field: 'end_at',
-      headerName: 'Término',
-      width: 150,
-      valueGetter: (params: any) => params && Moment(params.row.end_at).utcOffset('+0300').format('DD-MM-YYYY'),
-    },
-
-    {
-      field: 'action',
-      headerName: 'Ações',
-      sortable: false,
-      width: 250,
-      renderCell: (params: any) => {
-        const onClick = (e: any) => {
-          e.stopPropagation(); // don't select this row after clicking
-          history.push('/bimestres/' + params.row.id);
-        };
-
-        return (
-          <>
-            <AppButton onClick={onClick}>Editar</AppButton>
-            <AppButton
-              color="error"
-              onClick={() => {
-                handleDeleteTerm(params.row);
-              }}
-            >
-              Remover
-            </AppButton>
-          </>
-        );
-      },
-    },
-  ];
-
   if (loading) {
     return <AppLoading />;
   }
-
   return (
     <>
       {modal}
+
       <Grid container spacing={3}>
         <Grid item xs={12} md={12}>
           <Card style={{ padding: '20px' }}>
-            <CardHeader style={{ textAlign: 'center' }} title="Bimestres" subheader="Lista de bimestres" />
+            <CardHeader
+              style={{ textAlign: 'center' }}
+              title="Períodos do Ano"
+              subheader="Lista períodos do ano letivo"
+            />
             <CardContent>
-              <DataGrid
-                rows={terms}
-                loading={loading}
-                columns={columns}
-                pageSize={5}
-                hideFooter
-                rowsPerPageOptions={[5]}
-                autoHeight
-                components={{
-                  NoRowsOverlay: () => (
-                    <GridOverlay>
-                      <div>Nenhum bimestre encontrado</div>
-                    </GridOverlay>
-                  ),
-                }}
-              />
-              <Grid item md={12} sm={12} xs={12}>
-                <AppMessage />
-              </Grid>
+              <TableContainer component={Paper} sx={{ minWidth: 350, minHeight: 100 }}>
+                {loading ? (
+                  <AppLoading />
+                ) : (
+                  <Table sx={{ minWidth: 350 }} size="small" aria-label="a dense table">
+                    <colgroup>
+                      <col width="20%" />
+                      <col width="20%" />
+                      <col width="20%" />
+                      <col width="20%" />
+                      <col width="20%" />
+                    </colgroup>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Nome</TableCell>
+                        <TableCell>Início</TableCell>
+                        <TableCell>Término</TableCell>
+                        <TableCell>Tipo</TableCell>
+                        <TableCell>Ações</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {terms.map((term) => (
+                        <TableRow key={term.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                          <TableCell component="th" scope="row">
+                            <TextField
+                              required
+                              name="name"
+                              placeholder="Nome do período"
+                              value={term.name}
+                              onChange={(event) => handleChangeValue(term.id, event)}
+                              variant="standard"
+                              InputProps={{ disableUnderline: true }}
+                            />
+                          </TableCell>
+                          <TableCell component="th" scope="row">
+                            <TextField
+                              required
+                              name="start_at"
+                              type="date"
+                              value={Moment(term.start_at).format('YYYY-MM-DD')}
+                              onChange={(event) => handleChangeValue(term.id, event)}
+                              variant="standard"
+                              InputProps={{ disableUnderline: true }}
+                            />
+                          </TableCell>
+                          <TableCell component="th" scope="row">
+                            <TextField
+                              required
+                              name="end_at"
+                              type="date"
+                              value={Moment(term.end_at).format('YYYY-MM-DD')}
+                              onChange={(event) => handleChangeValue(term.id, event)}
+                              variant="standard"
+                              InputProps={{ disableUnderline: true }}
+                            />
+                          </TableCell>
+                          <TableCell component="th" scope="row">
+                            <TextField
+                              required
+                              name="type"
+                              select
+                              value={term.type}
+                              onChange={(event) => handleChangeValue(term.id, event)}
+                              variant="standard"
+                              InputProps={{ disableUnderline: true }}
+                            >
+                              {Object.values(TermType).map((termType) => (
+                                <MenuItem key={termType} value={termType}>
+                                  {termType}
+                                </MenuItem>
+                              ))}
+                            </TextField>
+                          </TableCell>
+                          <TableCell component="th" scope="row">
+                            <AppIconButton title="Apagar" icon="delete" onClick={() => handleRemoveTerm(term.id)} />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </TableContainer>
             </CardContent>
+            <CardActions>
+              <AppButton color="success" onClick={() => handleAddTerm()}>
+                Adicionar
+              </AppButton>
+            </CardActions>
           </Card>
         </Grid>
       </Grid>
