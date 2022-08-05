@@ -6,7 +6,7 @@ export interface IListTerms {
   terms: {
     id: string;
     name: string;
-    year: string;
+    type: string;
     start_at: Date;
     end_at: Date;
   }[];
