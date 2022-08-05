@@ -55,7 +55,7 @@ const UserInfo = ({ className, showAvatar = false, user, school, ...restOfProps 
         {fullName || 'Current User'}
       </Typography>
       <Typography variant="body2">{userPhoneOrEmail || 'Loading...'}</Typography>
-      <Typography variant="subtitle2">{userRole || 'Loading...'}</Typography>
+      <Typography variant="subtitle2">{userRole || ''}</Typography>
     </div>
   );
 };
