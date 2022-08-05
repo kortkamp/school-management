@@ -218,7 +218,7 @@ function CreateTeacherView() {
           {...SHARED_CONTROL_PROPS}
           label="Telefone"
           value={values.phone}
-          name="CPF"
+          name="phone"
           format="(##) #####-####"
           customInput={TextField}
           type="text"
