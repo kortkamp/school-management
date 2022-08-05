@@ -17,6 +17,7 @@ import { useAppForm, SHARED_CONTROL_PROPS, eventPreventDefault } from '../../../
 import * as yup from 'yup';
 import { usersService } from '../../../services/users.service';
 import { useAppMessage } from '../../../utils/message';
+import NumberFormat from 'react-number-format';
 
 const createUserSchema = {
   email: yup.string().email('Email inválido'),
@@ -149,15 +150,17 @@ const SignupView = () => {
               />
             </Grid>
             <Grid item md={12} sm={12} xs={12}>
-              <TextField
-                required
-                label="Telefone"
-                name="phone"
-                value={values.phone}
-                error={fieldHasError('phone')}
-                helperText={fieldGetError('phone') || ' '}
-                onChange={onFieldChange}
+              <NumberFormat
                 {...SHARED_CONTROL_PROPS}
+                label="Telefone"
+                value={values.phone}
+                name="phone"
+                format="(##) #####-####"
+                customInput={TextField}
+                type="text"
+                onValueChange={({ value: v }) => {
+                  onFieldChange({ target: { name: 'phone', value: v } });
+                }}
               />
             </Grid>
             <Grid item md={12} sm={12} xs={12}>
