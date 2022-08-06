@@ -1,3 +1,4 @@
+import { IApiFuncParams } from '../api/useApi';
 import api from './api.service';
 
 interface ICreateSchoolResponseData {
@@ -32,7 +33,7 @@ interface ICreateSchoolResponseData {
   };
 }
 
-const create = async (token: string, data: object) => {
+const create = async ({ token, args: data }: IApiFuncParams) => {
   const response = await api.post('/schools', data, { headers: { Authorization: `Bearer ${token}` } });
   return response.data as ICreateSchoolResponseData;
 };

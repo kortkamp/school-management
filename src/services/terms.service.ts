@@ -12,8 +12,9 @@ export interface IListTerms {
   }[];
 }
 
-const getAll = async ({ schoolId, token }: IApiFuncParams) =>
-  (await api.get(`/${schoolId}/terms`, { headers: { Authorization: `Bearer ${token}` } })).data as IListTerms;
+const getAll = async ({ schoolId, token, cancelToken }: IApiFuncParams) =>
+  (await api.get(`/${schoolId}/terms`, { headers: { Authorization: `Bearer ${token}` }, cancelToken }))
+    .data as IListTerms;
 
 const create = async ({ schoolId, token, args }: IApiFuncParams) =>
   api.post(`/${schoolId}/terms`, args.data, { headers: { Authorization: `Bearer ${token}` } });

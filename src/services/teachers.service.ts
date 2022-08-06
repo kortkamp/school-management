@@ -26,7 +26,7 @@ interface IGetAllTeachersParams extends IApiFuncParams {
   };
 }
 
-const getAll = async ({ schoolId, token, args = {} }: IGetAllTeachersParams) =>
+const getAll = async ({ schoolId, token, args = {}, cancelToken }: IGetAllTeachersParams) =>
   (
     await api.get(
       `/${schoolId}/teachers?per_page=${args.per_page || 10}&page=${args.page || 1}&orderBy=name&orderType=ASC${
@@ -34,11 +34,12 @@ const getAll = async ({ schoolId, token, args = {} }: IGetAllTeachersParams) =>
           ? `&filterBy=${args.filterBy}&filterValue=${args.filterValue}&filterType=${args.filterType}`
           : ''
       }`,
-      { headers: { Authorization: `Bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}` }, cancelToken }
     )
   ).data as ITeachersList;
 
-const create = async (school_id: string, data: object) => api.post(`/${school_id}/teachers`, data);
+const create = async ({ schoolId, token, args }: IApiFuncParams) =>
+  (await api.post(`/${schoolId}/teachers`, args, { headers: { Authorization: `Bearer ${token}` } })).data;
 
 const remove = async (id: object) => api.delete('/${school_id}/teachers/' + id);
 
