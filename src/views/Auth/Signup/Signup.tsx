@@ -16,8 +16,8 @@ import { useAppForm, SHARED_CONTROL_PROPS, eventPreventDefault } from '../../../
 
 import * as yup from 'yup';
 import { usersService } from '../../../services/users.service';
-import { useAppMessage } from '../../../utils/message';
 import NumberFormat from 'react-number-format';
+import { useApi } from '../../../api/useApi';
 
 const createUserSchema = {
   email: yup.string().email('Email inválido'),
@@ -51,9 +51,7 @@ interface FormStateValues {
 const SignupView = () => {
   const history = useHistory();
 
-  const [isSaving, setIsSaving] = useState(false);
-
-  const [AppMessage, setMessage] = useAppMessage();
+  const [, , isSaving, createUser] = useApi(usersService.initialRegistration, {}, { isRequest: true });
 
   const [formState, , /* setFormState */ onFieldChange, fieldGetError, fieldHasError] = useAppForm({
     validationSchema: createUserSchema,
@@ -83,15 +81,10 @@ const SignupView = () => {
     async (event: SyntheticEvent) => {
       event.preventDefault();
 
-      setIsSaving(true);
+      const response = await createUser(values);
 
-      try {
-        await usersService.initialRegistration(values);
+      if (response?.success) {
         return history.replace('/auth/signup/confirm-registration');
-      } catch (err: any) {
-        console.log(err);
-        setMessage({ type: 'error', text: err.response.data.message });
-        setIsSaving(false);
       }
     },
     [values, history]
@@ -221,15 +214,6 @@ const SignupView = () => {
                 control={<Checkbox required name="agree" checked={agree} onChange={handleAgreeClick} />}
                 label="Concordo com os termos de uso e políticas de privacidade *"
               />
-            </Grid>
-
-            {/* {error ? (
-            <AppAlert severity="error" onClose={handleCloseError}>
-              {error}
-            </AppAlert>
-          ) : null} */}
-            <Grid item md={12} sm={12} xs={12}>
-              <AppMessage />
             </Grid>
 
             <Grid container justifyContent="center" alignItems="center">
