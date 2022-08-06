@@ -23,14 +23,14 @@ import { CommonDialog } from '../../components/dialogs';
 
 import { useApi } from '../../api/useApi';
 import { TermType } from '../../services/models/ITerm';
-import { sortByField } from '../../utils/sort';
+import { sortByDate } from '../../utils/sort';
 
 /**
  * Renders "ListTermsView" view
  * url: /bimestres/*
  */
 const ListTermsView = () => {
-  const { data, loading } = useApi(termsService.getAll, {}); //as ApiType<typeof termsService.getAll>;
+  const [data, , loading] = useApi(termsService.getAll);
 
   const [terms, setTerms] = useState<IListTerms['terms']>([]);
 
@@ -38,8 +38,7 @@ const ListTermsView = () => {
 
   useEffect(() => {
     if (data?.terms) {
-      setTerms(data?.terms);
-      console.log('set terms');
+      setTerms(sortByDate(data?.terms, 'start_at'));
     }
   }, [data]);
 
