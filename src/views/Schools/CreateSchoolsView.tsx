@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { SyntheticEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { SyntheticEvent, useCallback, useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import { Grid, TextField, Card, CardHeader, CardContent, Divider } from '@mui/material';
 import { useAppStore } from '../../store';
@@ -62,22 +62,14 @@ function CreateSchoolsView() {
   const [appState, dispatch] = useAppStore();
 
   const { id } = useParams<{ id: string }>();
+
   const isEditing = id ? true : false;
 
-  const [isSaving, setIsSaving] = useState(false);
+  const [createSchoolSuccess, , isSaving, createSchool] = useApi(schoolsService.create, {}, { isRequest: true });
 
   const [stepValidationSchema, setStepValidationSchema] = useState<object>(createSchoolMainSchema);
 
-  const { data: roles } = useApi(rolesService.getAll);
-
-  const mounted = useRef(false);
-
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
+  const [roles] = useApi(rolesService.getAll);
 
   const [formState, , onFieldChange, fieldGetError, fieldHasError, , setField] = useAppForm({
     validationSchema: stepValidationSchema,
@@ -103,7 +95,6 @@ function CreateSchoolsView() {
   const handleFormSubmit = useCallback(
     async (event: SyntheticEvent) => {
       event.preventDefault();
-      setIsSaving(true);
 
       const { name, full_name, CNPJ, email, phone, mobile, address, number, complement, district, city, state, CEP } =
         values;
@@ -126,12 +117,12 @@ function CreateSchoolsView() {
         },
       };
 
-      try {
-        if (isEditing) {
-          // await schoolsService.update(id, values);
-        } else {
-          const response = await schoolsService.create(appState?.currentUser?.token || '', data);
+      if (isEditing) {
+        // await schoolsService.update(id, values);
+      } else {
+        const response = await createSchool(data);
 
+        if (response?.success) {
           const userRole = roles?.find((role) => role.id === response.school.userSchoolRoles[0].role_id);
 
           const school: IAuthSchool = {
@@ -145,15 +136,17 @@ function CreateSchoolsView() {
           currentUser?.schools.push(school);
           dispatch({ type: 'CURRENT_USER', payload: currentUser });
           dispatch({ type: 'SELECT_SCHOOL', payload: school });
-          history.replace('/escola/configurar/' + response.school.id);
         }
-      } catch (err: any) {
-        setIsSaving(false);
-        console.error(err);
       }
     },
     [dispatch, values, history]
   );
+
+  useEffect(() => {
+    if (createSchoolSuccess) {
+      history.replace('/escola/configurar/' + createSchoolSuccess.school.id);
+    }
+  }, [createSchoolSuccess]);
 
   useEffect(() => {
     if (id) {
