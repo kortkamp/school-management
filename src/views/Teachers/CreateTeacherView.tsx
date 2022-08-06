@@ -11,9 +11,8 @@ import { AppButton, AppForm } from '../../components';
 import { useAppForm, SHARED_CONTROL_PROPS } from '../../utils/form';
 import AppStepSelector from '../../components/AppStepSelector';
 import { teachersService } from '../../services/teachers.service';
-import { useAppMessage } from '../../utils/message';
 import AppAddressForm from '../../components/AppAddressForm/AppAddressForm';
-import { useAppStore } from '../../store';
+import { useApi } from '../../api/useApi';
 
 const createTeacherMainSchema = {
   name: yup
@@ -61,13 +60,9 @@ interface FormStateValues {
  * url: /professores/criar
  */
 function CreateTeacherView() {
-  const [appState] = useAppStore();
-
   const history = useHistory();
 
-  const [AppMessage, setMessage] = useAppMessage();
-
-  const [isSaving, setIsSaving] = useState(false);
+  const [, , isSaving, createTeacher] = useApi(teachersService.create, {}, { isRequest: true });
 
   const [stepValidationSchema, setStepValidationSchema] = useState<object>(createTeacherMainSchema);
 
@@ -97,8 +92,6 @@ function CreateTeacherView() {
     async (event: SyntheticEvent) => {
       event.preventDefault();
 
-      setIsSaving(true);
-
       const { name, CPF, phone, sex, birth, address, number, complement, district, city, state, CEP, email } = values;
 
       const data = {
@@ -119,13 +112,10 @@ function CreateTeacherView() {
         email,
       };
 
-      try {
-        await teachersService.create(appState.currentSchool?.id as string, data);
+      const response = await createTeacher(data);
+
+      if (response?.success) {
         history.replace(`/professores`);
-      } catch (err: any) {
-        console.log(err);
-        setMessage({ type: 'error', text: err.response.data.message });
-        setIsSaving(false);
       }
     },
     [values, history]
@@ -389,10 +379,6 @@ function CreateTeacherView() {
           {...SHARED_CONTROL_PROPS}
           variant="standard"
         />
-      </Grid>
-
-      <Grid item md={12} sm={12} xs={12}>
-        <AppMessage />
       </Grid>
 
       <Grid container justifyContent="center" alignItems="center">
