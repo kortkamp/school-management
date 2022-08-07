@@ -14,9 +14,15 @@ export enum RecoveringPeriod {
 }
 
 export enum RecoveringType {
+  SUM = 'soma',
   MEAN = 'média',
   SUBSTITUTIVE = 'substitutiva',
-  GREATER = 'maior',
+  GREATER = 'maior nota',
+}
+
+export enum ResultCalculation {
+  SUM = 'somatório',
+  MEAN = 'média',
 }
 
 interface ISchoolConfigs {
