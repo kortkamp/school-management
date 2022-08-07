@@ -68,13 +68,13 @@ const AppButton: React.FC<Props> = ({
   return (
     <Box {...{ m, mt, mb, ml, mr }} className={classes.box}>
       <Button className={classButton} variant={variant} {...{ ...restOfProps, underline }}>
-        {children || label || text}{' '}
+        <span style={loading ? { color: 'transparent' } : {}}>{children || label || text}</span>
       </Button>
       {loading && (
         <CircularProgress
           size={24}
           sx={{
-            color: 'green',
+            color: 'primary',
             position: 'absolute',
             top: '50%',
             left: '50%',
