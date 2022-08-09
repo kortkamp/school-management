@@ -50,6 +50,9 @@ const LIGHT_THEME: ThemeOptions = {
  * Material UI theme config for "Dark Mode"
  */
 const DARK_THEME: ThemeOptions = {
+  shape: {
+    borderRadius: 7,
+  },
   palette: {
     mode: 'dark',
     background: {
