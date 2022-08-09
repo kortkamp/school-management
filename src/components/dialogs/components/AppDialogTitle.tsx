@@ -38,7 +38,7 @@ const AppDialogTitle: React.FC<Props> = ({ children, onClose, ...props }) => {
           className={classes.xButton}
           size="large"
           icon="close"
-          title="Close"
+          title="Fechar"
           aria-label="close"
           onClick={onClose}
         />
