@@ -33,6 +33,9 @@ const FRONT_COLORS = {
  * Material UI theme config for "Light Mode"
  */
 const LIGHT_THEME: ThemeOptions = {
+  shape: {
+    borderRadius: 7,
+  },
   palette: {
     mode: 'light',
     background: {

@@ -26,6 +26,7 @@ import CalendarToday from '@mui/icons-material/CalendarToday';
 import WatchLaterIcon from '@mui/icons-material/WatchLater';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import DeleteIcon from '@mui/icons-material/Delete';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 
 /**
  * How to use:
@@ -66,6 +67,7 @@ const ICONS: Record<string, React.ComponentType> = {
   clock: WatchLaterIcon,
   school: AccountBalanceIcon,
   delete: DeleteIcon,
+  welcome: AutoAwesomeIcon,
 };
 
 /**
