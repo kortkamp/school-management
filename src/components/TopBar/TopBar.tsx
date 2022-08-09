@@ -18,7 +18,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     alignItems: 'center',
   },
   logo: {
-    height: theme.spacing(4),
+    height: theme.spacing(5),
   },
   title: {
     // marginLeft: theme.spacing(1),
