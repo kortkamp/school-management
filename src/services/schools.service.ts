@@ -38,6 +38,12 @@ const create = async ({ token, args: data }: IApiFuncParams) => {
   return response.data as ICreateSchoolResponseData;
 };
 
+const createSchoolConfigs = async ({ token, args: data }: IApiFuncParams) => {
+  const response = await api.post('/schools/configs', data, { headers: { Authorization: `Bearer ${token}` } });
+  return response.data;
+};
+
 export const schoolsService = {
   create,
+  createSchoolConfigs,
 };
