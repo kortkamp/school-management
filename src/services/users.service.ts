@@ -1,9 +1,9 @@
+import { IApiFuncParams } from '../api/useApi';
 import api from './api.service';
 
-const initialRegistration = async (data: object) => {
+const initialRegistration = async ({ args: data }: IApiFuncParams) => {
   const response = await api.post('/users/initial-registration', data);
-  const responseData = response.data;
-  return responseData.user;
+  return response.data;
 };
 
 export const usersService = {
