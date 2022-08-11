@@ -2,6 +2,8 @@
 import { useAppStore } from '../store';
 import PublicRoutes from './PublicRoutes';
 import PrivateRoutes from './PrivateRoutes';
+import RegisterRoutes from './RegisterRoutes';
+import { RoleTypes } from '../services/models/IRole';
 // import { isUserStillLoggedIn } from '../api/auth/utils';
 // import { api } from '../api';
 
@@ -32,8 +34,16 @@ const Routes = () => {
   //     });
   //   }
   // }, [state.isAuthenticated, dispatch]); // Effect for every state.isAuthenticated change actually
-
   console.log('Routes() - isAuthenticated:', state.isAuthenticated);
-  return state.isAuthenticated ? <PrivateRoutes /> : <PublicRoutes />;
+
+  if (state.isAuthenticated) {
+    if (state.currentUser?.schools.length === 0 || state.currentSchool?.role === RoleTypes.NEW_USER) {
+      return <RegisterRoutes />;
+    }
+
+    return <PrivateRoutes />;
+  }
+
+  return <PublicRoutes />;
 };
 export default Routes;
