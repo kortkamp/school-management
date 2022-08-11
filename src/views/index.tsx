@@ -9,13 +9,14 @@ import Terms from './Terms';
 import Routines from './Routines';
 import Home from './Home';
 import Schools from './Schools';
-
-// import Welcome from './Welcome';
+import Messages from './Messages';
+import Welcome from './Welcome';
+import RegisterSchool from './RegisterSchool';
 
 export {
   NotFound,
   About,
-  Home as Welcome,
+  Home,
   NotImplemented as User,
   Teachers,
   ClassGroups,
@@ -24,4 +25,7 @@ export {
   Terms,
   Routines,
   Schools,
+  Messages,
+  Welcome,
+  RegisterSchool,
 };
