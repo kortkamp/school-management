@@ -33,17 +33,47 @@ interface ICreateSchoolResponseData {
   };
 }
 
+interface IGetSchoolByIdData {
+  success: boolean;
+  school: {
+    id: string;
+    name: string;
+    CNPJ: string;
+    email: string;
+    phone: string;
+    mobile: string;
+    address_id: string;
+    address: {};
+    parameters: {
+      school_id: string;
+      passing_result: number;
+      minimum_attendance: number;
+      result_calculation: string;
+      term_period: string;
+      term_number: number;
+      recovering_period: string;
+      recovering_type: string;
+      final_recovering: null;
+      class_length: number;
+    };
+  };
+}
+
 const create = async ({ token, args: data }: IApiFuncParams) => {
   const response = await api.post('/schools', data, { headers: { Authorization: `Bearer ${token}` } });
   return response.data as ICreateSchoolResponseData;
 };
 
-const createSchoolConfigs = async ({ token, args: data }: IApiFuncParams) => {
-  const response = await api.post('/schools/configs', data, { headers: { Authorization: `Bearer ${token}` } });
+const getById = async ({ token, schoolId }: IApiFuncParams) =>
+  (await api.get(`/schools/${schoolId}`, { headers: { Authorization: `Bearer ${token}` } })).data as IGetSchoolByIdData;
+
+const createSchoolParameters = async ({ token, schoolId, args: data }: IApiFuncParams) => {
+  const response = await api.post(`/${schoolId}/parameters`, data, { headers: { Authorization: `Bearer ${token}` } });
   return response.data;
 };
 
 export const schoolsService = {
   create,
-  createSchoolConfigs,
+  getById,
+  createSchoolParameters,
 };
