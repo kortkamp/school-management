@@ -51,7 +51,7 @@ const LoginEmailView = () => {
 
         history.replace('/');
       } catch (err) {
-        setError('Please check email and password');
+        setError('Verifique seu e-mail e password');
       }
     },
     [dispatch, values, history]
