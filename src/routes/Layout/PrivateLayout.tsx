@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, ReactNode } from 'react';
 import { useHistory } from 'react-router-dom';
 import clsx from 'clsx';
 import { Theme, useTheme } from '@mui/material/styles';
@@ -9,6 +9,7 @@ import TopBar from '../../components/TopBar';
 import { ErrorBoundary } from '../../components';
 import SideBar from '../../components/SideBar/SideBar';
 import { LinkToPage } from '../../utils/type';
+import { MessagesDialog } from '../../components/dialogs';
 
 const TITLE_PRIVATE = 'Área Administrativa ';
 const MOBILE_SIDEBAR_ANCHOR = 'left'; // 'right';
@@ -55,13 +56,13 @@ function updateDocumentTitle(roleName: string) {
  */
 const SIDE_BAR_GUEST_ITEMS: Array<LinkToPage> = [
   {
-    title: 'Profile',
-    path: '/user',
-    icon: 'account',
+    title: 'Bem Vindo',
+    path: '/bem-vindo',
+    icon: 'welcome',
   },
   {
-    title: 'Cadastrar Escola',
-    path: '/escola/criar',
+    title: 'Cadastrar Instituição',
+    path: '/registro',
     icon: 'school',
   },
 ];
@@ -268,7 +269,7 @@ const SideBarItens: Record<string, Array<LinkToPage>> = {
   admin: SIDE_BAR_ADMIN_ITEMS,
   teacher: SIDE_BAR_TEACHER_ITEMS,
   student: SIDE_BAR_STUDENT_ITEMS,
-  guest: SIDE_BAR_GUEST_ITEMS,
+  ['new-user']: SIDE_BAR_GUEST_ITEMS,
   principal: SIDE_BAR_ADMIN_ITEMS,
 };
 
@@ -278,12 +279,22 @@ const SideBarItens: Record<string, Array<LinkToPage>> = {
 const PrivateLayout: React.FC = ({ children }) => {
   const [state] = useAppStore();
 
+  const [messagesModal, setMessagesModal] = useState<ReactNode | null>(null);
+
   const role = state.currentSchool?.role;
   const [openSideBar, setOpenSideBar] = useState(false);
   const theme = useTheme();
   const classes = useStyles();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'), { defaultMatches: true });
   const history = useHistory();
+
+  const onCloseMessageModal = () => {
+    setMessagesModal(null);
+  };
+
+  const onSwitchMessagesModal = () => {
+    setMessagesModal(<MessagesDialog open onClose={onCloseMessageModal} />);
+  };
 
   const handleLogoClick = useCallback(() => {
     // Navigate to '/' when clicking on Logo/Menu icon when the SideBar is already visible
@@ -313,19 +324,23 @@ const PrivateLayout: React.FC = ({ children }) => {
           title={title}
           isMenuOpen={shouldOpenSideBar}
           onMenu={shouldOpenSideBar ? handleLogoClick : handleSideBarOpen}
+          onNotifications={onSwitchMessagesModal}
         />
 
         <SideBar
           anchor={isDesktop ? DESKTOP_SIDEBAR_ANCHOR : MOBILE_SIDEBAR_ANCHOR}
           open={shouldOpenSideBar}
           variant={isDesktop ? 'persistent' : 'temporary'}
-          items={SideBarItens[role || 'guest']}
+          items={SideBarItens[role || 'new-user']}
           onClose={handleSideBarClose}
         />
       </Grid>
 
       <Grid className={classes.content} component="main">
-        <ErrorBoundary name="Content">{children}</ErrorBoundary>
+        <>
+          {messagesModal}
+          <ErrorBoundary name="Content">{children}</ErrorBoundary>
+        </>
       </Grid>
     </Grid>
   );

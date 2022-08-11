@@ -1,5 +1,18 @@
 import { Route, Switch } from 'react-router-dom';
-import { Welcome, About, NotFound, Teachers, ClassGroups, Students, Exams, Terms, Routines, Schools } from '../views';
+import { routeNames } from '.';
+import {
+  About,
+  NotFound,
+  Teachers,
+  ClassGroups,
+  Students,
+  Exams,
+  Terms,
+  Routines,
+  Schools,
+  Home,
+  Messages,
+} from '../views';
 import { PrivateLayout } from './Layout';
 
 /**
@@ -10,8 +23,7 @@ const PrivateRoutes = () => {
   return (
     <PrivateLayout>
       <Switch>
-        <Route path="/" exact component={Welcome} />
-        <Route path="/welcome" component={Welcome} />
+        <Route path="/" exact component={Home} />
         <Route path="/about" component={About} />,
         <Route path="/professores" component={Teachers} />,
         <Route path="/turmas" component={ClassGroups} />,
@@ -19,7 +31,8 @@ const PrivateRoutes = () => {
         <Route path="/exames" component={Exams} />,
         <Route path="/bimestres" component={Terms} />,
         <Route path="/horarios" component={Routines} />,
-        <Route path="/escola" component={Schools} />,
+        <Route path={routeNames.school.path} component={Schools} />,
+        <Route path="/mensagens" component={Messages} />,
         <Route component={NotFound} />
       </Switch>
     </PrivateLayout>
