@@ -1,16 +1,18 @@
 import { Route, Switch } from 'react-router-dom';
+import { routeNames } from '../../routes';
 import CreateSchoolConfigurationsView from './CreateSchoolConfigurationsView';
-import CreateSchoolsView from './CreateSchoolsView';
+import UpdateSchoolInfoView from './UpdateSchoolInfoView';
 
 /**
  * Routes for "ClassGroups" view
  * url: /bimestres/*
  */
 const TermsRoutes = () => {
+  const { create, configure } = routeNames.school;
   return (
     <Switch>
-      <Route path="/escola/criar" component={CreateSchoolsView} />
-      <Route path="/escola/configurar" component={CreateSchoolConfigurationsView} />
+      <Route path={create.path} component={UpdateSchoolInfoView} />
+      <Route path={configure.path} component={CreateSchoolConfigurationsView} />
       {/* <Route component={CreateSchoolsView} /> */}
     </Switch>
   );
