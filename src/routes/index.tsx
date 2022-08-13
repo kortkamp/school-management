@@ -4,8 +4,8 @@ import AppRouter from './AppRouter';
 const routeNames = {
   school: {
     path: '/escola',
-    create: { path: '/escola/criar' },
-    configure: { path: '/escola/configurar' },
+    create: { path: '/escola/dados' },
+    configure: { path: '/escola/parametros' },
   },
   terms: {
     path: '/bimestres',
