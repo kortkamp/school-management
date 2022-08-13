@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { SyntheticEvent, useCallback, useEffect, useState } from 'react';
-import { useHistory, useParams } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import { Grid, TextField, Card, CardHeader, CardContent, Divider } from '@mui/material';
 import { useAppStore } from '../../store';
-import { AppButton, AppForm } from '../../components';
+import { AppButton, AppForm, AppLoading } from '../../components';
 import { useAppForm, SHARED_CONTROL_PROPS } from '../../utils/form';
 
 import AppStepSelector from '../../components/AppStepSelector';
@@ -12,9 +12,7 @@ import AppAddressForm from '../../components/AppAddressForm/AppAddressForm';
 import * as yup from 'yup';
 import NumberFormat from 'react-number-format';
 import { schoolsService } from '../../services/schools.service';
-import { IAuthSchool } from '../../services/auth.service';
 import { useApi } from '../../api/useApi';
-import { rolesService } from '../../services/roles.service';
 
 interface FormStateValues {
   name: string;
@@ -24,13 +22,17 @@ interface FormStateValues {
   phone: string;
   mobile: string;
 
-  address: string;
+  street: string;
   number: string;
   complement: string;
   district: string;
   city: string;
   state: string;
   CEP: string;
+}
+
+interface Props {
+  onSuccess?: () => void;
 }
 
 const createSchoolMainSchema = {
@@ -44,7 +46,7 @@ const createSchoolMainSchema = {
 };
 
 const addressDataSchema = {
-  address: yup.string().required('O campo é obrigatório'),
+  street: yup.string().required('O campo é obrigatório'),
   number: yup.string().required('O campo é obrigatório'),
   complement: yup.string(),
   district: yup.string().required('O campo é obrigatório'),
@@ -54,24 +56,20 @@ const addressDataSchema = {
 };
 
 /**
- * Renders "Create ClassGroup" view
+ * Renders "UpdateSchoolInfo" view
  * url: /escola/criar
  */
-function CreateSchoolsView() {
+function UpdateSchoolInfoView({ onSuccess = () => {} }: Props) {
   const history = useHistory();
-  const [appState, dispatch] = useAppStore();
+  const [, dispatch] = useAppStore();
 
-  const { id } = useParams<{ id: string }>();
+  const [schoolData, , loading] = useApi(schoolsService.getById);
 
-  const isEditing = id ? true : false;
-
-  const [createSchoolSuccess, , isSaving, createSchool] = useApi(schoolsService.create, {}, { isRequest: true });
+  const [, , isSaving, createSchool] = useApi(schoolsService.update, {}, { isRequest: true });
 
   const [stepValidationSchema, setStepValidationSchema] = useState<object>(createSchoolMainSchema);
 
-  const [roles] = useApi(rolesService.getAll);
-
-  const [formState, , onFieldChange, fieldGetError, fieldHasError, , setField] = useAppForm({
+  const [formState, setFormState, onFieldChange, fieldGetError, fieldHasError, , setField] = useAppForm({
     validationSchema: stepValidationSchema,
     initialValues: {
       name: '',
@@ -80,7 +78,7 @@ function CreateSchoolsView() {
       email: '',
       phone: '',
       mobile: '',
-      address: '',
+      street: '',
       number: '',
       complement: '',
       district: '',
@@ -90,24 +88,63 @@ function CreateSchoolsView() {
     } as FormStateValues,
   });
 
-  const values = formState.values as FormStateValues; // Typed alias to formState.values as the "Source of Truth"
+  const values = formState.values as FormStateValues;
 
   const handleFormSubmit = useCallback(
     async (event: SyntheticEvent) => {
       event.preventDefault();
 
-      const { name, full_name, CNPJ, email, phone, mobile, address, number, complement, district, city, state, CEP } =
-        values;
+      const response = await createSchool(values);
 
-      const data = {
-        name,
-        full_name,
-        CNPJ,
-        email,
-        phone,
-        mobile,
-        address: {
-          street: address,
+      if (response?.success) {
+        // const userRole = roles?.find((role) => role.id === response.school.userSchoolRoles[0].role_id);
+
+        // const school: IAuthSchool = {
+        //   id: response.school.id,
+        //   name: response.school.name,
+        //   role: userRole?.type || '',
+        //   role_name: userRole?.name || '',
+        // };
+
+        // // const currentUser = appState.currentUser;
+        // // currentUser?.schools.push(school);
+        // // dispatch({ type: 'CURRENT_USER', payload: currentUser });
+        // dispatch({ type: 'SELECT_SCHOOL', payload: school });
+        onSuccess();
+      }
+    },
+    [dispatch, values, history]
+  );
+
+  useEffect(() => {
+    if (schoolData) {
+      const {
+        name = '',
+        full_name = '',
+        CNPJ = '',
+        email = '',
+        phone = '',
+        mobile = '',
+
+        street = '',
+        number = '',
+        complement = '',
+        district = '',
+        city = '',
+        state = '',
+        CEP = '',
+      } = schoolData.school;
+      setFormState((prevState) => ({
+        ...prevState,
+        values: {
+          name,
+          full_name,
+          CNPJ,
+          email,
+          phone,
+          mobile,
+
+          street,
           number,
           complement,
           district,
@@ -115,44 +152,11 @@ function CreateSchoolsView() {
           state,
           CEP,
         },
-      };
-
-      if (isEditing) {
-        // await schoolsService.update(id, values);
-      } else {
-        const response = await createSchool(data);
-
-        if (response?.success) {
-          const userRole = roles?.find((role) => role.id === response.school.userSchoolRoles[0].role_id);
-
-          const school: IAuthSchool = {
-            id: response.school.id,
-            name: response.school.name,
-            role: userRole?.type || '',
-            role_name: userRole?.name || '',
-          };
-
-          const currentUser = appState.currentUser;
-          currentUser?.schools.push(school);
-          dispatch({ type: 'CURRENT_USER', payload: currentUser });
-          dispatch({ type: 'SELECT_SCHOOL', payload: school });
-        }
-      }
-    },
-    [dispatch, values, history]
-  );
-
-  useEffect(() => {
-    if (createSchoolSuccess) {
-      history.replace('/escola/configurar/' + createSchoolSuccess.school.id);
+      }));
     }
-  }, [createSchoolSuccess]);
+  }, [schoolData]);
 
-  useEffect(() => {
-    if (id) {
-      // loadData();
-    }
-  }, [id]);
+  if (loading) return <AppLoading />;
 
   const mainSchoolForm = (
     <Grid container spacing={1}>
@@ -262,11 +266,15 @@ function CreateSchoolsView() {
         <TextField
           label="CNPJ"
           name="CNPJ"
-          value={values.CNPJ.replace(/\D/g, '')
-            .replace(/(\d{2})(\d)/, '$1.$2')
-            .replace(/(\d{3})(\d)/, '$1.$2')
-            .replace(/(\d{3})(\d)/, '$1/$2')
-            .replace(/(\d{4})(\d)/, '$1-$2')}
+          value={
+            values.CNPJ
+              ? values.CNPJ?.replace(/\D/g, '')
+                  .replace(/(\d{2})(\d)/, '$1.$2')
+                  .replace(/(\d{3})(\d)/, '$1.$2')
+                  .replace(/(\d{3})(\d)/, '$1/$2')
+                  .replace(/(\d{4})(\d)/, '$1-$2')
+              : ''
+          }
           inputProps={{ readOnly: true }}
           {...SHARED_CONTROL_PROPS}
           variant="standard"
@@ -291,8 +299,8 @@ function CreateSchoolsView() {
       <Grid item md={10} sm={10} xs={10}>
         <TextField
           label="Logradouro"
-          name="address"
-          value={values.address}
+          name="street"
+          value={values.street}
           inputProps={{ readOnly: true }}
           {...SHARED_CONTROL_PROPS}
           variant="standard"
@@ -383,10 +391,14 @@ function CreateSchoolsView() {
         <TextField
           label="Telefone Fixo"
           name="phone"
-          value={values.phone
-            .replace(/\D/g, '')
-            .replace(/(\d{2})(\d)/, '($1) $2')
-            .replace(/(\d{4})(\d)/, '$1-$2')}
+          value={
+            values.phone
+              ? values.phone
+                  .replace(/\D/g, '')
+                  .replace(/(\d{2})(\d)/, '($1) $2')
+                  .replace(/(\d{4})(\d)/, '$1-$2')
+              : ''
+          }
           inputProps={{ readOnly: true }}
           {...SHARED_CONTROL_PROPS}
           variant="standard"
@@ -397,10 +409,14 @@ function CreateSchoolsView() {
         <TextField
           label="Celular"
           name="mobile"
-          value={values.phone
-            .replace(/\D/g, '')
-            .replace(/(\d{2})(\d)/, '($1) $2')
-            .replace(/(\d{5})(\d)/, '$1-$2')}
+          value={
+            values.phone
+              ? values.phone
+                  .replace(/\D/g, '')
+                  .replace(/(\d{2})(\d)/, '($1) $2')
+                  .replace(/(\d{5})(\d)/, '$1-$2')
+              : ''
+          }
           inputProps={{ readOnly: true }}
           {...SHARED_CONTROL_PROPS}
           variant="standard"
@@ -409,7 +425,7 @@ function CreateSchoolsView() {
 
       <Grid container justifyContent="center" alignItems="center">
         <AppButton loading={isSaving} disabled={isSaving || !formState.isValid} type="submit">
-          Cadastrar
+          Salvar
         </AppButton>
       </Grid>
     </Grid>
@@ -445,11 +461,7 @@ function CreateSchoolsView() {
   return (
     <AppForm onSubmit={handleFormSubmit} style={{ minWidth: '100%', marginTop: '50px' }}>
       <Card>
-        <CardHeader
-          style={{ textAlign: 'center' }}
-          title="Escola"
-          subheader={isEditing ? 'Editar Dados da Escola' : 'Cadastrar uma nova Escola'}
-        />
+        <CardHeader style={{ textAlign: 'center' }} title="Escola" subheader={'Cadastrar uma nova Escola'} />
         <CardContent>
           <AppStepSelector
             forms={stepForms}
@@ -465,4 +477,4 @@ function CreateSchoolsView() {
   );
 }
 
-export default CreateSchoolsView;
+export default UpdateSchoolInfoView;

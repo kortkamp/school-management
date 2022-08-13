@@ -10,24 +10,22 @@ interface ICreateSchoolResponseData {
     email: string;
     phone: string;
     mobile: string;
-    address: {
-      id: string;
-      street: string;
-      number: string;
-      complement: string;
-      district: string;
-      city: string;
-      state: string;
-      CEP: string;
-      created_at: Date;
-    };
+
+    street: string;
+    number: string;
+    complement: string;
+    district: string;
+    city: string;
+    state: string;
+    CEP: string;
+
     userSchoolRoles: {
       user_id: string;
       role_id: string;
       school_id: string;
       created_at: Date;
     }[];
-    address_id: string;
+
     created_at: Date;
     updated_at: Date;
   };
@@ -38,12 +36,18 @@ interface IGetSchoolByIdData {
   school: {
     id: string;
     name: string;
+    full_name: string;
     CNPJ: string;
     email: string;
     phone: string;
     mobile: string;
-    address_id: string;
-    address: {};
+    street: string;
+    number: string;
+    complement: string;
+    district: string;
+    city: string;
+    state: string;
+    CEP: string;
     parameters: {
       school_id: string;
       passing_result: number;
@@ -64,6 +68,11 @@ const create = async ({ token, args: data }: IApiFuncParams) => {
   return response.data as ICreateSchoolResponseData;
 };
 
+const update = async ({ token, schoolId, args: data }: IApiFuncParams) => {
+  const response = await api.put(`/schools/${schoolId}`, data, { headers: { Authorization: `Bearer ${token}` } });
+  return response.data as ICreateSchoolResponseData;
+};
+
 const getById = async ({ token, schoolId }: IApiFuncParams) =>
   (await api.get(`/schools/${schoolId}`, { headers: { Authorization: `Bearer ${token}` } })).data as IGetSchoolByIdData;
 
@@ -74,6 +83,7 @@ const createSchoolParameters = async ({ token, schoolId, args: data }: IApiFuncP
 
 export const schoolsService = {
   create,
+  update,
   getById,
   createSchoolParameters,
 };
