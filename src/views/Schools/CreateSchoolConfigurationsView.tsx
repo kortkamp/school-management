@@ -1,18 +1,18 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import clsx from 'clsx';
-import { SyntheticEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { SyntheticEvent, useCallback, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Grid, TextField, Card, CardHeader, CardContent, MenuItem } from '@mui/material';
 import { useAppStore } from '../../store';
-import { AppButton, AppForm } from '../../components';
+import { AppForm } from '../../components';
 import { useAppForm, SHARED_CONTROL_PROPS } from '../../utils/form';
 import makeStyles from '@mui/styles/makeStyles';
 
-// import * as yup from 'yup';
 import NumberFormat from 'react-number-format';
-import { RecoveringPeriod, RecoveringType, ResultCalculation, TermTypes } from '../../services/models/ISchoolConfigs';
-import { toast } from 'react-toastify';
+import { RecoveringType, ResultCalculation, TermPeriod } from '../../services/models/ISchoolParameters';
 import { capitalizeFirstLetter } from '../../utils/string';
+import { useApi } from '../../api/useApi';
+import { schoolsService } from '../../services/schools.service';
+import { AppSaveButton, AppClearButton } from '../../components/AppCustomButton';
 
 const useStyles = makeStyles(() => ({
   formInputStart: {
@@ -30,14 +30,20 @@ const createTermSchema = {
   // recovering_type: yup.string().required('O campo é obrigatório'),
 };
 
+interface Props {
+  onSuccess?: () => void;
+}
+
 interface FormStateValues {
   result_calculation: string;
-  passing_note: number | '';
+  passing_result: number | '';
   minimum_attendance: number | '';
-  class_duration: number | '';
-  term_type: string;
-  recovering_period: string;
+  class_length: number | '';
+  term_period: string;
+  term_number: string | '';
+  recovering_coverage: number | '';
   recovering_type: string;
+  final_recovering: string;
 }
 
 const helperText: Record<string, Record<string, string>> = {
@@ -52,20 +58,19 @@ const helperText: Record<string, Record<string, string>> = {
   minimum_attendance: {
     description: 'O percentual mínimo de presença para que o aluno seja aprovado no ano letivo',
   },
-  class_duration: {
+  class_length: {
     description: 'O tempo de duração em minutos para cada aula',
   },
-  term_type: {
+  term_period: {
     description: 'A forma em que o ano letivo é divido(Ex: bimestres, trimestres, ...)',
   },
-  recovering_period: {
-    description: 'Quando ocorre o período de recuperação',
-    [RecoveringPeriod.BIMESTER]: 'Ocorre um período de recuperação a cada bimestre',
-    [RecoveringPeriod.TRIMESTER]: 'Ocorre um período de recuperação a cada trimestre',
-    [RecoveringPeriod.QUADMESTER]: 'Ocorre um período de recuperação a cada quadrimestre',
-    [RecoveringPeriod.SEMESTER]: 'Ocorre um período de recuperação a cada semestre',
-    [RecoveringPeriod.YEAR]: 'Ocorre um período de recuperação ao final do nao letivo',
+  term_number: {
+    description: 'A quantidade períodos em que o ano letivo é dividido(Ex: 4 Bimestres, 2 Semestres, etc)',
   },
+  recovering_coverage: {
+    description: 'De quantos em quantos períodos ocorre uma recuperação',
+  },
+
   recovering_type: {
     description: 'A forma em que a nota do período de recuperação é aplicada ao período de abrangência',
     [RecoveringType.SUM]: 'A nota de recuperação é somada à nota do período letivo de abrangência',
@@ -76,80 +81,84 @@ const helperText: Record<string, Record<string, string>> = {
   },
 };
 
+enum RecoveringSchemas {
+  noRecovering = 'Sem períodos de recuperação',
+  justFinal = 'Apenas recuperação final',
+  byTerms = 'Recuperações ao longo do ano',
+  byTermsAndFinal = 'Recuperação final e ao longo do ano',
+}
+
+const defaultValues = {
+  result_calculation: '',
+  passing_result: '',
+  minimum_attendance: '',
+  class_length: '',
+  term_period: '',
+  term_number: '',
+  recovering_coverage: '',
+  recovering_type: '',
+  final_recovering: '',
+} as FormStateValues;
+
 /**
  * Renders "Create Schools Definitions" view
  * url: /escola/definir
  */
-function CreateSchoolConfigurationsView() {
+function CreateSchoolConfigurationsView({ onSuccess = () => {} }: Props) {
   const classes = useStyles();
+
+  const [, , isSaving, createSchoolParameters] = useApi(schoolsService.createSchoolParameters, {}, { isRequest: true });
 
   const classInput = clsx(classes.formInputStart, classes.formInput);
 
   const history = useHistory();
   const [, dispatch] = useAppStore();
 
-  // const { id } = useParams<{ id: string }>();
-  // const isEditing = id ? true : false;
-
-  const [isSaving, setIsSaving] = useState(false);
-
-  const mounted = useRef(false);
-
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
-
-  const [formState, , onFieldChange] = useAppForm({
+  const [formState, setFormState, onFieldChange] = useAppForm({
     validationSchema: createTermSchema,
-    initialValues: {
-      result_calculation: '',
-      passing_note: '',
-      minimum_attendance: '',
-      class_duration: '',
-      term_type: '',
-      recovering_period: '',
-      recovering_type: '',
-    } as FormStateValues,
+    initialValues: { ...defaultValues } as FormStateValues,
   });
+
+  const [recoveringSchema, setRecoveringSchema] = useState<'' | RecoveringSchemas>('');
 
   const values = formState.values as FormStateValues; // Typed alias to formState.values as the "Source of Truth"
 
   const handleFormSubmit = useCallback(
     async (event: SyntheticEvent) => {
       event.preventDefault();
-      setIsSaving(true);
-      toast.info('Funcionalidade ainda nao implementada', {
-        onClose: () => {
-          setIsSaving(false);
-        },
-      });
+
+      const response = await createSchoolParameters(values);
+      if (response?.success) {
+        onSuccess();
+      }
     },
     [dispatch, values, history]
   );
 
-  // const loadData = useCallback(() => {
-  //   async function fetchData() {
-  //     try {
-  //       const { name, year, start_at, end_at } = await termsService.getById(id);
+  const handleCleanForm = () => {
+    setFormState((prevState) => ({
+      ...prevState,
+      values: { ...defaultValues },
+    }));
+  };
 
-  //       if (!mounted.current) return;
+  const handleSelectRecoveringSchema = (event: any) => {
+    setFormState((prevState) => ({
+      ...prevState,
+      values: { ...prevState.values, recovering_coverage: '', recovering_type: '', final_recovering: '' },
+    }));
+    setRecoveringSchema(event.target.value as RecoveringSchemas);
+  };
 
-  //       setFormState({ ...DEFAULT_FORM_STATE, isValid: true, values: { name, year, start_at, end_at } });
-  //     } catch (err: any) {
-  //       console.log(err);
-  //     }
-  //   }
-  //   fetchData();
-  // }, [id]);
+  const showFinalRecovering = [RecoveringSchemas.justFinal, RecoveringSchemas.byTermsAndFinal].includes(
+    recoveringSchema as RecoveringSchemas
+  );
 
-  // useEffect(() => {
-  //   if (id) {
-  //     loadData();
-  //   }
-  // }, [id]);
+  const showTermsRecovering = [RecoveringSchemas.byTerms, RecoveringSchemas.byTermsAndFinal].includes(
+    recoveringSchema as RecoveringSchemas
+  );
+
+  const showTerms = values.class_length && values.minimum_attendance;
 
   return (
     <AppForm onSubmit={handleFormSubmit} style={{ minWidth: '100%', marginTop: '50px' }}>
@@ -184,15 +193,15 @@ function CreateSchoolConfigurationsView() {
                 //required
                 className={classInput}
                 label="Nota de Corte"
-                name="passing_note"
-                value={values.passing_note}
+                name="passing_result"
+                value={values.passing_result}
                 onChange={onFieldChange}
                 helperText={helperText.passing_note.description}
                 {...SHARED_CONTROL_PROPS}
               />
             </Grid>
 
-            {values.passing_note && values.result_calculation && (
+            {values.passing_result && values.result_calculation && (
               <>
                 <Grid item md={6} sm={12} xs={12}>
                   <NumberFormat
@@ -219,37 +228,37 @@ function CreateSchoolConfigurationsView() {
                     className={classInput}
                     label="Duração de cada aula"
                     //required
-                    value={values.class_duration}
-                    name="class_duration"
+                    value={values.class_length}
+                    name="class_length"
                     format="### minutos"
                     customInput={TextField}
                     type="tel"
-                    helperText={helperText.class_duration.description}
+                    helperText={helperText.class_length.description}
                     onValueChange={({ value: v }) => {
-                      onFieldChange({ target: { name: 'class_duration', value: v } });
+                      onFieldChange({ target: { name: 'class_length', value: v } });
                     }}
                   />
                 </Grid>
               </>
             )}
 
-            {values.class_duration && values.minimum_attendance && (
+            {showTerms && (
               <>
-                <Grid item md={12} sm={12} xs={12}>
+                <Grid item md={6} sm={12} xs={12}>
                   <TextField
                     //required
                     className={classInput}
                     label="Divisões do Ano"
-                    name="term_type"
+                    name="term_period"
                     select
-                    value={values.term_type}
+                    value={values.term_period}
                     onChange={onFieldChange}
-                    helperText={helperText.term_type.description}
+                    helperText={helperText.term_period.description}
                     {...SHARED_CONTROL_PROPS}
                   >
-                    {Object.values(TermTypes).map((termType) => (
-                      <MenuItem key={termType} value={termType}>
-                        {capitalizeFirstLetter(termType) + 's'}
+                    {Object.values(TermPeriod).map((termPeriod) => (
+                      <MenuItem key={termPeriod} value={termPeriod}>
+                        {capitalizeFirstLetter(termPeriod) + 's'}
                       </MenuItem>
                     ))}
                   </TextField>
@@ -259,53 +268,112 @@ function CreateSchoolConfigurationsView() {
                   <TextField
                     //required
                     className={classInput}
-                    label="Período de recuperação"
-                    name="recovering_period"
-                    select
-                    value={values.recovering_period}
+                    label="Quantidade de períodos"
+                    name="term_number"
+                    value={values.term_number}
                     onChange={onFieldChange}
-                    helperText={
-                      helperText.recovering_period[values.recovering_period] || helperText.recovering_period.description
-                    }
+                    helperText={helperText.term_number.description}
+                    {...SHARED_CONTROL_PROPS}
+                  />
+                </Grid>
+
+                <Grid item md={12} sm={12} xs={12}>
+                  <TextField
+                    //required
+                    className={classInput}
+                    label="A Instituição trabalha com recuperação?"
+                    name="recoveringSchema"
+                    select
+                    value={recoveringSchema}
+                    onChange={handleSelectRecoveringSchema}
+                    helperText={' '}
                     {...SHARED_CONTROL_PROPS}
                   >
-                    {Object.values(RecoveringPeriod).map((recoveringPeriod) => (
-                      <MenuItem key={recoveringPeriod} value={recoveringPeriod}>
-                        {capitalizeFirstLetter(recoveringPeriod)}
+                    {Object.values(RecoveringSchemas).map((recoveringSchemas) => (
+                      <MenuItem key={recoveringSchemas} value={recoveringSchemas}>
+                        {capitalizeFirstLetter(recoveringSchemas)}
                       </MenuItem>
                     ))}
                   </TextField>
                 </Grid>
 
-                <Grid item md={6} sm={12} xs={12}>
-                  <TextField
-                    //required
-                    className={classInput}
-                    label="Tipo de recuperação"
-                    name="recovering_type"
-                    select
-                    value={values.recovering_type}
-                    onChange={onFieldChange}
-                    helperText={
-                      helperText.recovering_type[values.recovering_type] || helperText.recovering_type.description
-                    }
-                    {...SHARED_CONTROL_PROPS}
-                  >
-                    {Object.values(RecoveringType).map((recoveringType) => (
-                      <MenuItem key={recoveringType} value={recoveringType}>
-                        {capitalizeFirstLetter(recoveringType)}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
+                {showTermsRecovering && (
+                  <>
+                    <Grid item md={6} sm={12} xs={12}>
+                      <TextField
+                        //required
+                        className={classInput}
+                        label={`Número de ${values.term_period}s por recuperação`}
+                        name="recovering_coverage"
+                        value={values.recovering_coverage}
+                        onChange={onFieldChange}
+                        helperText={
+                          values.recovering_coverage
+                            ? `Uma recuperação a cada ${values.recovering_coverage} ${values.term_period}(s)`
+                            : helperText.recovering_coverage.description
+                        }
+                        {...SHARED_CONTROL_PROPS}
+                      ></TextField>
+                    </Grid>
+
+                    <Grid item md={6} sm={12} xs={12}>
+                      <TextField
+                        //required
+                        className={classInput}
+                        label="Tipo de recuperação"
+                        name="recovering_type"
+                        select
+                        value={values.recovering_type}
+                        onChange={onFieldChange}
+                        helperText={
+                          helperText.recovering_type[values.recovering_type] || helperText.recovering_type.description
+                        }
+                        {...SHARED_CONTROL_PROPS}
+                      >
+                        {Object.values(RecoveringType).map((recoveringType) => (
+                          <MenuItem key={recoveringType} value={recoveringType}>
+                            {capitalizeFirstLetter(recoveringType)}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                    </Grid>
+                  </>
+                )}
+
+                {showFinalRecovering && (
+                  <Grid item md={12} sm={12} xs={12}>
+                    <TextField
+                      //required
+                      className={classInput}
+                      label="Tipo de recuperação Final"
+                      name="final_recovering"
+                      select
+                      value={values.final_recovering}
+                      onChange={onFieldChange}
+                      helperText={
+                        helperText.recovering_type[values.final_recovering] || helperText.recovering_type.description
+                      }
+                      {...SHARED_CONTROL_PROPS}
+                    >
+                      {Object.values(RecoveringType).map((recoveringType) => (
+                        <MenuItem key={recoveringType} value={recoveringType}>
+                          {capitalizeFirstLetter(recoveringType)}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                )}
               </>
             )}
           </Grid>
 
           <Grid container justifyContent="center" alignItems="center">
-            <AppButton type="submit" disabled={!formState.isValid || isSaving} loading={isSaving}>
-              {'Salvar'}
-            </AppButton>
+            <AppSaveButton type="submit" disabled={!formState.isValid || isSaving} loading={isSaving} />
+            <AppClearButton
+              onClick={() => {
+                handleCleanForm();
+              }}
+            />
           </Grid>
         </CardContent>
       </Card>
