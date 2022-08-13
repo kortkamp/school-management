@@ -35,7 +35,7 @@ const UFList = [
 ];
 
 interface FormStateValues {
-  address: string;
+  street: string;
   number: string;
   complement: string;
   district: string;
@@ -119,13 +119,12 @@ const AppAddressForm: React.FC<Props> = ({ values, onFieldChange, fieldGetError,
       <Grid item md={10} sm={12} xs={12}>
         <TextField
           required
-          type="address"
           label="Logradouro"
-          name="address"
-          value={values.address}
+          name="street"
+          value={values.street}
           onChange={onFieldChange}
-          error={fieldHasError('address')}
-          helperText={fieldGetError('address') || ' '}
+          error={fieldHasError('street')}
+          helperText={fieldGetError('street') || ' '}
           {...SHARED_CONTROL_PROPS}
         />
       </Grid>
