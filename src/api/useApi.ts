@@ -46,6 +46,7 @@ export const useApi = <T extends IApiFunc>(
       if (err.code === 'ERR_CANCELED') {
         return;
       }
+      setLoading(false);
       console.log(err);
       const message = err.response?.data?.message || err.message || 'Erro Inesperado!';
       toast.error(message, { theme: 'colored' });
