@@ -46,7 +46,7 @@ interface FormStateValues {
   phone: string;
   sex: 'M' | 'F' | '';
   birth: string;
-  address: string;
+  street: string;
   number: string;
   complement: string;
   district: string;
@@ -75,7 +75,7 @@ function CreateTeacherView() {
         phone: '',
         sex: '',
         birth: '',
-        address: '',
+        street: '',
         number: '',
         complement: '',
         district: '',
@@ -92,7 +92,7 @@ function CreateTeacherView() {
     async (event: SyntheticEvent) => {
       event.preventDefault();
 
-      const { name, CPF, phone, sex, birth, address, number, complement, district, city, state, CEP, email } = values;
+      const { name, CPF, phone, sex, birth, street, number, complement, district, city, state, CEP, email } = values;
 
       const data = {
         name,
@@ -101,7 +101,7 @@ function CreateTeacherView() {
         sex,
         birth,
         address: {
-          street: address,
+          street,
           number,
           complement,
           district,
@@ -276,8 +276,8 @@ function CreateTeacherView() {
       <Grid item md={10} sm={10} xs={10}>
         <TextField
           label="Logradouro"
-          name="address"
-          value={values.address}
+          name="street"
+          value={values.street}
           inputProps={{ readOnly: true }}
           {...SHARED_CONTROL_PROPS}
           variant="standard"
