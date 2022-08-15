@@ -30,10 +30,6 @@ const createTermSchema = {
   // recovering_type: yup.string().required('O campo é obrigatório'),
 };
 
-interface Props {
-  onSuccess?: () => void;
-}
-
 interface FormStateValues {
   result_calculation: string;
   passing_result: number | '';
@@ -44,6 +40,10 @@ interface FormStateValues {
   recovering_coverage: number | '';
   recovering_type: string;
   final_recovering: string;
+}
+
+interface Props {
+  onSuccess?: (values: FormStateValues) => void;
 }
 
 const helperText: Record<string, Record<string, string>> = {
@@ -129,7 +129,7 @@ function CreateSchoolConfigurationsView({ onSuccess = () => {} }: Props) {
 
       const response = await createSchoolParameters(values);
       if (response?.success) {
-        onSuccess();
+        onSuccess(values);
       }
     },
     [dispatch, values, history]
