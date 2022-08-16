@@ -8,8 +8,8 @@ export interface IListTerms {
     id: string;
     name: string;
     type: string;
-    start_at: Date;
-    end_at: Date;
+    start_at: Date | '';
+    end_at: Date | '';
   }[];
 }
 
