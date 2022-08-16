@@ -10,6 +10,7 @@ import { ErrorBoundary } from '../../components';
 import SideBar from '../../components/SideBar/SideBar';
 import { LinkToPage } from '../../utils/type';
 import { MessagesDialog } from '../../components/dialogs';
+import { RoleTypes } from '../../services/models/IRole';
 
 const TITLE_PRIVATE = 'Área Administrativa ';
 const MOBILE_SIDEBAR_ANCHOR = 'left'; // 'right';
@@ -222,18 +223,6 @@ const SIDE_BAR_ADMIN_ITEMS: Array<LinkToPage> = [
     title: 'Bimestres',
     path: '/bimestres',
     icon: 'calendar',
-    subMenus: [
-      {
-        title: 'Listar Bimestres',
-        path: '/bimestres',
-        icon: 'calendar',
-      },
-      {
-        title: 'Criar Bimestre',
-        path: '/bimestres/criar',
-        icon: 'calendar',
-      },
-    ],
   },
 
   {
@@ -266,14 +255,15 @@ const SIDE_BAR_ADMIN_ITEMS: Array<LinkToPage> = [
 ];
 
 const SideBarItens: Record<string, Array<LinkToPage>> = {
-  admin: SIDE_BAR_ADMIN_ITEMS,
-  teacher: SIDE_BAR_TEACHER_ITEMS,
-  student: SIDE_BAR_STUDENT_ITEMS,
-  ['new-user']: SIDE_BAR_GUEST_ITEMS,
-  principal: SIDE_BAR_ADMIN_ITEMS,
+  [RoleTypes.ADMIN]: SIDE_BAR_ADMIN_ITEMS,
+  [RoleTypes.TEACHER]: SIDE_BAR_TEACHER_ITEMS,
+  [RoleTypes.STUDENT]: SIDE_BAR_STUDENT_ITEMS,
+  [RoleTypes.REGISTER]: SIDE_BAR_GUEST_ITEMS,
+  [RoleTypes.PRINCIPAL]: SIDE_BAR_ADMIN_ITEMS,
 };
 
 /**
+ *
  * Renders "Private Layout" composition
  */
 const PrivateLayout: React.FC = ({ children }) => {
