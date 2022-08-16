@@ -37,7 +37,7 @@ const Routes = () => {
   console.log('Routes() - isAuthenticated:', state.isAuthenticated);
 
   if (state.isAuthenticated) {
-    if (state.currentUser?.schools.length === 0 || state.currentSchool?.role === RoleTypes.NEW_USER) {
+    if (state.currentUser?.schools.length === 0 || state.currentSchool?.role === RoleTypes.REGISTER) {
       return <RegisterRoutes />;
     }
 
