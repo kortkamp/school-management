@@ -28,6 +28,18 @@ import { sortByDate } from '../../utils/sort';
 import { makeStyles } from '@mui/styles';
 import { AppAddButton, AppSaveButton } from '../../components/AppCustomButton';
 
+import * as yup from 'yup';
+
+const termSchema = yup.object().shape({
+  name: yup.string().required('O campo é obrigatório'),
+  start_at: yup.date().required('O campo é obrigatório').typeError('Data inválida'),
+  end_at: yup
+    .date()
+    .required('O campo é obrigatório')
+    .typeError('Data inválida')
+    .min(yup.ref('start_at'), 'A data de término precisa ser posterior à data inicial'),
+});
+
 const useStyles = makeStyles((theme) => ({
   termRow: {
     '&:hover': {
@@ -39,11 +51,17 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+interface Props {
+  onSuccess?: () => void;
+}
+
+type IError = Record<string, Record<string, string[]>>;
+
 /**
  * Renders "ListTermsView" view
  * url: /bimestres/*
  */
-const ListTermsView = () => {
+const ListTermsView = ({ onSuccess = () => {} }: Props) => {
   const [data, , loading] = useApi(termsService.getAll);
 
   const [, , isRemoving, removeTerm] = useApi(termsService.remove, {}, { isRequest: true });
@@ -53,6 +71,7 @@ const ListTermsView = () => {
   const [terms, setTerms] = useState<IListTerms['terms']>([]);
 
   const [termsTouched, setTermsTouched] = useState<string[]>([]);
+  const [errors, setErrors] = useState<IError | undefined>();
 
   const classes = useStyles();
 
@@ -61,6 +80,37 @@ const ListTermsView = () => {
       setTerms(sortByDate(data?.terms, 'start_at'));
     }
   }, [data]);
+
+  const validate = async () => {
+    let isValid: any = true;
+    const newErrors: any = {};
+
+    const termValidations = terms.map(async (term) => {
+      const termErrors: any = {};
+      try {
+        await termSchema.validate(term, { abortEarly: false, stripUnknown: true });
+      } catch (err: any) {
+        const { inner } = err as yup.ValidationError;
+        inner.forEach((error: any) => (termErrors[error.path] = [error.message]));
+        isValid = false;
+      }
+      newErrors[term.id] = termErrors;
+    });
+    await Promise.all(termValidations);
+    setErrors(newErrors);
+
+    return isValid;
+  };
+
+  useEffect(() => {
+    if (errors) {
+      validate();
+    }
+  }, [terms]);
+
+  const fieldHasError = (termId: string, field: string) => errors?.[termId]?.[field] !== undefined;
+  const fieldGetError = (termId: string, field: string) =>
+    errors?.[termId]?.[field] ? errors?.[termId]?.[field][0] : '';
 
   const handleChangeValue = (termId: string, event: any) => {
     const updatedTerms = terms.map((term) => {
@@ -74,11 +124,11 @@ const ListTermsView = () => {
       setTermsTouched((previous) => previous.concat([termId]));
     }
     // updatedTerms[termIndex][event.target.name as 'id'] = event.target.value;
+
     setTerms(updatedTerms);
   };
 
   const handleRemoveTerm = async (termId: string) => {
-    // should request api to delete
     const removeResponse = await removeTerm({ id: termId });
     if (removeResponse?.success) {
       const updatedTerms = terms.filter((term) => term.id !== termId);
@@ -87,20 +137,31 @@ const ListTermsView = () => {
   };
 
   const handleSaveTerms = async () => {
-    const saveTerms = termsTouched.map((termTouchedId) => {
+    if (!(await validate())) {
+      return;
+    }
+    const saveTermsPromises = termsTouched.map((termTouchedId) => {
       const updatedTerm = terms.find((term) => term.id === termTouchedId);
       if (updatedTerm) {
         const { name, start_at, end_at, type } = updatedTerm;
         return saveTerm({ id: updatedTerm.id, data: { name, start_at, end_at, type } });
       }
     });
-    Promise.all(saveTerms);
-    setTermsTouched([]);
-    // TODO verificar o erro de retorno de cada um
+    const responseAll = await Promise.all(saveTermsPromises);
+    const isAllSuccessfullySaved = responseAll.every((response) => response?.success);
+    if (isAllSuccessfullySaved) {
+      onSuccess();
+      return;
+    }
+    const successfullyResponse = responseAll.filter((response) => response?.success === true);
+    const successfullySavedTermsIds = successfullyResponse.map((response) => response?.term?.id) as string[];
+
+    setTermsTouched((previousTouched) =>
+      previousTouched.filter((touched) => !successfullySavedTermsIds.includes(touched))
+    );
   };
 
   const handleAddTerm = async () => {
-    // should request api to delete
     const createResponse = await createTerm({});
 
     if (createResponse?.success && createResponse?.term) {
@@ -157,7 +218,9 @@ const ListTermsView = () => {
                             value={term.name}
                             onChange={(event) => handleChangeValue(term.id, event)}
                             variant="standard"
-                            InputProps={{ disableUnderline: true }}
+                            error={fieldHasError(term.id, 'name')}
+                            helperText={fieldGetError(term.id, 'name')}
+                            InputProps={{ disableUnderline: !fieldHasError(term.id, 'name') }}
                           />
                         </TableCell>
                         <TableCell component="th" scope="row">
@@ -168,7 +231,9 @@ const ListTermsView = () => {
                             value={term.start_at ? Moment(term.start_at).format('YYYY-MM-DD') : ''}
                             onChange={(event) => handleChangeValue(term.id, event)}
                             variant="standard"
-                            InputProps={{ disableUnderline: true }}
+                            error={fieldHasError(term.id, 'start_at')}
+                            helperText={fieldGetError(term.id, 'start_at')}
+                            InputProps={{ disableUnderline: !fieldHasError(term.id, 'start_at') }}
                           />
                         </TableCell>
                         <TableCell component="th" scope="row">
@@ -179,7 +244,9 @@ const ListTermsView = () => {
                             value={term.end_at ? Moment(term.end_at).format('YYYY-MM-DD') : ''}
                             onChange={(event) => handleChangeValue(term.id, event)}
                             variant="standard"
-                            InputProps={{ disableUnderline: true }}
+                            error={fieldHasError(term.id, 'end_at')}
+                            helperText={fieldGetError(term.id, 'end_at')}
+                            InputProps={{ disableUnderline: !fieldHasError(term.id, 'end_at') }}
                           />
                         </TableCell>
                         <TableCell component="th" scope="row">
