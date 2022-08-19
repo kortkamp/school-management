@@ -31,6 +31,19 @@ interface ICreateSchoolResponseData {
   };
 }
 
+interface ISchoolParameters {
+  school_id: string;
+  passing_result: number;
+  minimum_attendance: number;
+  result_calculation: string;
+  term_period: string;
+  term_number: number;
+  recovering_period: string;
+  recovering_type: string;
+  final_recovering: null;
+  class_length: number;
+}
+
 interface IGetSchoolByIdData {
   success: boolean;
   school: {
@@ -48,18 +61,7 @@ interface IGetSchoolByIdData {
     city: string;
     state: string;
     CEP: string;
-    parameters: {
-      school_id: string;
-      passing_result: number;
-      minimum_attendance: number;
-      result_calculation: string;
-      term_period: string;
-      term_number: number;
-      recovering_period: string;
-      recovering_type: string;
-      final_recovering: null;
-      class_length: number;
-    };
+    parameters: ISchoolParameters;
   };
 }
 
@@ -81,9 +83,14 @@ const createSchoolParameters = async ({ token, schoolId, args: data }: IApiFuncP
   return response.data;
 };
 
+const getSchoolParameters = async ({ token, schoolId }: IApiFuncParams) =>
+  (await api.get(`/${schoolId}/parameters`, { headers: { Authorization: `Bearer ${token}` } }))
+    .data as ISchoolParameters;
+
 export const schoolsService = {
   create,
   update,
   getById,
   createSchoolParameters,
+  getSchoolParameters,
 };
