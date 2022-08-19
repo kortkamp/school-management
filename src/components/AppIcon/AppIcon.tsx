@@ -27,6 +27,12 @@ import WatchLaterIcon from '@mui/icons-material/WatchLater';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
+import DoneIcon from '@mui/icons-material/Done';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 
 /**
  * How to use:
@@ -68,6 +74,12 @@ const ICONS: Record<string, React.ComponentType> = {
   school: AccountBalanceIcon,
   delete: DeleteIcon,
   welcome: AutoAwesomeIcon,
+  add: AddIcon,
+  edit: EditIcon,
+  save: SaveIcon,
+  done: DoneIcon,
+  class: MenuBookIcon,
+  interval: AccessTimeIcon,
 };
 
 /**
