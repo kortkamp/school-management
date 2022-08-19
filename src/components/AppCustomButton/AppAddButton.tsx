@@ -4,16 +4,17 @@ import { ButtonProps } from '@mui/material';
 
 interface Props extends ButtonProps {
   loading?: boolean;
+  label?: string;
 }
 
 /**
  * Application styled Material UI Save Button
  * @class AppAddButton
  */
-const AppAddButton: React.FC<Props> = ({ ...restOfProps }) => {
+const AppAddButton: React.FC<Props> = ({ label, ...restOfProps }) => {
   return (
     <AppButton color="info" startIcon={<AddCircleIcon />} {...{ ...restOfProps }}>
-      Adicionar
+      {label || 'Adicionar'}
     </AppButton>
   );
 };
