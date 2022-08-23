@@ -44,6 +44,11 @@ interface ISchoolParameters {
   class_length: number;
 }
 
+interface ISchoolParametersResponse {
+  success: boolean;
+  schoolParameters: ISchoolParameters;
+}
+
 interface IGetSchoolByIdData {
   success: boolean;
   school: {
@@ -85,7 +90,7 @@ const createSchoolParameters = async ({ token, schoolId, args: data }: IApiFuncP
 
 const getSchoolParameters = async ({ token, schoolId }: IApiFuncParams) =>
   (await api.get(`/${schoolId}/parameters`, { headers: { Authorization: `Bearer ${token}` } }))
-    .data as ISchoolParameters;
+    .data as ISchoolParametersResponse;
 
 export const schoolsService = {
   create,
