@@ -1,5 +1,6 @@
 import { IApiFuncParams } from '../api/useApi';
 import api from './api.service';
+import { RoutineType } from './models/IRoutine';
 
 export interface IRoutine {
   id: string;
@@ -48,7 +49,8 @@ export interface IRoutineGroup {
   routines: {
     id: string;
     start_at: string;
-    end_at: string;
+    duration: string;
+    type: RoutineType;
   }[];
 }
 
@@ -73,7 +75,7 @@ interface ICreateRoutineResponse {
     id: string;
     routine_group_id: string;
     start_at: string;
-    end_at: string;
+    duration: string;
   };
 }
 
