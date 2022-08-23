@@ -1,4 +1,5 @@
 import { Route, Switch } from 'react-router-dom';
+import ListRoutinesView from './ListRoutinesView';
 import RoutinesView from './RoutinesView';
 
 /**
@@ -9,6 +10,7 @@ const TermsRoutes = () => {
   return (
     <Switch>
       <Route path="/horarios/turma" component={RoutinesView} />
+      <Route component={ListRoutinesView} />
     </Switch>
   );
 };
