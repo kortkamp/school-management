@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { Box } from '@mui/material';
 import { ReactNode, useEffect, useState } from 'react';
 import { useApi } from '../../api/useApi';
 import { AppLoading } from '../../components';
 import { schoolsService } from '../../services/schools.service';
 import { termsService } from '../../services/terms.service';
-import { useAppStore } from '../../store';
+import ListRoutinesView from '../Routines/ListRoutinesView';
 import CreateSchoolConfigurationsView from '../Schools/CreateSchoolConfigurationsView';
-import CreateSchoolsView from '../Schools/CreateSchoolsView';
+import UpdateSchoolInfoView from '../Schools/UpdateSchoolInfoView';
 import ListTermsView from '../Terms/ListTermsView';
 
 /**
@@ -15,35 +16,45 @@ import ListTermsView from '../Terms/ListTermsView';
  * url: /registro *
  */
 const RegisterSchool = () => {
-  const [registrationExists, setRegistrationExists] = useState(false);
-  const [configurationExists, setConfigurationExists] = useState(false);
-  const [termsExists, setTermsExists] = useState(false);
-
   const [schoolData, , loadingSchool] = useApi(schoolsService.getById);
 
   const [termsData, , loadingTerms] = useApi(termsService.getAll);
 
-  const [registrationStep, setRegistrationStep] = useState<ReactNode | null>(null);
+  const [registrationStep, setRegistrationStep] = useState<ReactNode | null>();
+
+  const openFinish = () => {
+    setRegistrationStep(<h1>fim</h1>);
+  };
+
+  const openRoutines = () => {
+    setRegistrationStep(<ListRoutinesView />);
+  };
+
+  const openSchoolTerms = () => {
+    setRegistrationStep(<ListTermsView onSuccess={() => openRoutines()} />);
+  };
+  const openSchoolConfigs = () => {
+    setRegistrationStep(<CreateSchoolConfigurationsView onSuccess={() => openSchoolTerms()} />);
+  };
+
+  const openSchoolUpdate = () => {
+    setRegistrationStep(<UpdateSchoolInfoView onSuccess={() => openSchoolConfigs()} />);
+  };
 
   useEffect(() => {
     if (schoolData) {
-      const nameHasBeenDefined = schoolData.school.name !== '';
-      setRegistrationExists(!nameHasBeenDefined);
+      openSchoolUpdate();
 
-      const parametersExists = schoolData.school.parameters !== null;
-      setConfigurationExists(parametersExists);
+      const schoolHasBeenUpdated = schoolData.school.name !== '';
+      if (schoolHasBeenUpdated) openSchoolConfigs();
+
+      if (schoolData.school.parameters !== null) openSchoolTerms();
 
       const termsNumber = termsData?.terms.length || 0;
-      setTermsExists(termsNumber > 0);
+
+      openRoutines();
     }
   }, [schoolData]);
-
-  useEffect(() => {
-    if (!termsExists) setRegistrationStep(<ListTermsView />);
-    if (!configurationExists)
-      setRegistrationStep(<CreateSchoolConfigurationsView onSuccess={() => setConfigurationExists(true)} />);
-    if (!registrationExists) setRegistrationStep(<CreateSchoolsView onSuccess={() => setRegistrationExists(true)} />);
-  }, [registrationExists, configurationExists, termsExists]);
 
   if (loadingSchool || loadingTerms) return <AppLoading />;
 
