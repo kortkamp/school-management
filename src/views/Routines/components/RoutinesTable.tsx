@@ -19,11 +19,9 @@ import { timeToMinutes } from '../../../utils/time';
 interface Props {
   routineGroup: IRoutineGroup;
   handleChangeRoutineValue: (routineId: string, event: any) => void;
-  handleChangeRoutineDuration: (routineId: string, duration: string) => void;
-  handleAddRoutine: (routineGroupId: string, type: RoutineType) => Promise<void>;
-  isAddingRoutine?: boolean;
+  handleChangeRoutineDuration: (routineId: string, duration: number) => void;
+  handleAddRoutine: (type: RoutineType) => Promise<void>;
   handleRemoveRoutine: (routineId: string) => Promise<void>;
-  isRemovingRoutine?: boolean;
 }
 
 const RoutinesTable = ({
@@ -32,7 +30,6 @@ const RoutinesTable = ({
   handleAddRoutine,
   handleChangeRoutineDuration,
   handleRemoveRoutine,
-  isAddingRoutine = false,
 }: Props) => {
   const [deletingRoutine, setDeletingRoutine] = useState('');
 
@@ -89,7 +86,7 @@ const RoutinesTable = ({
                   type="number"
                   // value={routine.end_at ? Moment(routine.end_at).format('HH-MM-SS') : ''}
                   value={timeToMinutes(routine.duration) || ''}
-                  onChange={(event) => handleChangeRoutineDuration(routine.id, event.target.value)}
+                  onChange={(event) => handleChangeRoutineDuration(routine.id, Number(event.target.value))}
                   variant="standard"
                   InputProps={{ disableUnderline: true }}
                 />
@@ -131,32 +128,19 @@ const RoutinesTable = ({
                 variant="outlined"
                 style={{ alignItems: 'center' }}
                 // InputProps={{ disableUnderline: true }}
-                disabled={isAddingRoutine}
+
                 SelectProps={{ IconComponent: () => null }}
               >
                 <MenuItem value="add" style={{ display: 'none' }}>
                   <Box display="flex" alignItems={'center'} justifyContent="space-between">
                     <AddCircleIcon style={{ marginRight: 10 }} />
                     Adicionar
-                    {isAddingRoutine && (
-                      <CircularProgress
-                        size={24}
-                        sx={{
-                          color: 'primary',
-                          position: 'absolute',
-                          top: '50%',
-                          left: '50%',
-                          marginTop: '-12px',
-                          marginLeft: '-12px',
-                        }}
-                      />
-                    )}
                   </Box>
                 </MenuItem>
-                <MenuItem value="class" onClick={() => handleAddRoutine(routineGroup.id, RoutineType.CLASS)}>
+                <MenuItem value="class" onClick={() => handleAddRoutine(RoutineType.CLASS)}>
                   Aula
                 </MenuItem>
-                <MenuItem value="interval" onClick={() => handleAddRoutine(routineGroup.id, RoutineType.INTERVAL)}>
+                <MenuItem value="interval" onClick={() => handleAddRoutine(RoutineType.INTERVAL)}>
                   Intervalo
                 </MenuItem>
               </TextField>
