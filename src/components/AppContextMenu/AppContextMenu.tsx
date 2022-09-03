@@ -10,7 +10,7 @@ interface Props {
   options: { label: string; action: () => void }[];
 }
 
-const AppMenu = ({ options, loading = false }: Props) => {
+const AppContextMenu = ({ options, loading = false }: Props) => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -61,4 +61,4 @@ const AppMenu = ({ options, loading = false }: Props) => {
     </div>
   );
 };
-export default AppMenu;
+export default AppContextMenu;

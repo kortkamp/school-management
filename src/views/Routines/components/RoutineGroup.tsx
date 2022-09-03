@@ -5,13 +5,14 @@ import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { useApi } from '../../../api/useApi';
 import { AppButton } from '../../../components';
+import AppContextMenu from '../../../components/AppContextMenu';
 import { AppSaveButton } from '../../../components/AppCustomButton';
 import { RoutineType } from '../../../services/models/IRoutine';
 import { IRoutineGroup, routinesService } from '../../../services/routines.service';
 import { schoolsService } from '../../../services/schools.service';
 import { generateTempID, isTempID } from '../../../utils/tempID';
 import { addTime, minutesToTime, timeToMinutes } from '../../../utils/time';
-import AppMenu from './AppMenu';
+
 import NameEditor from './NameEditor';
 import RoutinesTable from './RoutinesTable';
 
@@ -236,7 +237,7 @@ const RoutineGroupView = ({
               validate={validateName}
               givenError={errors.name}
             />
-            <AppMenu
+            <AppContextMenu
               loading={isRemovingRoutineGroup}
               options={[
                 {
