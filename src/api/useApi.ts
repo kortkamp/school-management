@@ -68,3 +68,11 @@ export const useApi = <T extends IApiFunc>(
 
   return [data, error, loading, callApi];
 };
+
+export const useRequestApi = <T extends IApiFunc>(
+  apiFunc: T
+): [(args: Parameters<T>[0]['args']) => Promise<ReturnType<typeof apiFunc> | undefined>, boolean, string] => {
+  const [, error, loading, callApi] = useApi(apiFunc, {}, { isRequest: true });
+
+  return [callApi, loading, error];
+};
