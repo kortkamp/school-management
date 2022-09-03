@@ -9,6 +9,7 @@ import { termsService } from '../../services/terms.service';
 import ListRoutinesView from '../Routines/ListRoutinesView';
 import CreateSchoolConfigurationsView from '../Schools/CreateSchoolConfigurationsView';
 import UpdateSchoolInfoView from '../Schools/UpdateSchoolInfoView';
+import CreateSchoolYear from '../SchoolYears/CreateSchoolYear';
 import ListTermsView from '../Terms/ListTermsView';
 
 /**
@@ -24,6 +25,10 @@ const RegisterSchool = () => {
 
   const openFinish = () => {
     setRegistrationStep(<h1>fim</h1>);
+  };
+
+  const openSchoolYear = () => {
+    setRegistrationStep(<CreateSchoolYear />);
   };
 
   const openRoutines = () => {
@@ -52,7 +57,7 @@ const RegisterSchool = () => {
 
       const termsNumber = termsData?.terms.length || 0;
 
-      openRoutines();
+      openSchoolYear();
     }
   }, [schoolData]);
 

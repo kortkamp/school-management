@@ -11,6 +11,10 @@ const routeNames = {
     path: '/bimestres',
     create: { path: '/bimestres/criar' },
   },
+  schoolYear: {
+    path: '/ano-letivo',
+    create: { path: '/ano-letivo/criar' },
+  },
 };
 
 export { Routes as default, Routes, AppRouter, routeNames };
