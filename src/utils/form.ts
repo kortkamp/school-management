@@ -63,7 +63,7 @@ interface UseAppFormParams {
 /**
  * Application "standard" From as Hook
  * Note: the "name" prop of all Form controls must be set! We use event.target?.name for binding data.
- * Usage: const [formState, setFormState, onFieldChange, fieldGetError, fieldHasError] = useAppForm({
+ * Usage: const [formState, setFormState, onFieldChange, fieldGetError, fieldHasError, isFieldRequired, setField] = useAppForm({
     validationSchema: XXX_FORM_SCHEMA,
     initialValues: {name: 'John Doe'},
   });
@@ -94,7 +94,8 @@ export function useAppForm({ validationSchema, initialValues = {} }: UseAppFormP
       isValid = await yupSchema.validate(formState.values, { abortEarly: false, stripUnknown: true });
     } catch (err: any) {
       const { inner } = err as yup.ValidationError;
-      inner.forEach((error: any) => (errors[error.path] = [error.message]));
+
+      inner?.forEach((error: any) => (errors[error.path] = [error.message]));
     }
 
     setFormState((currentFormState) => ({
