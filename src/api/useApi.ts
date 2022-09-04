@@ -12,6 +12,13 @@ export interface IApiFuncParams {
 
 export type IApiFunc = (data: IApiFuncParams) => any;
 
+/**
+ * Note: Handles api call providing state, useEffect, error handling, toasts and a much more.
+ * Usage: const [data, error, loading, callApi] = useApi(apiFunc, args, configs);
+ * @param {function} apiFunc - api function which accepts IApiFuncParams
+ * @param {object} args - optional data to be passed to apiFunc and triggers a new HTTP request when changed
+ * @param {object} configs - optional configs { silent: do not call toast on errors }
+ */
 export const useApi = <T extends IApiFunc>(
   apiFunc: T,
   args?: Parameters<T>[0]['args'],
