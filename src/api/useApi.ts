@@ -15,7 +15,7 @@ export type IApiFunc = (data: IApiFuncParams) => any;
 export const useApi = <T extends IApiFunc>(
   apiFunc: T,
   args?: Parameters<T>[0]['args'],
-  configs?: { isRequest: boolean }
+  configs?: { isRequest?: boolean; silent?: boolean }
 ): [
   Awaited<ReturnType<typeof apiFunc>> | undefined,
   string,
@@ -47,9 +47,11 @@ export const useApi = <T extends IApiFunc>(
         return;
       }
       setLoading(false);
-      console.log(err);
       const message = err.response?.data?.message || err.message || 'Erro Inesperado!';
-      toast.error(message, { theme: 'colored' });
+      if (!configs?.silent) {
+        console.log(err);
+        toast.error(message, { theme: 'colored' });
+      }
       setError(message);
       setData(undefined);
     }
