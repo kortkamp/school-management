@@ -33,6 +33,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import DoneIcon from '@mui/icons-material/Done';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 
 /**
  * How to use:
@@ -80,6 +81,7 @@ const ICONS: Record<string, React.ComponentType> = {
   done: DoneIcon,
   class: MenuBookIcon,
   interval: AccessTimeIcon,
+  finish: AssignmentTurnedInIcon,
 };
 
 /**
