@@ -26,6 +26,7 @@ interface Props {
   handleRemoveRoutineGroup: (id: string) => void;
   handleServerRemoveRoutineGroup: (id: string) => void;
   onSave: (data: IRoutineGroup) => void;
+  finishCreation?: () => void;
 }
 
 const RoutineGroupView = ({
@@ -34,6 +35,7 @@ const RoutineGroupView = ({
   handleServerRemoveRoutineGroup,
   routineGroup,
   onSave,
+  finishCreation,
 }: Props) => {
   const [, , isCreatingRoutineGroup, createRoutineGroup] = useApi(
     routinesService.createRoutineGroup,
@@ -323,10 +325,16 @@ const RoutineGroupView = ({
           onClick={() => handleSaveRoutineGroup()}
           label={isNewRoutineGroup ? 'Criar Turno' : 'Gravar'}
         />
-        {isNewRoutineGroup && (
+        {isNewRoutineGroup ? (
           <AppButton color="error" onClick={() => handleRemoveRoutineGroup(selectedRoutineGroup.id)}>
             Cancelar
           </AppButton>
+        ) : (
+          finishCreation && (
+            <AppButton color="info" onClick={() => finishCreation()}>
+              Finalizar
+            </AppButton>
+          )
         )}
       </Box>
     </Box>

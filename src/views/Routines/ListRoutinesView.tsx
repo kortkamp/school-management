@@ -6,7 +6,6 @@ import {
   CardHeader,
   Divider,
   Grid,
-  InputAdornment,
   Paper,
   Tab,
   TableContainer,
@@ -19,14 +18,13 @@ import { AppLoading } from '../../components';
 
 import { useApi } from '../../api/useApi';
 
-import { AppAddButton, AppSaveButton } from '../../components/AppCustomButton';
+import { AppAddButton } from '../../components/AppCustomButton';
 
 import { IRoutineGroup, routinesService } from '../../services/routines.service';
 import { Box } from '@mui/system';
 
-import { generateTempID, isTempID } from '../../utils/tempID';
+import { generateTempID } from '../../utils/tempID';
 
-import RoutineGroup from './components/RoutineGroup';
 import RoutineGroupView from './components/RoutineGroup';
 
 interface Props {
@@ -37,7 +35,7 @@ interface Props {
  * Renders "ListRoutinesView" view
  * url: /horarios/
  */
-const ListRoutinesView = ({ onSuccess = () => {} }: Props) => {
+const ListRoutinesView = ({ onSuccess }: Props) => {
   const [routineGroupsData, , loading] = useApi(routinesService.getAllRoutineGroups);
 
   const [, , isRemovingRoutineGroup, removeRoutineGroup] = useApi(
@@ -120,6 +118,7 @@ const ListRoutinesView = ({ onSuccess = () => {} }: Props) => {
       routineGroup={routine}
       handleRemoveRoutineGroup={handleRemoveRoutineGroup}
       handleServerRemoveRoutineGroup={handleServerRemoveRoutineGroup}
+      finishCreation={onSuccess}
     />
   ));
 
