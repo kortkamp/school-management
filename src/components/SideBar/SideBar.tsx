@@ -98,7 +98,7 @@ const SideBar: React.FC<Props> = ({ anchor, className, open, variant, items, onC
         {state.isAuthenticated && state?.currentUser && (
           <>
             <UserInfo className={classes.profile} user={state.currentUser} school={state.currentSchool} showAvatar />
-            {state.currentUser?.schools.length > 0 && <SchoolRoleSelector />}
+            {state.currentUser?.schools.length > 0 && state.currentSchool && <SchoolRoleSelector />}
             <Divider />
           </>
         )}

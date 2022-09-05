@@ -29,7 +29,6 @@ const SchoolRoleSelector = () => {
   const currentSchoolRole = `${state.currentSchool?.name}${state.currentSchool?.role}`;
 
   const handleSelectSchoolRole = (event: any) => {
-    // toast('Wow so easy!');
     const selectedSchool = state.currentUser?.schools.find(
       (school) => school.name + school.role === event.target.value
     );

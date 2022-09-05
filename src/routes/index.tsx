@@ -6,6 +6,7 @@ const routeNames = {
     path: '/escola',
     create: { path: '/escola/dados' },
     configure: { path: '/escola/parametros' },
+    select: { path: '/selecionar-escola' },
   },
   terms: {
     path: '/bimestres',

@@ -18,6 +18,8 @@ interface FormStateValues {
   password: string;
 }
 
+const USER_HAS_ONLY_ONE_SCHOOL = 1;
+
 /**
  * Renders "Login with Email" view for Login flow
  * url: /auth/login/email/*
@@ -45,7 +47,7 @@ const LoginEmailView = () => {
         const result = await sessionService.loginWithEmail(values);
         dispatch({ type: 'LOG_IN', payload: result });
 
-        if (result.schools.length === 1) {
+        if (result.schools.length === USER_HAS_ONLY_ONE_SCHOOL) {
           dispatch({ type: 'SELECT_SCHOOL', payload: result.schools[0] });
         }
 

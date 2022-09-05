@@ -11,6 +11,7 @@ import SideBar from '../../components/SideBar/SideBar';
 import { LinkToPage } from '../../utils/type';
 import { MessagesDialog } from '../../components/dialogs';
 import { RoleTypes } from '../../services/models/IRole';
+import SelectSchoolView from '../../views/Schools/SelectSchoolView';
 
 const TITLE_PRIVATE = 'Área Administrativa ';
 const MOBILE_SIDEBAR_ANCHOR = 'left'; // 'right';
@@ -55,6 +56,7 @@ function updateDocumentTitle(roleName: string) {
 /**
  * "Link to Page" items in Sidebar
  */
+
 const SIDE_BAR_REGISTER_ITEMS: Array<LinkToPage> = [
   {
     title: 'Cadastrar Instituição',
@@ -316,7 +318,7 @@ const PrivateLayout: React.FC = ({ children }) => {
           anchor={isDesktop ? DESKTOP_SIDEBAR_ANCHOR : MOBILE_SIDEBAR_ANCHOR}
           open={shouldOpenSideBar}
           variant={isDesktop ? 'persistent' : 'temporary'}
-          items={SideBarItens[role || 'new-user']}
+          items={SideBarItens[role || 'no_role'] || []}
           onClose={handleSideBarClose}
         />
       </Grid>
@@ -324,7 +326,11 @@ const PrivateLayout: React.FC = ({ children }) => {
       <Grid className={classes.content} component="main">
         <>
           {messagesModal}
-          <ErrorBoundary name="Content">{children}</ErrorBoundary>
+          {state.currentSchool ? (
+            <ErrorBoundary name="Content">{children}</ErrorBoundary>
+          ) : (
+            <SelectSchoolView schools={state.currentUser?.schools} />
+          )}
         </>
       </Grid>
     </Grid>

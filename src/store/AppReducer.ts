@@ -18,6 +18,7 @@ const AppReducer: React.Reducer<IAppState, any> = (state, action) => {
     case 'SIGN_UP':
     case 'LOG_IN':
       localStorageSet('user', action.payload);
+
       return {
         ...state,
         isAuthenticated: true,
@@ -36,6 +37,7 @@ const AppReducer: React.Reducer<IAppState, any> = (state, action) => {
         ...state,
         isAuthenticated: false,
         currentUser: undefined,
+        currentSchool: undefined,
       };
     case 'DARK_MODE': {
       const darkMode = action?.darkMode ?? action?.payload;
