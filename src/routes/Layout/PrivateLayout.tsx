@@ -55,12 +55,7 @@ function updateDocumentTitle(roleName: string) {
 /**
  * "Link to Page" items in Sidebar
  */
-const SIDE_BAR_GUEST_ITEMS: Array<LinkToPage> = [
-  {
-    title: 'Bem Vindo',
-    path: '/bem-vindo',
-    icon: 'welcome',
-  },
+const SIDE_BAR_REGISTER_ITEMS: Array<LinkToPage> = [
   {
     title: 'Cadastrar Instituição',
     path: '/registro',
@@ -258,7 +253,7 @@ const SideBarItens: Record<string, Array<LinkToPage>> = {
   [RoleTypes.ADMIN]: SIDE_BAR_ADMIN_ITEMS,
   [RoleTypes.TEACHER]: SIDE_BAR_TEACHER_ITEMS,
   [RoleTypes.STUDENT]: SIDE_BAR_STUDENT_ITEMS,
-  [RoleTypes.REGISTER]: SIDE_BAR_GUEST_ITEMS,
+  [RoleTypes.REGISTER]: SIDE_BAR_REGISTER_ITEMS,
   [RoleTypes.PRINCIPAL]: SIDE_BAR_ADMIN_ITEMS,
 };
 

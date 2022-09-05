@@ -12,7 +12,7 @@ const RegisterRoutes = () => {
       <Switch>
         <Route path="/registro" component={RegisterSchool} />,
         <Route path="/bem-vindo" component={Welcome} />
-        <Route path="/" component={Welcome} />
+        <Route path="/" component={RegisterSchool} />
         <Route component={NotFound} />
       </Switch>
     </PrivateLayout>
