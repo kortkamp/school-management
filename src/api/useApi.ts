@@ -78,6 +78,11 @@ export const useApi = <T extends IApiFunc>(
   return [data, error, loading, callApi];
 };
 
+/**
+ * Note: Handles api on demand requests with state, useEffect, error handling, toasts and a much more.
+ * Usage: const [callApi, loading, error] = useApi(apiFunc);
+ * @param {function} apiFunc - api function which accepts IApiFuncParams
+ */
 export const useRequestApi = <T extends IApiFunc>(
   apiFunc: T
 ): [(args: Parameters<T>[0]['args']) => Promise<ReturnType<typeof apiFunc> | undefined>, boolean, string] => {
