@@ -34,6 +34,7 @@ import DoneIcon from '@mui/icons-material/Done';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 
 /**
  * How to use:
@@ -79,6 +80,7 @@ const ICONS: Record<string, React.ComponentType> = {
   edit: EditIcon,
   save: SaveIcon,
   done: DoneIcon,
+  error: ErrorOutlineIcon,
   class: MenuBookIcon,
   interval: AccessTimeIcon,
   finish: AssignmentTurnedInIcon,
