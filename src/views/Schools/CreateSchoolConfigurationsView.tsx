@@ -1,16 +1,17 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import clsx from 'clsx';
-import { SyntheticEvent, useCallback, useState } from 'react';
+import { SyntheticEvent, useCallback, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Grid, TextField, Card, CardHeader, CardContent, MenuItem } from '@mui/material';
 import { useAppStore } from '../../store';
-import { AppForm } from '../../components';
+import { AppForm, AppLoading } from '../../components';
 import { useAppForm, SHARED_CONTROL_PROPS } from '../../utils/form';
 import makeStyles from '@mui/styles/makeStyles';
 
 import NumberFormat from 'react-number-format';
 import { RecoveringType, ResultCalculation, TermPeriod } from '../../services/models/ISchoolParameters';
 import { capitalizeFirstLetter } from '../../utils/string';
-import { useApi } from '../../api/useApi';
+import { useApi, useRequestApi } from '../../api/useApi';
 import { schoolsService } from '../../services/schools.service';
 import { AppSaveButton, AppClearButton } from '../../components/AppCustomButton';
 
@@ -107,7 +108,9 @@ const defaultValues = {
 function CreateSchoolConfigurationsView({ onSuccess = () => {} }: Props) {
   const classes = useStyles();
 
-  const [, , isSaving, createSchoolParameters] = useApi(schoolsService.createSchoolParameters, {}, { isRequest: true });
+  const [createSchoolParameters, isSaving] = useRequestApi(schoolsService.createSchoolParameters);
+
+  const [schoolParametersData, , isLoading] = useApi(schoolsService.getSchoolParameters, {}, { silent: true });
 
   const classInput = clsx(classes.formInputStart, classes.formInput);
 
@@ -120,6 +123,26 @@ function CreateSchoolConfigurationsView({ onSuccess = () => {} }: Props) {
   });
 
   const [recoveringSchema, setRecoveringSchema] = useState<'' | RecoveringSchemas>('');
+
+  useEffect(() => {
+    if (schoolParametersData?.success) {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      const { school_id, created_at, updated_at, ...data } = schoolParametersData.schoolParameters;
+      setFormState((prev) => ({ ...prev, values: data }));
+      setRecoveringSchema(RecoveringSchemas.noRecovering);
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      const { final_recovering, recovering_type } = schoolParametersData.schoolParameters;
+      if (recovering_type) {
+        setRecoveringSchema(RecoveringSchemas.byTerms);
+      }
+      if (final_recovering) {
+        setRecoveringSchema(RecoveringSchemas.justFinal);
+      }
+      if (recovering_type && final_recovering) {
+        setRecoveringSchema(RecoveringSchemas.byTermsAndFinal);
+      }
+    }
+  }, [schoolParametersData]);
 
   const values = formState.values as FormStateValues; // Typed alias to formState.values as the "Source of Truth"
 
@@ -140,6 +163,7 @@ function CreateSchoolConfigurationsView({ onSuccess = () => {} }: Props) {
       ...prevState,
       values: { ...defaultValues },
     }));
+    setRecoveringSchema('');
   };
 
   const handleSelectRecoveringSchema = (event: any) => {
@@ -160,6 +184,10 @@ function CreateSchoolConfigurationsView({ onSuccess = () => {} }: Props) {
 
   const showTerms = values.class_length && values.minimum_attendance;
 
+  if (isLoading) {
+    return <AppLoading />;
+  }
+
   return (
     <AppForm onSubmit={handleFormSubmit} style={{ minWidth: '100%', marginTop: '50px' }}>
       <Card>
@@ -168,7 +196,7 @@ function CreateSchoolConfigurationsView({ onSuccess = () => {} }: Props) {
           <Grid container spacing={1}>
             <Grid item md={6} sm={12} xs={12}>
               <TextField
-                //required
+                required
                 className={classInput}
                 label="Cálculo de nota final"
                 name="result_calculation"
@@ -190,7 +218,7 @@ function CreateSchoolConfigurationsView({ onSuccess = () => {} }: Props) {
 
             <Grid item md={6} sm={12} xs={12}>
               <TextField
-                //required
+                required
                 className={classInput}
                 label="Nota de Corte"
                 name="passing_result"
@@ -206,14 +234,13 @@ function CreateSchoolConfigurationsView({ onSuccess = () => {} }: Props) {
                 <Grid item md={6} sm={12} xs={12}>
                   <NumberFormat
                     {...SHARED_CONTROL_PROPS}
+                    required
                     label="Mínimo de presença"
                     className={classInput}
-                    //required
-                    value={values.minimum_attendance}
+                    value={Number(values.minimum_attendance) || ''}
                     name="minimum_attendance"
                     format="###%"
                     customInput={TextField}
-                    type="tel"
                     helperText={helperText.minimum_attendance.description}
                     isAllowed={({ floatValue }) => (floatValue ? floatValue <= 100 : true)}
                     onValueChange={({ value: v }) => {
@@ -225,6 +252,7 @@ function CreateSchoolConfigurationsView({ onSuccess = () => {} }: Props) {
                 <Grid item md={6} sm={12} xs={12}>
                   <NumberFormat
                     {...SHARED_CONTROL_PROPS}
+                    required
                     className={classInput}
                     label="Duração de cada aula"
                     //required
@@ -246,7 +274,7 @@ function CreateSchoolConfigurationsView({ onSuccess = () => {} }: Props) {
               <>
                 <Grid item md={6} sm={12} xs={12}>
                   <TextField
-                    //required
+                    required
                     className={classInput}
                     label="Divisões do Ano"
                     name="term_period"
@@ -266,7 +294,7 @@ function CreateSchoolConfigurationsView({ onSuccess = () => {} }: Props) {
 
                 <Grid item md={6} sm={12} xs={12}>
                   <TextField
-                    //required
+                    required
                     className={classInput}
                     label="Quantidade de períodos"
                     name="term_number"
@@ -279,7 +307,7 @@ function CreateSchoolConfigurationsView({ onSuccess = () => {} }: Props) {
 
                 <Grid item md={12} sm={12} xs={12}>
                   <TextField
-                    //required
+                    required
                     className={classInput}
                     label="A Instituição trabalha com recuperação?"
                     name="recoveringSchema"
@@ -301,7 +329,7 @@ function CreateSchoolConfigurationsView({ onSuccess = () => {} }: Props) {
                   <>
                     <Grid item md={6} sm={12} xs={12}>
                       <TextField
-                        //required
+                        required
                         className={classInput}
                         label={`Número de ${values.term_period}s por recuperação`}
                         name="recovering_coverage"
@@ -318,7 +346,7 @@ function CreateSchoolConfigurationsView({ onSuccess = () => {} }: Props) {
 
                     <Grid item md={6} sm={12} xs={12}>
                       <TextField
-                        //required
+                        required
                         className={classInput}
                         label="Tipo de recuperação"
                         name="recovering_type"
@@ -343,7 +371,7 @@ function CreateSchoolConfigurationsView({ onSuccess = () => {} }: Props) {
                 {showFinalRecovering && (
                   <Grid item md={12} sm={12} xs={12}>
                     <TextField
-                      //required
+                      required
                       className={classInput}
                       label="Tipo de recuperação Final"
                       name="final_recovering"
