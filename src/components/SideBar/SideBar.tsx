@@ -114,9 +114,7 @@ const SideBar: React.FC<Props> = ({ anchor, className, open, variant, items, onC
             />
           </Tooltip>
 
-          {state.isAuthenticated && (
-            <AppIconButton icon="logout" title="Logout Current User" onClick={handleOnLogout} />
-          )}
+          {state.isAuthenticated && <AppIconButton icon="logout" title="Sair do Sistema" onClick={handleOnLogout} />}
         </div>
       </div>
     </Drawer>
