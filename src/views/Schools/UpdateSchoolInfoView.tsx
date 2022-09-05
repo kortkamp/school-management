@@ -3,7 +3,7 @@ import { SyntheticEvent, useCallback, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Grid, TextField, Card, CardHeader, CardContent, Divider } from '@mui/material';
 import { useAppStore } from '../../store';
-import { AppButton, AppForm, AppLoading } from '../../components';
+import { AppForm, AppLoading } from '../../components';
 import { useAppForm, SHARED_CONTROL_PROPS } from '../../utils/form';
 
 import AppStepSelector from '../../components/AppStepSelector';
@@ -13,6 +13,7 @@ import * as yup from 'yup';
 import NumberFormat from 'react-number-format';
 import { schoolsService } from '../../services/schools.service';
 import { useApi } from '../../api/useApi';
+import { AppSaveButton } from '../../components/AppCustomButton';
 
 interface FormStateValues {
   name: string;
@@ -424,9 +425,7 @@ function UpdateSchoolInfoView({ onSuccess = () => {} }: Props) {
       </Grid>
 
       <Grid container justifyContent="center" alignItems="center">
-        <AppButton loading={isSaving} disabled={isSaving || !formState.isValid} type="submit">
-          Salvar
-        </AppButton>
+        <AppSaveButton loading={isSaving} disabled={isSaving || !formState.isValid} type="submit" />
       </Grid>
     </Grid>
   );
