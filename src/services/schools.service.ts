@@ -38,10 +38,13 @@ interface ISchoolParameters {
   result_calculation: string;
   term_period: string;
   term_number: number;
+  recovering_coverage: number;
   recovering_period: string;
   recovering_type: string;
   final_recovering: null;
   class_length: number;
+  created_at: Date;
+  updated_at: Date;
 }
 
 interface ISchoolParametersResponse {
@@ -66,6 +69,7 @@ interface IGetSchoolByIdData {
     city: string;
     state: string;
     CEP: string;
+    active_year_id: string;
     parameters: ISchoolParameters;
   };
 }
