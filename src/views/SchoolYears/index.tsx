@@ -1,7 +1,7 @@
 import { Route, Switch } from 'react-router-dom';
 import { routeNames } from '../../routes';
 
-import CreateSchoolYear from './CreateSchoolYear';
+import SchoolYearView from './SchoolYearView';
 
 /**
  * Routes for "SchoolYear" view
@@ -10,7 +10,7 @@ import CreateSchoolYear from './CreateSchoolYear';
 const ExamsRoutes = () => {
   return (
     <Switch>
-      <Route exact path={routeNames.schoolYear.create.path} component={CreateSchoolYear} />
+      <Route exact path={routeNames.schoolYear.path} component={SchoolYearView} />
     </Switch>
   );
 };
