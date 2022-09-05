@@ -1,16 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { Box } from '@mui/material';
+import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Tab, Tabs } from '@mui/material';
 import { ReactNode, useEffect, useState } from 'react';
 import { useApi } from '../../api/useApi';
-import { AppLoading } from '../../components';
+import { AppButton, AppIcon, AppLoading } from '../../components';
+import { routinesService } from '../../services/routines.service';
 import { schoolsService } from '../../services/schools.service';
 import { termsService } from '../../services/terms.service';
 import ListRoutinesView from '../Routines/ListRoutinesView';
 import CreateSchoolConfigurationsView from '../Schools/CreateSchoolConfigurationsView';
 import UpdateSchoolInfoView from '../Schools/UpdateSchoolInfoView';
-import CreateSchoolYear from '../SchoolYears/CreateSchoolYear';
-import ListTermsView from '../Terms/ListTermsView';
+import SchoolYearView from '../SchoolYears/SchoolYearView';
+import DoneIcon from '@mui/icons-material/Done';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import { AppSaveButton } from '../../components/AppCustomButton';
 
 /**
  * Renders "RegisterSchool" view
@@ -19,51 +22,147 @@ import ListTermsView from '../Terms/ListTermsView';
 const RegisterSchool = () => {
   const [schoolData, , loadingSchool] = useApi(schoolsService.getById);
 
-  const [termsData, , loadingTerms] = useApi(termsService.getAll);
+  const [routineGroupsData, , loadingRoutines] = useApi(routinesService.getAllRoutineGroups);
 
-  const [registrationStep, setRegistrationStep] = useState<ReactNode | null>();
+  const [tabIndex, setTabIndex] = useState(0);
 
-  const openFinish = () => {
-    setRegistrationStep(<h1>fim</h1>);
+  const [completedStep, setCompletedSteps] = useState([false, false, false, false]);
+
+  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabIndex(newValue);
   };
 
-  const openSchoolYear = () => {
-    setRegistrationStep(<CreateSchoolYear />);
-  };
+  interface TabPanelProps {
+    children?: React.ReactNode;
+    index: number;
+    value: number;
+  }
 
-  const openRoutines = () => {
-    setRegistrationStep(<ListRoutinesView />);
-  };
+  function TabPanel(props: TabPanelProps) {
+    const { children, value, index, ...other } = props;
 
-  const openSchoolTerms = () => {
-    setRegistrationStep(<ListTermsView onSuccess={() => openRoutines()} />);
-  };
-  const openSchoolConfigs = () => {
-    setRegistrationStep(<CreateSchoolConfigurationsView onSuccess={() => openSchoolTerms()} />);
-  };
+    return (
+      <div
+        role="tabpanel"
+        hidden={value !== index}
+        id={`simple-tabpanel-${index}`}
+        aria-labelledby={`simple-tab-${index}`}
+        {...other}
+      >
+        {value === index && children}
+      </div>
+    );
+  }
 
-  const openSchoolUpdate = () => {
-    setRegistrationStep(<UpdateSchoolInfoView onSuccess={() => openSchoolConfigs()} />);
+  const steps = [
+    {
+      index: 0,
+      title: 'Dados',
+      view: UpdateSchoolInfoView,
+    },
+    {
+      index: 1,
+      title: 'Parâmetros',
+      view: CreateSchoolConfigurationsView,
+    },
+    {
+      index: 2,
+      title: 'Ano Letivo',
+      view: SchoolYearView,
+    },
+    {
+      index: 3,
+      title: 'Turnos e Horários',
+      view: ListRoutinesView,
+    },
+  ];
+
+  const setCompletion = (index: number) => {
+    setCompletedSteps((prev) => {
+      const newCompletedSteps = prev;
+      newCompletedSteps[index] = true;
+      return newCompletedSteps;
+    });
   };
 
   useEffect(() => {
     if (schoolData) {
-      openSchoolUpdate();
-
+      console.log(schoolData);
       const schoolHasBeenUpdated = schoolData.school.name !== '';
-      if (schoolHasBeenUpdated) openSchoolConfigs();
+      const schoolYearHasBeenCreated = schoolData.school.active_year_id !== null;
+      const parameterHasBeenCreated = schoolData.school.parameters !== null;
+      const routinesHasBeenCreated = routineGroupsData && routineGroupsData.routineGroups.length > 0;
+      console.log(parameterHasBeenCreated);
 
-      if (schoolData.school.parameters !== null) openSchoolTerms();
+      let index = 4;
 
-      const termsNumber = termsData?.terms.length || 0;
+      if (!routinesHasBeenCreated) {
+        index = 3;
+      } else {
+        setCompletion(3);
+      }
+      if (!schoolYearHasBeenCreated) {
+        index = 2;
+      } else {
+        setCompletion(2);
+      }
+      if (!parameterHasBeenCreated) {
+        index = 1;
+      } else {
+        setCompletion(1);
+      }
+      if (!schoolHasBeenUpdated) {
+        index = 0;
+      } else {
+        setCompletion(0);
+      }
 
-      openSchoolYear();
+      setTabIndex(index);
     }
-  }, [schoolData]);
+  }, [schoolData, routineGroupsData]);
 
-  if (loadingSchool || loadingTerms) return <AppLoading />;
+  if (loadingSchool || loadingRoutines) return <AppLoading />;
 
-  return <Box>{registrationStep}</Box>;
+  return (
+    <Box>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Tabs value={tabIndex} onChange={handleChange} aria-label="basic tabs example">
+          {steps.map((step) => (
+            <Tab key={step.index} label={step.title} />
+          ))}
+          <Tab label={'Finalizar'} />
+        </Tabs>
+      </Box>
+
+      {steps.map((step) => (
+        <TabPanel key={step.index} value={tabIndex} index={step.index}>
+          {
+            <step.view
+              onSuccess={() => {
+                setTabIndex((prev) => prev + 1);
+                setCompletion(step.index);
+              }}
+            />
+          }
+        </TabPanel>
+      ))}
+      <TabPanel value={tabIndex} index={steps.length}>
+        <Box marginTop={10} display="flex" justifyContent={'center'} alignItems="center" flexDirection="column">
+          <List>
+            {steps.map((step) => (
+              <ListItemButton key={step.index} onClick={() => setTabIndex(step.index)}>
+                <ListItemIcon>
+                  {completedStep[step.index] ? <DoneIcon color="success" /> : <ErrorOutlineIcon color="error" />}
+                </ListItemIcon>
+                <ListItemText primary={step.title} secondary="" />
+              </ListItemButton>
+            ))}
+          </List>
+          <AppSaveButton disabled={!completedStep.every((step) => step)} label="Finalizar Registro" />
+        </Box>
+      </TabPanel>
+    </Box>
+  );
 };
 
 export default RegisterSchool;
