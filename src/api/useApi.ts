@@ -85,3 +85,7 @@ export const useRequestApi = <T extends IApiFunc>(
 
   return [callApi, loading, error];
 };
+
+export const useApiCallback = () => {
+  //remember to implement this
+};
