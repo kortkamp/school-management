@@ -72,7 +72,7 @@ const AppAddressForm: React.FC<Props> = ({ values, onFieldChange, fieldGetError,
       .then((res) => res.json())
       .then((data) => {
         if (!data.erro && mounted.current) {
-          setField('address', data.logradouro);
+          setField('street', data.logradouro);
           setField('complement', data.complemento);
           setField('district', data.bairro);
           setField('city', data.localidade);
