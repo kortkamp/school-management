@@ -31,20 +31,7 @@ export const useStyles = makeStyles((theme: Theme) => ({
 const WelcomeView = () => {
   const classes = useStyles();
 
-  const pendencies = [
-    {
-      id: 1,
-      text: 'No segundo passo nós vamos definir como é o funcionamento da sua instituição, por exemplo, como são calculadas as notas, como o ano letivo é dividido , etc',
-    },
-    {
-      id: 2,
-      text: 'Cadastrar as datas dos períodos do ano letivo',
-    },
-    {
-      id: 3,
-      text: 'Nesta etapa vamos definir os horários de aula da instituição',
-    },
-  ];
+  const pendencies: any[] = [];
 
   return (
     <Grid container direction="column" alignItems="center">
