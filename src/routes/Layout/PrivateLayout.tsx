@@ -63,6 +63,11 @@ const SIDE_BAR_REGISTER_ITEMS: Array<LinkToPage> = [
     path: '/registro',
     icon: 'school',
   },
+  {
+    title: 'Cadastrar Funcionário',
+    path: '/funcionarios',
+    icon: 'person',
+  },
 ];
 const SIDE_BAR_STUDENT_ITEMS: Array<LinkToPage> = [
   {
