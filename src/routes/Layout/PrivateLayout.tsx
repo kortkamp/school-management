@@ -65,7 +65,7 @@ const SIDE_BAR_REGISTER_ITEMS: Array<LinkToPage> = [
   },
   {
     title: 'Cadastrar Funcionário',
-    path: '/funcionarios',
+    path: '/funcionarios/criar',
     icon: 'person',
   },
 ];
