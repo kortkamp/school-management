@@ -36,52 +36,23 @@ const useStyles = makeStyles((theme) => ({
 export interface ITermData {
   id: string;
   name: string;
-  start_at: Date | '';
-  end_at: Date | '';
+  start_at?: Date;
+  end_at?: Date;
   type: TermType;
 }
+type IError = Record<string, Record<string, string[]>>;
 
 interface Props {
   terms: ITermData[];
+  errors?: IError;
   editable?: boolean;
   handleAddTerm: () => void;
   handleRemoveTerm: (termId: string) => void;
   handleChangeValue: (termId: string, event: any) => void;
 }
 
-type IError = Record<string, Record<string, string[]>>;
-
-const TermsTable = ({ editable = false, terms, handleAddTerm, handleRemoveTerm, handleChangeValue }: Props) => {
-  const [errors, setErrors] = useState<IError | undefined>();
-
+const TermsTable = ({ editable = false, terms, errors, handleAddTerm, handleRemoveTerm, handleChangeValue }: Props) => {
   const classes = useStyles();
-
-  const validate = async () => {
-    let isValid: any = true;
-    const newErrors: any = {};
-
-    const termValidations = terms.map(async (term) => {
-      const termErrors: any = {};
-      try {
-        await termSchema.validate(term, { abortEarly: false, stripUnknown: true });
-      } catch (err: any) {
-        const { inner } = err as yup.ValidationError;
-        inner.forEach((error: any) => (termErrors[error.path] = [error.message]));
-        isValid = false;
-      }
-      newErrors[term.id] = termErrors;
-    });
-    await Promise.all(termValidations);
-    setErrors(newErrors);
-
-    return isValid;
-  };
-
-  useEffect(() => {
-    if (errors) {
-      validate();
-    }
-  }, [terms]);
 
   const fieldHasError = (termId: string, field: string) => errors?.[termId]?.[field] !== undefined;
   const fieldGetError = (termId: string, field: string) =>
