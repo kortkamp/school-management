@@ -4,6 +4,7 @@ import { useHistory } from 'react-router-dom';
 import { Grid, TextField, CardHeader, MenuItem, Divider, InputAdornment, CircularProgress } from '@mui/material';
 
 import NumberFormat, { NumberFormatValues } from 'react-number-format';
+import Moment from 'moment';
 
 import * as yup from 'yup';
 
@@ -44,6 +45,7 @@ const complementaryDataSchema = {
 };
 
 interface FormStateValues {
+  id?: string;
   email: string;
   name: string;
   CPF: string; // unique
@@ -137,8 +139,8 @@ function CreateEmployeeView() {
     if (value.length === 11) {
       const response = await getUserByCPF({ CPF: value });
       if (response?.success) {
-        console.log(response.user);
         setFormState((prev) => ({ ...prev, values: response.user }));
+        // setUserAlreadyExists({ id: response.user.id, name: response.user.name });
       }
     }
   }, []);
@@ -186,7 +188,7 @@ function CreateEmployeeView() {
           InputLabelProps={{ shrink: true }}
           label="Nascimento"
           name="birth"
-          value={values.birth}
+          value={values.birth ? Moment(values.birth).format('YYYY-MM-DD') : ''}
           onChange={onFieldChange}
           error={fieldHasError('birth')}
           helperText={fieldGetError('birth') || ' '}
@@ -249,7 +251,7 @@ function CreateEmployeeView() {
           select
           label="Função"
           name="role_id"
-          value={values.role_id}
+          value={values.role_id || ''}
           onChange={onFieldChange}
           error={fieldHasError('role_id')}
           helperText={fieldGetError('role_id') || ' '}
@@ -279,7 +281,7 @@ function CreateEmployeeView() {
           select
           label="Função"
           name="role_id"
-          value={values.role_id}
+          value={values.role_id || ''}
           onChange={onFieldChange}
           {...SHARED_CONTROL_PROPS}
           variant="standard"
