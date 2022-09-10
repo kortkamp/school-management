@@ -22,19 +22,22 @@ export type IApiFunc = (data: IApiFuncParams) => any;
 export const useApi = <T extends IApiFunc>(
   apiFunc: T,
   args?: Parameters<T>[0]['args'],
-  configs?: { isRequest?: boolean; silent?: boolean }
+  configs?: { isRequest?: boolean; silent?: boolean; defaultValue?: Awaited<ReturnType<typeof apiFunc>> }
 ): [
   Awaited<ReturnType<typeof apiFunc>> | undefined,
+
+  // Pick<C, Awaited<ReturnType<typeof apiFunc>>>,
   string,
   boolean,
-  (args: Parameters<T>[0]['args']) => Promise<ReturnType<typeof apiFunc> | undefined>
+  (args: Parameters<T>[0]['args']) => Promise<ReturnType<typeof apiFunc> | undefined>,
+  React.Dispatch<React.SetStateAction<Awaited<ReturnType<T>> | undefined>>
 ] => {
   const source = axios.CancelToken.source();
 
-  const [data, setData] = useState();
+  const [data, setData] = useState(configs?.defaultValue);
   //data:<Awaited<ReturnType<typeof apiFunc>>>
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!configs?.isRequest);
 
   const [appState] = useAppStore();
 
@@ -75,7 +78,7 @@ export const useApi = <T extends IApiFunc>(
     };
   }, [appState.currentSchool, memoArgs]);
 
-  return [data, error, loading, callApi];
+  return [data, error, loading, callApi, setData];
 };
 
 /**
@@ -84,9 +87,10 @@ export const useApi = <T extends IApiFunc>(
  * @param {function} apiFunc - api function which accepts IApiFuncParams
  */
 export const useRequestApi = <T extends IApiFunc>(
-  apiFunc: T
+  apiFunc: T,
+  configs?: { silent: boolean }
 ): [(args: Parameters<T>[0]['args']) => Promise<ReturnType<typeof apiFunc> | undefined>, boolean, string] => {
-  const [, error, loading, callApi] = useApi(apiFunc, {}, { isRequest: true });
+  const [, error, loading, callApi] = useApi(apiFunc, {}, { isRequest: true, silent: configs?.silent });
 
   return [callApi, loading, error];
 };
