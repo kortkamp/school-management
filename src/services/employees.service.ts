@@ -3,13 +3,12 @@ import api from './api.service';
 
 interface IEmployeesList {
   success: boolean;
-  result: [
-    {
-      id: string;
-      name: string;
-      phone: null;
-    }[]
-  ];
+  result: {
+    id: string;
+    name: string;
+    role: string;
+    role_id: string;
+  }[];
   total_filtered: number;
   page: number;
   per_page: number;
@@ -26,10 +25,14 @@ interface IGetAllTeachersParams extends IApiFuncParams {
   };
 }
 
+interface IDeleteEmployeeProps extends IApiFuncParams {
+  args?: { user_id: string; role_id: string };
+}
+
 const getAll = async ({ schoolId, token, args = {}, cancelToken }: IGetAllTeachersParams) =>
   (
     await api.get(
-      `/${schoolId}/teachers?per_page=${args.per_page || 10}&page=${args.page || 1}&orderBy=name&orderType=ASC${
+      `/${schoolId}/employees?per_page=${args.per_page || 10}&page=${args.page || 1}&${
         !!args.filterValue
           ? `&filterBy=${args.filterBy}&filterValue=${args.filterValue}&filterType=${args.filterType}`
           : ''
@@ -41,7 +44,15 @@ const getAll = async ({ schoolId, token, args = {}, cancelToken }: IGetAllTeache
 const create = async ({ schoolId, token, args }: IApiFuncParams) =>
   (await api.post(`/${schoolId}/employees`, args, { headers: { Authorization: `Bearer ${token}` } })).data;
 
+const createRole = async ({ schoolId, token, args }: IApiFuncParams) =>
+  (await api.post(`/${schoolId}/employees/roles`, args, { headers: { Authorization: `Bearer ${token}` } })).data;
+
+const remove = async ({ schoolId, token, args }: IDeleteEmployeeProps) =>
+  (await api.delete(`/${schoolId}/employees/`, { data: args, headers: { Authorization: `Bearer ${token}` } })).data;
+
 export const employeesService = {
   create,
+  remove,
+  createRole,
   getAll,
 };
