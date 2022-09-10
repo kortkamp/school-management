@@ -2,7 +2,7 @@
 
 import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Tab, Tabs } from '@mui/material';
 import { ReactNode, useEffect, useState } from 'react';
-import { useApi } from '../../api/useApi';
+import { useApi, useRequestApi } from '../../api/useApi';
 import { AppButton, AppIcon, AppLoading } from '../../components';
 import { routinesService } from '../../services/routines.service';
 import { schoolsService } from '../../services/schools.service';
@@ -14,6 +14,7 @@ import SchoolYearView from '../SchoolYears/SchoolYearView';
 import DoneIcon from '@mui/icons-material/Done';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { AppSaveButton } from '../../components/AppCustomButton';
+import ListEmployeesView from '../Employees/ListEmployeesView';
 
 /**
  * Renders "RegisterSchool" view
@@ -24,12 +25,23 @@ const RegisterSchool = () => {
 
   const [routineGroupsData, , loadingRoutines] = useApi(routinesService.getAllRoutineGroups);
 
+  const [finishRegistration, isFinishing] = useRequestApi(schoolsService.finishRegistration);
+
   const [tabIndex, setTabIndex] = useState(0);
 
-  const [completedStep, setCompletedSteps] = useState([false, false, false, false]);
+  const [completedStep, setCompletedSteps] = useState([false, false, false, false, false]);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);
+  };
+
+  const handleFinishRegistration = async () => {
+    const response = await finishRegistration({});
+
+    if (response?.success) {
+      console.log('sucesso');
+      // should change state with new role for the current user
+    }
   };
 
   interface TabPanelProps {
@@ -75,6 +87,11 @@ const RegisterSchool = () => {
       title: 'Turnos e Horários',
       view: ListRoutinesView,
     },
+    {
+      index: 4,
+      title: 'Funcionários',
+      view: ListEmployeesView,
+    },
   ];
 
   const setCompletion = (index: number) => {
@@ -87,12 +104,10 @@ const RegisterSchool = () => {
 
   useEffect(() => {
     if (schoolData) {
-      console.log(schoolData);
       const schoolHasBeenUpdated = schoolData.school.name !== '';
       const schoolYearHasBeenCreated = schoolData.school.active_year_id !== null;
       const parameterHasBeenCreated = schoolData.school.parameters !== null;
       const routinesHasBeenCreated = routineGroupsData && routineGroupsData.routineGroups.length > 0;
-      console.log(parameterHasBeenCreated);
 
       let index = 4;
 
@@ -158,7 +173,12 @@ const RegisterSchool = () => {
               </ListItemButton>
             ))}
           </List>
-          <AppSaveButton disabled={!completedStep.every((step) => step)} label="Finalizar Registro" />
+          <AppSaveButton
+            disabled={!completedStep.every((step) => step) || isFinishing}
+            loading={isFinishing}
+            label="Finalizar Registro"
+            onClick={handleFinishRegistration}
+          />
         </Box>
       </TabPanel>
     </Box>
