@@ -92,6 +92,15 @@ const createSchoolParameters = async ({ token, schoolId, args: data }: IApiFuncP
   return response.data;
 };
 
+const finishRegistration = async ({ token, schoolId }: IApiFuncParams) => {
+  const response = await api.post(
+    `/${schoolId}/registration/finish`,
+    {},
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  return response.data;
+};
+
 const getSchoolParameters = async ({ token, schoolId }: IApiFuncParams) =>
   (await api.get(`/${schoolId}/parameters`, { headers: { Authorization: `Bearer ${token}` } }))
     .data as ISchoolParametersResponse;
@@ -102,4 +111,5 @@ export const schoolsService = {
   getById,
   createSchoolParameters,
   getSchoolParameters,
+  finishRegistration,
 };
