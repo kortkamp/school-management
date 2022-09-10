@@ -24,28 +24,39 @@ interface Props {
 interface FormStateValues {
   id?: string;
   name: string;
-  start_at: Date | '';
-  end_at: Date | '';
+  start_at: Date | undefined;
+  end_at: Date | undefined;
   terms: ITermData[];
 }
 
-const createSchoolYearSchema = {
+const schoolYearValidationSchema = yup.object().shape({
   name: yup.string().length(4, 'Ano inválido').required('O campo é obrigatório'),
   start_at: yup.date().required('O campo é obrigatório'),
   end_at: yup
     .date()
-    .default(null)
     .when(
       'start_at',
       (started, yup) => started && yup.min(started, 'A data de término deve ser posterior à data de início')
     )
     .required('O campo é obrigatório'),
-};
+  terms: yup.array().min(1, 'Pelo menos um período é necessário'),
+});
+const termsValidationSchema = yup.object().shape({
+  name: yup.string().required('O campo é obrigatório'),
+  start_at: yup.date().required('O campo é obrigatório'),
+  end_at: yup
+    .date()
+    .when(
+      'start_at',
+      (started, yup) => started && yup.min(started, 'A data de término deve ser posterior à data de início')
+    )
+    .required('O campo é obrigatório'),
+});
 
 const defaultData: FormStateValues = {
   name: '',
-  start_at: '',
-  end_at: '',
+  start_at: undefined,
+  end_at: undefined,
   terms: [],
 };
 /**
@@ -65,6 +76,8 @@ const CreateSchoolYear: React.FC<Props> = ({ onSuccess = () => {} }: Props) => {
 
   const [schoolYear, setSchoolYear] = useState<FormStateValues>(defaultData);
 
+  const [validationErrors, setValidationErrors] = useState<any>({});
+
   const [isCreatingNewSchoolYear, setIsCreatingNewSchoolYear] = useState(true);
 
   const [editable, setEditable] = useState(true);
@@ -80,8 +93,7 @@ const CreateSchoolYear: React.FC<Props> = ({ onSuccess = () => {} }: Props) => {
         const term: ITermData = {
           id: generateTempID(),
           name: `${i}º ${schoolParameters.term_period}`,
-          start_at: '',
-          end_at: '',
+
           type: TermType.STANDARD,
         };
         generatedTerms.push(term);
@@ -90,8 +102,7 @@ const CreateSchoolYear: React.FC<Props> = ({ onSuccess = () => {} }: Props) => {
           const recoveringTerm: ITermData = {
             id: generateTempID(),
             name: `Recuperação Parcial`,
-            start_at: '',
-            end_at: '',
+
             type: TermType.RECOVERING,
           };
           if (isLastTermOfAbrangence) {
@@ -103,8 +114,7 @@ const CreateSchoolYear: React.FC<Props> = ({ onSuccess = () => {} }: Props) => {
         const recoveringTerm: ITermData = {
           id: generateTempID(),
           name: `Recuperação Final`,
-          start_at: '',
-          end_at: '',
+
           type: TermType.RECOVERING,
         };
         generatedTerms.push(recoveringTerm);
@@ -127,7 +137,53 @@ const CreateSchoolYear: React.FC<Props> = ({ onSuccess = () => {} }: Props) => {
     }
   }, [data, error]);
 
+  const validate = async () => {
+    let errors: any = {}; //validate(formState.values, validationSchema);
+    let termsErrors: any = {};
+    let isValid: any = false;
+    try {
+      isValid = await schoolYearValidationSchema.validate(schoolYear, { abortEarly: false, stripUnknown: true });
+    } catch (err: any) {
+      const { inner } = err as yup.ValidationError;
+
+      inner?.forEach((error: any) => (errors[error.path] = [error.message]));
+    }
+
+    const termsValidation = schoolYear.terms.map(async (term) => {
+      try {
+        await termsValidationSchema.validate(term, { abortEarly: false, stripUnknown: true });
+      } catch (err: any) {
+        const { inner } = err as yup.ValidationError;
+        isValid = false;
+        termsErrors = { ...termsErrors, [term.id]: { ...termsErrors[term.id] } };
+
+        inner?.forEach((error: any) => (termsErrors[term.id][error.path] = [error.message]));
+      }
+    });
+    await Promise.all(termsValidation);
+    errors.terms = termsErrors;
+    setValidationErrors(errors);
+
+    console.log();
+
+    return isValid;
+  };
+
+  useEffect(() => {
+    function isEmpty(obj: object) {
+      return Object.keys(obj).length === 0;
+    }
+
+    if (!isEmpty(validationErrors)) {
+      validate();
+    }
+  }, [schoolYear]);
+
   const handleClickSaveButton = async () => {
+    const isValid = await validate();
+    if (!isValid) {
+      return;
+    }
     const terms = schoolYear.terms.map((term) => {
       // eslint-disable-next-line @typescript-eslint/naming-convention
       const { id, name, start_at, end_at, type } = term;
@@ -165,9 +221,7 @@ const CreateSchoolYear: React.FC<Props> = ({ onSuccess = () => {} }: Props) => {
   };
 
   const handleAddTerm = () => {
-    const newTerms = schoolYear.terms.concat([
-      { id: generateTempID(), name: '', start_at: '', end_at: '', type: TermType.STANDARD },
-    ]);
+    const newTerms = schoolYear.terms.concat([{ id: generateTempID(), name: '', type: TermType.STANDARD }]);
 
     setSchoolYear((previous) => ({ ...previous, terms: newTerms }));
   };
@@ -221,8 +275,8 @@ const CreateSchoolYear: React.FC<Props> = ({ onSuccess = () => {} }: Props) => {
                   placeholder="Ano Letivo"
                   value={schoolYear.name}
                   onChange={onFieldChange}
-                  // error={fieldHasError('name')}
-                  // helperText={fieldGetError('name') || ' '}
+                  error={Boolean(validationErrors.name)}
+                  helperText={validationErrors.name || ' '}
                   InputProps={{ readOnly: !editable, disableUnderline: !editable, style: { fontSize: 30 } }}
                 ></TextField>
                 <AppContextMenu
@@ -250,8 +304,8 @@ const CreateSchoolYear: React.FC<Props> = ({ onSuccess = () => {} }: Props) => {
                 value={schoolYear.start_at ? Moment(schoolYear.start_at).format('YYYY-MM-DD') : ''}
                 InputProps={{ readOnly: !editable }}
                 onChange={onFieldChange}
-                // error={fieldHasError('start_at')}
-                // helperText={fieldGetError('start_at') || ' '}
+                error={Boolean(validationErrors.start_at)}
+                helperText={validationErrors.start_at || ' '}
               />
 
               <TextField
@@ -264,13 +318,14 @@ const CreateSchoolYear: React.FC<Props> = ({ onSuccess = () => {} }: Props) => {
                 value={schoolYear.end_at ? Moment(schoolYear.end_at).format('YYYY-MM-DD') : ''}
                 InputProps={{ readOnly: !editable }}
                 onChange={onFieldChange}
-                // error={fieldHasError('end_at')}
-                // helperText={fieldGetError('end_at') || ' '}
+                error={Boolean(validationErrors.end_at)}
+                helperText={validationErrors.end_at || ' '}
               />
             </Grid>
           </Grid>
           <TermsTable
             terms={schoolYear.terms}
+            errors={validationErrors.terms}
             editable={editable}
             handleAddTerm={handleAddTerm}
             handleRemoveTerm={handleRemoveTerm}
@@ -284,6 +339,7 @@ const CreateSchoolYear: React.FC<Props> = ({ onSuccess = () => {} }: Props) => {
                   loading={isSaving || isUpdating}
                   disabled={isSaving || isUpdating}
                   onClick={() => handleClickSaveButton()}
+                  // onClick={() => handleClickSaveButton()}
                   label={isCreatingNewSchoolYear ? 'Criar' : 'Gravar'}
                 />
                 {!isCreatingNewSchoolYear && (
