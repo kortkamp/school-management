@@ -21,6 +21,7 @@
   "dependencies": {
     "@emotion/react": "latest",
     "@emotion/styled": "latest",
+    "@hookform/resolvers": "^2.9.8",
     "@mui/icons-material": "latest",
     "@mui/material": "^5.4",
     "@mui/styles": "^5.4",
