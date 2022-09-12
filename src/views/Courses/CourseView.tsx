@@ -97,6 +97,7 @@ const CourseView = () => {
               editable={isEditing}
               errorMessage={errors.type?.message}
             >
+              <MenuItem value={'segment'}>{'segment'}</MenuItem>
               {/* {segments.map((segment) => (
                 <MenuItem key={segment} value={segment}>
                   {segment}
