@@ -9,7 +9,7 @@ interface Props extends StandardTextFieldProps {
   errorMessage?: string;
 }
 
-const FormInput = ({ name, control, label, errorMessage, editable = true, ...restOfProps }: Props) => {
+const FormTitleInput = ({ name, control, label, errorMessage, editable = true, ...restOfProps }: Props) => {
   return (
     <Controller
       name={name}
@@ -36,4 +36,4 @@ const FormInput = ({ name, control, label, errorMessage, editable = true, ...res
   );
 };
 
-export default FormInput;
+export default FormTitleInput;
