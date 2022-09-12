@@ -21,7 +21,6 @@ const FormTitleInput = ({ name, control, label, errorMessage, editable = true, .
           label={editable ? label : ''}
           value={value}
           onChange={onChange}
-          style={{ width: 400 }}
           error={!!errorMessage}
           helperText={errorMessage}
           {...restOfProps}

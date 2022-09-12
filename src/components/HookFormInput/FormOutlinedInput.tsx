@@ -31,7 +31,6 @@ const FormOutlinedInput = ({
           label={label}
           value={value}
           onChange={onChange}
-          style={{ width: 400 }}
           error={!!errorMessage}
           helperText={errorMessage}
           {...restOfProps}
