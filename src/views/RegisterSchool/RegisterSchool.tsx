@@ -15,6 +15,7 @@ import DoneIcon from '@mui/icons-material/Done';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { AppSaveButton } from '../../components/AppCustomButton';
 import ListEmployeesView from '../Employees/ListEmployeesView';
+import CoursesListView from '../Courses/CoursesListView';
 
 /**
  * Renders "RegisterSchool" view
@@ -87,8 +88,14 @@ const RegisterSchool = () => {
       title: 'Turnos e Horários',
       view: ListRoutinesView,
     },
+
     {
       index: 4,
+      title: 'Cursos',
+      view: CoursesListView,
+    },
+    {
+      index: 5,
       title: 'Funcionários',
       view: ListEmployeesView,
     },
