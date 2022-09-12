@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Card, CardContent, CardHeader, Grid, CircularProgress, TextField, MenuItem } from '@mui/material';
 import { useCallback, useEffect, useState } from 'react';
 import { AppButton } from '../../components';
@@ -125,9 +126,9 @@ const TeacherClassGroupView = () => {
 
   const loadSegmentsList = useCallback(async () => {
     try {
-      const response = await segmentsService.getAll();
+      // const response = await segmentsService.getAll();
 
-      setSegments(response.data.segments);
+      // setSegments(response.data.segments);
       setLoading(false);
     } catch (err: any) {
       console.log(err);

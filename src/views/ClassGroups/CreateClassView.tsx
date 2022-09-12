@@ -6,7 +6,7 @@ import { useAppStore } from '../../store';
 import { AppButton, AppAlert, AppForm } from '../../components';
 import { useAppForm, SHARED_CONTROL_PROPS } from '../../utils/form';
 import { classGroupsService } from '../../services/classGroups.service';
-import { segmentsService } from '../../services/segments.service';
+// import { segmentsService } from '../../services/segments.service';
 import { gradesService } from '../../services/grades.service';
 
 import * as yup from 'yup';
@@ -50,12 +50,12 @@ function CreateClassView() {
     let componentMounted = true;
 
     async function fetchData() {
-      let segmentsData = [];
+      let segmentsData: any[] = [];
       let gradesData = [];
 
       try {
-        const segmentsResponse = await segmentsService.getAll();
-        segmentsData = segmentsResponse.data.segments;
+        // const segmentsResponse = await segmentsService.getAll();
+        // segmentsData = segmentsResponse.data.segments;
 
         const gradesResponse = await gradesService.getAll();
         gradesData = gradesResponse.data.grades;
