@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useCallback, useEffect, useReducer } from 'react';
 import { Grid, MenuItem, TextField } from '@mui/material';
 
@@ -51,10 +52,10 @@ const AppAllocationSelect: React.FC<Props> = ({ onChange, getClassGroup }) => {
 
   const loadFilterData = useCallback(async () => {
     try {
-      const segmentResponse = await segmentsService.getAll();
+      // const segmentResponse = await segmentsService.getAll();
       const gradeResponse = await gradesService.getAll();
       const classGroupResponse = await classGroupsService.getAll();
-      setSegments(segmentResponse.data.segments.sort((a: any, b: any) => a.name.localeCompare(b.name)));
+      // setSegments(segmentResponse.data.segments.sort((a: any, b: any) => a.name.localeCompare(b.name)));
       setGrades(gradeResponse.data.grades);
       setClassGroups(classGroupResponse.data.classGroups);
     } catch (err: any) {
