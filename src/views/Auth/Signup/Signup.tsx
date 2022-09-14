@@ -51,7 +51,7 @@ interface FormStateValues {
 const SignupView = () => {
   const history = useHistory();
 
-  const [, , isSaving, createUser] = useApi(usersService.initialRegistration, {}, { isRequest: true });
+  const [, , isSaving, createUser] = useApi(usersService.initialRegistration, { isRequest: true });
 
   const [formState, , /* setFormState */ onFieldChange, fieldGetError, fieldHasError] = useAppForm({
     validationSchema: createUserSchema,
