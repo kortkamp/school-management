@@ -70,7 +70,7 @@ const CreateSchoolYear: React.FC<Props> = ({ onSuccess = () => {} }: Props) => {
 
   const [getSchoolParameters, , getParametersError] = useRequestApi(schoolsService.getSchoolParameters);
 
-  const [data, error] = useApi(schoolYearsService.getBySchool, {}, { silent: true });
+  const [data, error] = useApi(schoolYearsService.getBySchool, { silent: true });
 
   const [isLoading, setIsLoading] = useState(true);
 

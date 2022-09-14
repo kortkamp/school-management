@@ -69,7 +69,7 @@ interface FormStateValues {
 function CreateEmployeeView() {
   const history = useHistory();
 
-  const [rolesData, , loadingRoles] = useApi(rolesService.getAll, {}, { defaultValue: [] });
+  const [rolesData, , loadingRoles] = useApi(rolesService.getAll, { defaultValue: [] });
 
   const [getUserByCPF, loadingUser] = useRequestApi(usersService.getByCPF, { silent: true });
 

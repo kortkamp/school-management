@@ -36,13 +36,11 @@ interface Props {
  * url: /horarios/
  */
 const ListRoutinesView = ({ onSuccess }: Props) => {
-  const [routineGroupsData, , loading] = useApi(routinesService.getAllRoutineGroups);
+  const [routineGroupsData, , loading] = useApi(routinesService.getAllRoutineGroups, {});
 
-  const [, , isRemovingRoutineGroup, removeRoutineGroup] = useApi(
-    routinesService.removeRoutineGroup,
-    {},
-    { isRequest: true }
-  );
+  const [, , isRemovingRoutineGroup, removeRoutineGroup] = useApi(routinesService.removeRoutineGroup, {
+    isRequest: true,
+  });
 
   const [routineGroupsTabIndex, setRoutineGroupsTabIndex] = useState<number>(0);
 

@@ -110,7 +110,7 @@ function CreateSchoolConfigurationsView({ onSuccess = () => {} }: Props) {
 
   const [createSchoolParameters, isSaving] = useRequestApi(schoolsService.createSchoolParameters);
 
-  const [schoolParametersData, , isLoading] = useApi(schoolsService.getSchoolParameters, {}, { silent: true });
+  const [schoolParametersData, , isLoading] = useApi(schoolsService.getSchoolParameters, { silent: true });
 
   const classInput = clsx(classes.formInputStart, classes.formInput);
 

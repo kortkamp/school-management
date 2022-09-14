@@ -62,11 +62,11 @@ type IError = Record<string, Record<string, string[]>>;
  * url: /bimestres/*
  */
 const ListTermsView = ({ onSuccess = () => {} }: Props) => {
-  const [data, , loading] = useApi(termsService.getAll);
+  const [data, , loading] = useApi(termsService.getAll, {});
 
-  const [, , isRemoving, removeTerm] = useApi(termsService.remove, {}, { isRequest: true });
-  const [, , isCreating, createTerm] = useApi(termsService.create, {}, { isRequest: true });
-  const [, , isSaving, saveTerm] = useApi(termsService.update, {}, { isRequest: true });
+  const [, , isRemoving, removeTerm] = useApi(termsService.remove, { isRequest: true });
+  const [, , isCreating, createTerm] = useApi(termsService.create, { isRequest: true });
+  const [, , isSaving, saveTerm] = useApi(termsService.update, { isRequest: true });
 
   const [terms, setTerms] = useState<IListTerms['terms']>([]);
 

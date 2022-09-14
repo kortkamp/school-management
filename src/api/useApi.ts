@@ -19,25 +19,26 @@ export type IApiFunc = (data: IApiFuncParams) => any;
  * @param {object} args - optional data to be passed to apiFunc and triggers a new HTTP request when changed
  * @param {object} configs - optional configs { silent: do not call toast on errors }
  */
-export const useApi = <T extends IApiFunc>(
+export const useApi = <T extends IApiFunc, K extends Awaited<ReturnType<T>> | undefined>(
   apiFunc: T,
-  args?: Parameters<T>[0]['args'],
-  configs?: { isRequest?: boolean; silent?: boolean; defaultValue?: Awaited<ReturnType<typeof apiFunc>> }
-): [
-  Awaited<ReturnType<typeof apiFunc>> | undefined,
-
-  // Pick<C, Awaited<ReturnType<typeof apiFunc>>>,
-  string,
-  boolean,
-  (args: Parameters<T>[0]['args']) => Promise<ReturnType<typeof apiFunc> | undefined>,
-  React.Dispatch<React.SetStateAction<Awaited<ReturnType<T>> | undefined>>
-] => {
+  {
+    args,
+    defaultValue,
+    isRequest,
+    silent,
+  }: {
+    args?: Parameters<T>[0]['args'];
+    isRequest?: boolean;
+    silent?: boolean;
+    defaultValue?: K;
+  } = {}
+) => {
   const source = axios.CancelToken.source();
 
-  const [data, setData] = useState(configs?.defaultValue);
+  const [data, setData] = useState(defaultValue);
   //data:<Awaited<ReturnType<typeof apiFunc>>>
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(!configs?.isRequest);
+  const [loading, setLoading] = useState(!isRequest);
 
   const [appState] = useAppStore();
 
@@ -58,19 +59,19 @@ export const useApi = <T extends IApiFunc>(
       }
       setLoading(false);
       const message = err.response?.data?.message || err.message || 'Erro Inesperado!';
-      if (!configs?.silent) {
+      if (!silent) {
         console.log(err);
         toast.error(message, { theme: 'colored' });
       }
       setError(message);
-      setData(undefined);
+      // setData(defaultValue);
     }
   };
 
   const memoArgs = useMemo(() => args, Object.values(args || {}));
 
   useEffect(() => {
-    if (!configs?.isRequest) {
+    if (!isRequest) {
       callApi(args);
     }
     return () => {
@@ -78,7 +79,17 @@ export const useApi = <T extends IApiFunc>(
     };
   }, [appState.currentSchool, memoArgs]);
 
-  return [data, error, loading, callApi, setData];
+  type DataType = K extends undefined
+    ? Awaited<ReturnType<typeof apiFunc>> | undefined
+    : Awaited<ReturnType<typeof apiFunc>>;
+
+  return [data, error, loading, callApi, setData] as [
+    DataType,
+    string,
+    boolean,
+    (args: Parameters<T>[0]['args']) => Promise<ReturnType<typeof apiFunc> | undefined>,
+    React.Dispatch<React.SetStateAction<DataType>>
+  ];
 };
 
 /**
@@ -90,7 +101,7 @@ export const useRequestApi = <T extends IApiFunc>(
   apiFunc: T,
   configs?: { silent: boolean }
 ): [(args: Parameters<T>[0]['args']) => Promise<ReturnType<typeof apiFunc> | undefined>, boolean, string] => {
-  const [, error, loading, callApi] = useApi(apiFunc, {}, { isRequest: true, silent: configs?.silent });
+  const [, error, loading, callApi] = useApi(apiFunc, { isRequest: true, silent: configs?.silent });
 
   return [callApi, loading, error];
 };

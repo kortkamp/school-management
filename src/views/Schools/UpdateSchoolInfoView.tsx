@@ -64,9 +64,9 @@ function UpdateSchoolInfoView({ onSuccess = () => {} }: Props) {
   const history = useHistory();
   const [, dispatch] = useAppStore();
 
-  const [schoolData, , loading] = useApi(schoolsService.getById);
+  const [schoolData, , loading] = useApi(schoolsService.getById, {});
 
-  const [, , isSaving, createSchool] = useApi(schoolsService.update, {}, { isRequest: true });
+  const [, , isSaving, createSchool] = useApi(schoolsService.update, { isRequest: true });
 
   const [stepValidationSchema, setStepValidationSchema] = useState<object>(createSchoolMainSchema);
 

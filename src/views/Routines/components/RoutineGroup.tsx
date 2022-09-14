@@ -37,17 +37,13 @@ const RoutineGroupView = ({
   onSave,
   finishCreation,
 }: Props) => {
-  const [, , isCreatingRoutineGroup, createRoutineGroup] = useApi(
-    routinesService.createRoutineGroup,
-    {},
-    { isRequest: true }
-  );
+  const [, , isCreatingRoutineGroup, createRoutineGroup] = useApi(routinesService.createRoutineGroup, {
+    isRequest: true,
+  });
 
-  const [, , isUpdatingRoutineGroup, saveRoutineGroup] = useApi(
-    routinesService.updateRoutineGroup,
-    {},
-    { isRequest: true }
-  );
+  const [, , isUpdatingRoutineGroup, saveRoutineGroup] = useApi(routinesService.updateRoutineGroup, {
+    isRequest: true,
+  });
   const [selectedRoutineGroup, selectRoutineGroup] = useState<IRoutineGroup>(routineGroup);
 
   const [classDuration, setClassDuration] = useState(50);
@@ -55,7 +51,7 @@ const RoutineGroupView = ({
 
   const [routineGroupStartTime, setRoutineGroupStartTime] = useState('07:00:00');
 
-  const [schoolParametersData] = useApi(schoolsService.getSchoolParameters);
+  const [schoolParametersData] = useApi(schoolsService.getSchoolParameters, {});
 
   const [isDataTouched, setIsDataTouched] = useState(false);
 

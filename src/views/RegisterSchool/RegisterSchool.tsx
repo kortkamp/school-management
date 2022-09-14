@@ -22,9 +22,9 @@ import CoursesListView from '../Courses/CoursesListView';
  * url: /registro *
  */
 const RegisterSchool = () => {
-  const [schoolData, , loadingSchool] = useApi(schoolsService.getById);
+  const [schoolData, , loadingSchool] = useApi(schoolsService.getById, {});
 
-  const [routineGroupsData, , loadingRoutines] = useApi(routinesService.getAllRoutineGroups);
+  const [routineGroupsData, , loadingRoutines] = useApi(routinesService.getAllRoutineGroups, {});
 
   const [finishRegistration, isFinishing] = useRequestApi(schoolsService.finishRegistration);
 

@@ -50,7 +50,7 @@ const TeachersListView = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const [data, , loading] = useApi(teachersService.getAll, { page, per_page: pageSize });
+  const [data, , loading] = useApi(teachersService.getAll, { args: { page, per_page: pageSize } });
 
   const history = useHistory();
 

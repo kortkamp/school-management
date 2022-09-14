@@ -39,9 +39,9 @@ const useStyles = makeStyles((theme) => ({
  * url: /mensagens/*
  */
 const MessagesListView = () => {
-  const [messagesData, , loading, callApi] = useApi(messagesService.getAllByUser);
+  const [messagesData, , loading, callApi] = useApi(messagesService.getAllByUser, {});
 
-  const [, , isDeleting, removeMessage] = useApi(messagesService.remove, {}, { isRequest: true });
+  const [, , isDeleting, removeMessage] = useApi(messagesService.remove, { isRequest: true });
 
   const [selected, setSelected] = useState<number | undefined>();
 

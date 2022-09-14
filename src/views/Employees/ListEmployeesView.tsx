@@ -55,7 +55,7 @@ const ListEmployeesView = ({ onSuccess }: Props) => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const [rolesData, , loadingRoles] = useApi(rolesService.getAll, {}, { defaultValue: [] });
+  const [rolesData, , loadingRoles] = useApi(rolesService.getAll, { defaultValue: [] });
 
   const [removeEmployee, isRemoving] = useRequestApi(employeesService.remove);
   const [showRemovingProgress, setShowRemovingProgress] = useState();
@@ -63,11 +63,7 @@ const ListEmployeesView = ({ onSuccess }: Props) => {
   const [roleIdFilter, setRoleIdFilter] = useState('');
 
   const [data, , loading, , setData] = useApi(employeesService.getAll, {
-    page,
-    per_page: pageSize,
-    filterBy: 'role_id',
-    filterType: 'eq',
-    filterValue: roleIdFilter,
+    args: { page, per_page: pageSize, filterBy: 'role_id', filterType: 'eq', filterValue: roleIdFilter },
   });
 
   const history = useHistory();

@@ -62,7 +62,7 @@ interface FormStateValues {
 function CreateTeacherView() {
   const history = useHistory();
 
-  const [, , isSaving, createTeacher] = useApi(teachersService.create, {}, { isRequest: true });
+  const [, , isSaving, createTeacher] = useApi(teachersService.create, { isRequest: true });
 
   const [stepValidationSchema, setStepValidationSchema] = useState<object>(createTeacherMainSchema);
 

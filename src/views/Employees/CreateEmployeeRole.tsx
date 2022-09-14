@@ -33,7 +33,7 @@ const CreateEmployeeRole = ({}: Props) => {
 
   const [createRole, isCreating] = useRequestApi(employeesService.createRole);
 
-  const [rolesData, , loadingRoles] = useApi(rolesService.getAll, {}, { defaultValue: [] });
+  const [rolesData, , loadingRoles] = useApi(rolesService.getAll, { defaultValue: [] });
 
   const [roleId, setRoleId] = useState(user.currentRoleId || '');
 
