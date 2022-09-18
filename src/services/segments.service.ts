@@ -8,12 +8,17 @@ import api from './api.service';
 //     }`
 //   );
 
+export interface ISegment {
+  id: string;
+  name: string;
+  phases_number: number;
+  phase_name: string;
+  starting_phase: number;
+}
+
 interface IListSegmentsResponse {
   success: true;
-  segments: {
-    id: string;
-    name: string;
-  }[];
+  segments: ISegment[];
 }
 
 const getAll = async ({ schoolId, token, cancelToken }: IApiFuncParams) =>
