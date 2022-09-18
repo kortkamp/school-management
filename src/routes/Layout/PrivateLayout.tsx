@@ -25,6 +25,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     [theme.breakpoints.up('sm')]: {
       paddingTop: 64,
     },
+    flexWrap: 'nowrap',
   },
   header: {},
   shiftContent: {
