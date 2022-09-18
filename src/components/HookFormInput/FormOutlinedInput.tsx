@@ -1,5 +1,5 @@
-import { TextField, StandardTextFieldProps, InputAdornment } from '@mui/material';
-import { Control, Controller } from 'react-hook-form';
+import { TextField, StandardTextFieldProps, InputAdornment, Tooltip } from '@mui/material';
+import { Control, Controller, ControllerRenderProps } from 'react-hook-form';
 
 interface Props extends StandardTextFieldProps {
   name: string;
@@ -8,6 +8,9 @@ interface Props extends StandardTextFieldProps {
   editable?: boolean;
   errorMessage?: string;
   suffix?: string;
+  toolTipMessage?: string;
+  loading?: boolean;
+  customOnChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }
 
 const FormOutlinedInput = ({
@@ -18,30 +21,37 @@ const FormOutlinedInput = ({
   editable = true,
   inputProps,
   suffix,
+  children,
+  toolTipMessage,
+  loading = false,
+  customOnChange = () => {},
   ...restOfProps
 }: Props) => {
-  return (
-    <Controller
-      name={name}
-      control={control}
-      render={({ field: { onChange, value } }) => (
-        <TextField
-          name="course-name"
-          variant="outlined"
-          label={label}
-          value={value}
-          onChange={onChange}
-          error={!!errorMessage}
-          helperText={errorMessage}
-          {...restOfProps}
-          InputProps={{
-            readOnly: !editable,
-            endAdornment: <InputAdornment position="end">{suffix}</InputAdornment>,
-          }}
-        />
-      )}
-    />
+  const ControlledInput = ({ field: { onChange, value } }: { field: ControllerRenderProps<any, string> }) => (
+    <Tooltip title={toolTipMessage || ''}>
+      <TextField
+        name="course-name"
+        variant="outlined"
+        label={label}
+        value={loading ? '' : value}
+        onChange={(e) => {
+          onChange(e);
+          customOnChange(e);
+        }}
+        error={!!errorMessage}
+        helperText={errorMessage || ' '}
+        {...restOfProps}
+        InputProps={{
+          readOnly: !editable,
+          endAdornment: <InputAdornment position="end">{suffix}</InputAdornment>,
+        }}
+      >
+        {children}
+      </TextField>
+    </Tooltip>
   );
+
+  return <Controller name={name} control={control} render={ControlledInput} />;
 };
 
 export default FormOutlinedInput;

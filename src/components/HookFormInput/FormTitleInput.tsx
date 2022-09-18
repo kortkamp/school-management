@@ -22,7 +22,7 @@ const FormTitleInput = ({ name, control, label, errorMessage, editable = true, .
           value={value}
           onChange={onChange}
           error={!!errorMessage}
-          helperText={errorMessage}
+          helperText={errorMessage || ' '}
           {...restOfProps}
           InputProps={{
             readOnly: !editable,
