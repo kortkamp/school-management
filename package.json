@@ -37,6 +37,7 @@
     "react-scripts": "latest",
     "react-toastify": "9.0.1",
     "typescript": "^4.7.4",
+    "uuid": "^9.0.0",
     "validate.js": "latest",
     "web-vitals": "latest",
     "yup": "^0.32.11"
@@ -50,6 +51,7 @@
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "@types/react-router-dom": "latest",
+    "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^5.27.0",
     "@typescript-eslint/parser": "^5.27.0",
     "eslint": "7.32",
