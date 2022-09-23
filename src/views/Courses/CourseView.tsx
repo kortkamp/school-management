@@ -55,6 +55,7 @@ interface Props {
   data: FormValues;
   onSave?: (id: string | undefined, values: FormValues) => void;
   onRemove?: (id: string | undefined) => void;
+  onSuccess?: () => void;
 }
 
 const defaultValues: FormValues = {
@@ -103,7 +104,7 @@ const schema = yup
   })
   .required();
 
-const CourseView = ({ data: { id, ...courseData }, onSave = () => {}, onRemove = () => {} }: Props) => {
+const CourseView = ({ data: { id, ...courseData }, onSave = () => {}, onRemove = () => {}, onSuccess }: Props) => {
   const isCreatingNewCourse = !id;
 
   const classes = useStyles();
@@ -374,6 +375,11 @@ const CourseView = ({ data: { id, ...courseData }, onSave = () => {}, onRemove =
           {isCreatingNewCourse && (
             <AppButton color="warning" onClick={() => reset()}>
               Limpar
+            </AppButton>
+          )}
+          {onSuccess && (
+            <AppButton color="info" onClick={() => onSuccess()}>
+              Finalizar
             </AppButton>
           )}
         </Grid>

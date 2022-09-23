@@ -16,6 +16,7 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { AppSaveButton } from '../../components/AppCustomButton';
 import ListEmployeesView from '../Employees/ListEmployeesView';
 import CoursesListView from '../Courses/CoursesListView';
+import { coursesService } from '../../services/courses.service';
 
 /**
  * Renders "RegisterSchool" view
@@ -28,9 +29,11 @@ const RegisterSchool = () => {
 
   const [finishRegistration, isFinishing] = useRequestApi(schoolsService.finishRegistration);
 
+  const [coursesList, , loadingCourses] = useApi(coursesService.getAll);
+
   const [tabIndex, setTabIndex] = useState(0);
 
-  const [completedStep, setCompletedSteps] = useState([false, false, false, false, false]);
+  const [completedStep, setCompletedSteps] = useState([false, false, false, false, false, false]);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);
@@ -115,8 +118,15 @@ const RegisterSchool = () => {
       const schoolYearHasBeenCreated = schoolData.school.active_year_id !== null;
       const parameterHasBeenCreated = schoolData.school.parameters !== null;
       const routinesHasBeenCreated = routineGroupsData && routineGroupsData.routineGroups.length > 0;
+      const coursesHasBeenCreated = coursesList && coursesList.length > 0;
 
-      let index = 4;
+      let index = 5;
+
+      if (!coursesHasBeenCreated) {
+        index = 4;
+      } else {
+        setCompletion(4);
+      }
 
       if (!routinesHasBeenCreated) {
         index = 3;
@@ -141,9 +151,9 @@ const RegisterSchool = () => {
 
       setTabIndex(index);
     }
-  }, [schoolData, routineGroupsData]);
+  }, [schoolData, routineGroupsData, coursesList]);
 
-  if (loadingSchool || loadingRoutines) return <AppLoading />;
+  if (loadingSchool || loadingRoutines || loadingCourses) return <AppLoading />;
 
   return (
     <Box>

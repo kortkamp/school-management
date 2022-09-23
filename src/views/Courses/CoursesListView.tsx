@@ -12,7 +12,11 @@ const useStyles = makeStyles((theme: Theme) => ({
   root: { padding: '0px' },
 }));
 
-const CoursesListView = () => {
+interface Props {
+  onSuccess?: () => void;
+}
+
+const CoursesListView = ({ onSuccess }: Props) => {
   const classes = useStyles();
 
   const [coursesList, error, loading, , setCoursesList] = useApi(coursesService.getAll, { defaultValue: [] });
@@ -94,6 +98,7 @@ const CoursesListView = () => {
             data={{ ...coursesList[courseIndex] }}
             onSave={handleUpdateCourse}
             onRemove={handleRemoveCourse}
+            onSuccess={onSuccess}
           />
         )}
       </CardContent>
