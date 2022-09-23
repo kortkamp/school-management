@@ -35,6 +35,7 @@ import MenuBookIcon from '@mui/icons-material/MenuBook';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import ClearIcon from '@mui/icons-material/Clear';
 
 /**
  * How to use:
@@ -84,6 +85,7 @@ const ICONS: Record<string, React.ComponentType> = {
   class: MenuBookIcon,
   interval: AccessTimeIcon,
   finish: AssignmentTurnedInIcon,
+  clear: ClearIcon,
 };
 
 /**
