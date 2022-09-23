@@ -8,10 +8,13 @@ import { FormOutlinedInput, FormTitleInput } from '../../components/HookFormInpu
 import { useCallback, useEffect, useState } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { useApi } from '../../api/useApi';
+import { useApi, useRequestApi } from '../../api/useApi';
 import { ISegment, segmentsService } from '../../services/segments.service';
 import { makeStyles } from '@mui/styles';
 import GradesTable from './components/GradesTable';
+import { coursesService } from '../../services/courses.service';
+import { v4 as uuid } from 'uuid';
+import { toast } from 'react-toastify';
 
 const useStyles = makeStyles((theme: Theme) => ({
   header: {
@@ -32,13 +35,26 @@ export interface FormValues {
   total_hours: number | '';
   phase_name: string;
   phases_number: number | '';
-  grades: { id: string; name: string; total_hours: number; days: number }[];
+  grades: {
+    id: string;
+    name: string;
+    total_hours: number;
+    days: number;
+    class_groups?: {
+      id: string;
+      name: string;
+    }[];
+  }[];
 }
 
+// interface PropsData extends Partial<FormValues> {
+//   id?: string;
+// }
+
 interface Props {
-  data?: Partial<FormValues>;
-  onSave?: (values: FormValues) => void;
-  onRemove?: (values: FormValues) => void;
+  data: FormValues;
+  onSave?: (id: string | undefined, values: FormValues) => void;
+  onRemove?: (id: string | undefined) => void;
 }
 
 const defaultValues: FormValues = {
@@ -69,50 +85,93 @@ const schema = yup
       .required('Campo obrigatório'),
     grades: yup.array().of(
       yup.object().shape({
-        name: yup.string().required('Name is required'),
+        name: yup.string().required('É necessário um nome para a fase'),
+        days: yup
+          .number()
+          .typeError('Valor inválido')
+          .positive('O valor precisa ser positivo')
+          .integer('O valor precisa ser inteiro')
+          .required('Campo obrigatório'),
+        total_hours: yup
+          .number()
+          .typeError('Valor inválido')
+          .positive('O valor precisa ser positivo')
+          .integer('O valor precisa ser inteiro')
+          .required('Campo obrigatório'),
       })
     ),
   })
   .required();
 
-const CourseView = ({ data, onSave = () => {}, onRemove = () => {} }: Props) => {
+const CourseView = ({ data: { id, ...courseData }, onSave = () => {}, onRemove = () => {} }: Props) => {
+  const isCreatingNewCourse = !id;
+
   const classes = useStyles();
 
-  const [isEditing, setIsEditing] = useState(true);
-
+  const [createCourse, saving] = useRequestApi(coursesService.create);
+  const [updateCourse, updating] = useRequestApi(coursesService.update);
+  const [removeCourse, removing] = useRequestApi(coursesService.remove);
   const [segments, , loadingSegments] = useApi(segmentsService.getAll, { defaultValue: [] });
+
+  const [isEditing, setIsEditing] = useState(isCreatingNewCourse);
+
   const {
     setValue,
     handleSubmit,
     reset,
     control,
     getValues,
-    formState: { errors },
+
+    formState: { errors, isDirty },
   } = useForm<FormValues>({
-    defaultValues: Object.assign({}, defaultValues, data),
+    defaultValues: Object.assign({}, defaultValues, courseData),
     resolver: yupResolver(schema),
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, update } = useFieldArray({
     control,
     name: 'grades',
   });
 
-  const onSubmit = (formData: FormValues) => {
-    console.log(formData);
-    onSave(formData);
-
-    setIsEditing(false);
+  const onSubmit = async (formData: FormValues) => {
+    let response: any;
+    if (isCreatingNewCourse) {
+      // const createGradesData = formData.grades.map(({ name, days, total_hours }) => ({ name, days, total_hours }));
+      response = await createCourse(formData);
+    } else {
+      response = await updateCourse({ data: formData, id });
+    }
+    if (response?.success) {
+      onSave(id, response.course);
+      setIsEditing(false);
+      toast.success('Curso salvo com sucesso');
+    }
   };
+
+  const handleRemoveCourse = useCallback(async () => {
+    if (!window.confirm('Deseja excluir o Curso ?')) {
+      return;
+    }
+    if (!id) {
+      // is removing a not saved course
+      onRemove(id);
+      return;
+    }
+    const response = await removeCourse({ id });
+    if (response?.success) {
+      onRemove(id);
+    }
+  }, [id]);
 
   const generateGrades = (phases_number: number, starting_phase: number, phase_name: string, total_hours: number) => {
     remove();
     for (let i = 0; i < phases_number; i++) {
       append({
-        id: `${i}`,
+        id: uuid(),
         name: `${i + starting_phase}º ${phase_name}`,
-        total_hours: total_hours / phases_number,
+        total_hours: Math.floor(total_hours / phases_number),
         days: 200,
+        class_groups: [],
       });
     }
   };
@@ -148,6 +207,55 @@ const CourseView = ({ data, onSave = () => {}, onRemove = () => {} }: Props) => 
     [segments]
   );
 
+  const handleAddGrade = () => {
+    const course = getValues();
+    const newGradesNumber = course.grades.length + 1;
+    const gradeHours = Math.floor((course.total_hours || 0) / (course.phases_number || 1));
+    const newTotalGradesHours = Number(course.total_hours || 0) + gradeHours;
+    append({
+      id: uuid(),
+      name: `${newGradesNumber}º ${course.phase_name}`,
+      total_hours: gradeHours,
+      days: 200,
+    });
+    setValue('phases_number', newGradesNumber);
+    setValue('total_hours', newTotalGradesHours);
+  };
+
+  const handleRemoveGrade = (index: number) => {
+    const course = getValues();
+    const newGradesNumber = course.grades.length - 1;
+    const newTotalGradesHours =
+      course.grades.reduce((total, grade) => total + grade.total_hours, 0) - course.grades[index].total_hours;
+
+    remove(index);
+    setValue('phases_number', newGradesNumber);
+    setValue('total_hours', newTotalGradesHours);
+  };
+
+  const handleAddClassGroup = (gradeIndex: number) => {
+    const course = getValues();
+    const segment = segments.find((s) => s.id === course.segment_id);
+    const namePrefix =
+      segment?.name === 'Médio'
+        ? (segment?.starting_phase + gradeIndex) * 1000
+        : ((segment?.starting_phase || 1) + gradeIndex) * 100;
+    const classIndex = (course.grades[gradeIndex].class_groups?.length || 0) + 1;
+
+    const classGroupName = `${namePrefix + classIndex}`;
+    const updatedClassGroups = course.grades[gradeIndex].class_groups
+      ? course.grades[gradeIndex].class_groups?.concat([{ id: uuid(), name: classGroupName }])
+      : [{ id: uuid(), name: classGroupName }];
+    update(gradeIndex, { ...course.grades[gradeIndex], class_groups: updatedClassGroups });
+  };
+
+  const handleRemoveClassGroup = (gradeIndex: number, classGroupIndex: number) => {
+    const { grades } = getValues();
+
+    const updatedClassGroups = grades[gradeIndex].class_groups?.filter((_, index) => index !== classGroupIndex);
+    update(gradeIndex, { ...grades[gradeIndex], class_groups: updatedClassGroups });
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <Grid container>
@@ -161,11 +269,11 @@ const CourseView = ({ data, onSave = () => {}, onRemove = () => {} }: Props) => 
               errorMessage={errors.name?.message}
             />
             <AppContextMenu
-              loading={false}
+              loading={removing}
               options={[
                 {
-                  label: 'Editar os dados',
-                  action: () => setIsEditing(true),
+                  label: isEditing ? 'Encerrar Edição' : 'Editar os dados',
+                  action: () => setIsEditing((prev) => !prev),
                 },
                 {
                   label: 'Gerar as Fases',
@@ -173,7 +281,7 @@ const CourseView = ({ data, onSave = () => {}, onRemove = () => {} }: Props) => 
                 },
                 {
                   label: 'Excluir o Curso',
-                  action: () => onRemove(getValues()),
+                  action: () => handleRemoveCourse(),
                 },
               ]}
             />
@@ -236,7 +344,16 @@ const CourseView = ({ data, onSave = () => {}, onRemove = () => {} }: Props) => 
             </Grid>
           </Grid>
           <Grid>
-            <GradesTable grades={fields} control={control} editable={isEditing} />
+            <GradesTable
+              grades={fields}
+              control={control}
+              editable={isEditing}
+              handleAddGrade={handleAddGrade}
+              handleRemoveGrade={handleRemoveGrade}
+              handleAddClassGroup={handleAddClassGroup}
+              handleRemoveClassGroup={handleRemoveClassGroup}
+              errors={errors.grades}
+            />
           </Grid>
         </Grid>
         <Grid
@@ -248,10 +365,17 @@ const CourseView = ({ data, onSave = () => {}, onRemove = () => {} }: Props) => 
           alignItems={'center'}
           style={{ padding: 7 }}
         >
-          <AppSaveButton type="submit" />
-          <AppButton color="warning" onClick={() => reset()}>
-            Limpar
-          </AppButton>
+          <AppSaveButton
+            type="submit"
+            loading={saving || updating}
+            disabled={saving || updating || !isDirty}
+            label={isCreatingNewCourse ? 'Criar' : 'Salvar'}
+          />
+          {isCreatingNewCourse && (
+            <AppButton color="warning" onClick={() => reset()}>
+              Limpar
+            </AppButton>
+          )}
         </Grid>
       </Grid>
     </form>

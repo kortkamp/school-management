@@ -2,7 +2,10 @@
 import { Box, Card, CardContent, CardHeader, Divider, Paper, Tab, Tabs, Theme } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import { useState } from 'react';
+import { useApi } from '../../api/useApi';
+import { AppLoading } from '../../components';
 import { AppAddButton } from '../../components/AppCustomButton';
+import { coursesService, ICourse } from '../../services/courses.service';
 import CourseView, { FormValues } from './CourseView';
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -12,14 +15,14 @@ const useStyles = makeStyles((theme: Theme) => ({
 const CoursesListView = () => {
   const classes = useStyles();
 
-  const [coursesList, setCoursesList] = useState<Partial<FormValues>[]>([]);
+  const [coursesList, error, loading, , setCoursesList] = useApi(coursesService.getAll, { defaultValue: [] });
 
   const [courseIndex, setCourseIndex] = useState<number>(0);
 
+  const [isCreatingNewCourse, setIsCreatingNewCourse] = useState(false);
+
   const selectPreviousIndex = () => {
-    if (courseIndex > 0) {
-      setCourseIndex(courseIndex - 1);
-    }
+    setCourseIndex((prev) => (prev > 0 ? prev - 1 : 0));
   };
 
   const handleChangeTab = (event: React.SyntheticEvent, index: number) => {
@@ -27,26 +30,43 @@ const CoursesListView = () => {
   };
 
   const handleAddNewCourse = () => {
-    const newCoursesList = coursesList.concat([{ id: String(coursesList.length) }]);
+    setIsCreatingNewCourse(true);
+    const newCoursesList = coursesList.concat([{} as ICourse]);
     setCoursesList(newCoursesList);
     setCourseIndex(newCoursesList.length - 1);
   };
 
-  const handleUpdateCourse = (data: FormValues) => {
+  const handleUpdateCourse = (courseId: string | undefined, data: FormValues) => {
+    const sanitizedData = {
+      ...data,
+      grades: data.grades.map(({ id, days, name, total_hours, class_groups }) => ({
+        id,
+        days,
+        name,
+        total_hours,
+        class_groups,
+      })),
+    };
+
     const newCoursesList = coursesList.map((course) => {
-      if (course.id === data.id) {
-        return data;
+      if (course.id === courseId) {
+        return sanitizedData as ICourse;
       }
       return course;
     });
+    setIsCreatingNewCourse(false);
     setCoursesList(newCoursesList);
   };
 
-  const handleRemoveCourse = (data: FormValues) => {
-    const newCoursesList = coursesList.filter((course) => course.id !== data.id);
-    setCoursesList(newCoursesList);
+  const handleRemoveCourse = (id: string | undefined) => {
+    const newCoursesList = coursesList.filter((course) => course.id !== id);
     selectPreviousIndex();
+    setCoursesList(newCoursesList);
   };
+
+  if (loading) {
+    return <AppLoading />;
+  }
 
   return (
     <Card className={classes.root}>
@@ -59,7 +79,13 @@ const CoursesListView = () => {
             ))}
           </Tabs>
 
-          <AppAddButton style={{ marginRight: 6 }} color="info" label="Novo Curso" onClick={handleAddNewCourse} />
+          <AppAddButton
+            style={{ marginRight: 6 }}
+            color="info"
+            label="Novo Curso"
+            onClick={handleAddNewCourse}
+            disabled={isCreatingNewCourse}
+          />
         </Box>
         <Divider />
         {coursesList.length > 0 && (
