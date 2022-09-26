@@ -19,4 +19,8 @@ export const routePaths = {
   routines: {
     path: '/turnos',
   },
+  employees: {
+    path: '/funcionarios',
+    create: { path: '/funcionarios/criar' },
+  },
 };

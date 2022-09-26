@@ -13,6 +13,7 @@ import Messages from './Messages';
 import Welcome from './Welcome';
 import RegisterSchool from './RegisterSchool';
 import Courses from './Courses';
+import Employees from './Employees';
 
 export {
   NotFound,
@@ -30,4 +31,5 @@ export {
   Welcome,
   RegisterSchool,
   Courses,
+  Employees,
 };

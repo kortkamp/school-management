@@ -125,6 +125,22 @@ export const SIDE_BAR_PRINCIPAL_ITEMS: Array<LinkToPage> = [
     ],
   },
   {
+    title: 'Funcionários',
+    icon: 'person',
+    subMenus: [
+      {
+        title: 'Listar',
+        path: `${routePaths.employees.path}`,
+        icon: 'search',
+      },
+      {
+        title: 'Cadastrar',
+        path: `${routePaths.employees.create.path}`,
+        icon: 'search',
+      },
+    ],
+  },
+  {
     title: 'Alunos',
     icon: 'person',
     subMenus: [
