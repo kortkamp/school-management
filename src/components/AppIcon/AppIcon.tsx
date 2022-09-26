@@ -36,6 +36,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import ClearIcon from '@mui/icons-material/Clear';
+import SchoolIcon from '@mui/icons-material/School';
 
 /**
  * How to use:
@@ -86,6 +87,7 @@ const ICONS: Record<string, React.ComponentType> = {
   interval: AccessTimeIcon,
   finish: AssignmentTurnedInIcon,
   clear: ClearIcon,
+  course: SchoolIcon,
 };
 
 /**
