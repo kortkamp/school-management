@@ -1,6 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Tab, Tabs } from '@mui/material';
+import {
+  Box,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  MenuItem,
+  Tab,
+  Tabs,
+  TextField,
+} from '@mui/material';
 import { ReactNode, useEffect, useState } from 'react';
 import { useApi, useRequestApi } from '../../api/useApi';
 import { AppButton, AppIcon, AppLoading } from '../../components';
@@ -17,12 +28,17 @@ import { AppSaveButton } from '../../components/AppCustomButton';
 import ListEmployeesView from '../Employees/ListEmployeesView';
 import CoursesListView from '../Courses/CoursesListView';
 import { coursesService } from '../../services/courses.service';
+import { rolesService } from '../../services/roles.service';
+import { useAppStore } from '../../store';
+import RegistrationSuccess from './components/RegistrationSuccess';
 
 /**
  * Renders "RegisterSchool" view
  * url: /registro *
  */
 const RegisterSchool = () => {
+  const [state, dispatch] = useAppStore();
+
   const [schoolData, , loadingSchool] = useApi(schoolsService.getById, {});
 
   const [routineGroupsData, , loadingRoutines] = useApi(routinesService.getAllRoutineGroups, {});
@@ -31,21 +47,48 @@ const RegisterSchool = () => {
 
   const [coursesList, , loadingCourses] = useApi(coursesService.getAll);
 
+  const [roles, , loadingRoles] = useApi(rolesService.getAll);
+
+  const [roleId, setRoleId] = useState('');
+
   const [tabIndex, setTabIndex] = useState(0);
 
   const [completedStep, setCompletedSteps] = useState([false, false, false, false, false, false]);
+
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);
   };
 
   const handleFinishRegistration = async () => {
-    const response = await finishRegistration({});
+    const response = await finishRegistration({ newRoleId: roleId });
 
     if (response?.success) {
       console.log('sucesso');
+      setRegistrationSuccess(true);
+
+      const newUserSchoolRole = response.newSchoolRole;
+      const { currentUser, currentSchool } = state;
+
+      if (!currentUser) {
+        return;
+      }
+      const newUserSchools = currentUser?.schools.filter(
+        (s) => s.id !== currentSchool?.id && s.role !== currentSchool?.role
+      );
+      newUserSchools.push(newUserSchoolRole);
+
+      dispatch({ type: 'SELECT_SCHOOL', payload: newUserSchoolRole });
+
+      dispatch({ type: 'CURRENT_USER', payload: { ...currentUser, schools: newUserSchools } });
+
       // should change state with new role for the current user
     }
+  };
+
+  const handleLogout = () => {
+    dispatch({ type: 'LOG_OUT' });
   };
 
   interface TabPanelProps {
@@ -153,7 +196,11 @@ const RegisterSchool = () => {
     }
   }, [schoolData, routineGroupsData, coursesList]);
 
-  if (loadingSchool || loadingRoutines || loadingCourses) return <AppLoading />;
+  if (registrationSuccess) {
+    return <RegistrationSuccess />;
+  }
+
+  if (loadingSchool || loadingRoutines || loadingCourses || loadingRoles) return <AppLoading />;
 
   return (
     <Box>
@@ -179,7 +226,7 @@ const RegisterSchool = () => {
         </TabPanel>
       ))}
       <TabPanel value={tabIndex} index={steps.length}>
-        <Box marginTop={10} display="flex" justifyContent={'center'} alignItems="center" flexDirection="column">
+        <Box marginTop={10} display="flex" justifyContent={'flex-start'} alignItems="center" flexDirection="column">
           <List>
             {steps.map((step) => (
               <ListItemButton key={step.index} onClick={() => setTabIndex(step.index)}>
@@ -190,8 +237,23 @@ const RegisterSchool = () => {
               </ListItemButton>
             ))}
           </List>
+          <TextField
+            required
+            select
+            label="Função que vou desempenhar"
+            name="role_id"
+            value={roleId}
+            onChange={(e) => setRoleId(e.target.value)}
+            style={{ width: 210, margin: 10 }}
+          >
+            {roles?.map((role) => (
+              <MenuItem key={role.id} value={role.id}>
+                {role.name}
+              </MenuItem>
+            ))}
+          </TextField>
           <AppSaveButton
-            disabled={!completedStep.every((step) => step) || isFinishing}
+            disabled={!completedStep.every((step) => step) || isFinishing || !roleId}
             loading={isFinishing}
             label="Finalizar Registro"
             onClick={handleFinishRegistration}
