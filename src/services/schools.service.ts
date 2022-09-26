@@ -92,13 +92,21 @@ const createSchoolParameters = async ({ token, schoolId, args: data }: IApiFuncP
   return response.data;
 };
 
-const finishRegistration = async ({ token, schoolId }: IApiFuncParams) => {
+const finishRegistration = async ({ token, schoolId, args }: IApiFuncParams) => {
   const response = await api.post(
     `/${schoolId}/registration/finish`,
-    {},
+    { newRoleId: args.newRoleId },
     { headers: { Authorization: `Bearer ${token}` } }
   );
-  return response.data;
+  return response.data as {
+    success: boolean;
+    newSchoolRole: {
+      id: string;
+      name: string;
+      role: string;
+      role_name: string;
+    };
+  };
 };
 
 const getSchoolParameters = async ({ token, schoolId }: IApiFuncParams) =>
