@@ -1,4 +1,7 @@
 export const routePaths = {
+  welcome: {
+    path: '/bem-vindo',
+  },
   school: {
     path: '/escola',
     data: { path: '/escola/dados' },

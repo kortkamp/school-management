@@ -14,6 +14,7 @@ import {
   Messages,
   Courses,
   Employees,
+  Welcome,
 } from '../views';
 import { PrivateLayout } from './Layout';
 import { routePaths } from './RoutePaths';
@@ -27,6 +28,7 @@ const PrivateRoutes = () => {
     <PrivateLayout>
       <Switch>
         <Route path="/" exact component={Home} />
+        <Route path={routePaths.welcome.path} component={Welcome} />
         <Route path="/about" component={About} />,
         <Route path="/professores" component={Teachers} />,
         <Route path="/turmas" component={ClassGroups} />,

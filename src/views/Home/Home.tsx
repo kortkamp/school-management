@@ -1,17 +1,4 @@
-import { Card, CardContent, CardHeader, Grid } from '@mui/material';
-import OpenExams from '../../components/OpenExams';
-// import WeekRoutines from '../../components/WeekRoutines';
-// import { ITableCell } from '../../components/WeekRoutines/WeekRoutines';
-// import { useAppStore } from '../../store';
-
-// const cellTable: ITableCell = ({ subject, classGroup }) => {
-//   return (
-//     <Grid container direction={'column'}>
-//       <span>{classGroup}</span>
-//       <span>{subject}</span>
-//     </Grid>
-//   );
-// };
+import { Grid } from '@mui/material';
 
 /**
  * Renders "Home" view
@@ -32,14 +19,6 @@ const HomeView = () => {
           </CardContent>
         </Card>
       </Grid> */}
-      <Grid item xs={12} sm={12} md={4}>
-        <Card>
-          <CardHeader title="Avaliações" subheader="Próximas avaliações" />
-          <CardContent>
-            <OpenExams />
-          </CardContent>
-        </Card>
-      </Grid>
     </Grid>
   );
 };

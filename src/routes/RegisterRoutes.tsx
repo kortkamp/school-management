@@ -1,5 +1,5 @@
 import { Route, Switch } from 'react-router-dom';
-import { RegisterSchool, Welcome, NotFound } from '../views';
+import { RegisterSchool, NotFound } from '../views';
 import CreateEmployeeRole from '../views/Employees/CreateEmployeeRole';
 import { CreateEmployeeView } from '../views/Employees/CreateEmployeeView';
 import { PrivateLayout } from './Layout';
@@ -13,7 +13,6 @@ const RegisterRoutes = () => {
     <PrivateLayout>
       <Switch>
         <Route path="/registro" component={RegisterSchool} />,
-        <Route path="/bem-vindo" component={Welcome} />
         <Route path="/funcionarios/criar" component={CreateEmployeeView} />,
         <Route path="/funcionarios/criar" component={CreateEmployeeView} />,
         <Route path="/funcionarios/nova-funcao" component={CreateEmployeeRole} />
