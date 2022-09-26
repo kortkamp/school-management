@@ -97,7 +97,6 @@ export const SIDE_BAR_PRINCIPAL_ITEMS: Array<LinkToPage> = [
       },
     ],
   },
-
   {
     title: 'Professores',
     icon: 'teacher',
@@ -176,34 +175,6 @@ export const SIDE_BAR_PRINCIPAL_ITEMS: Array<LinkToPage> = [
         title: 'Criar Turma',
         path: '/turmas/criar',
         icon: 'group',
-      },
-    ],
-  },
-  {
-    title: 'Bimestres',
-    path: '/bimestres',
-    icon: 'calendar',
-  },
-
-  {
-    title: 'Avaliações',
-    path: '/exames',
-    icon: 'exams',
-    subMenus: [
-      {
-        title: 'Listar Avaliações',
-        path: '/exames',
-        icon: 'exams',
-      },
-      {
-        title: 'Criar Avaliações',
-        path: '/exames/criar',
-        icon: 'exams',
-      },
-      {
-        title: 'Notas',
-        path: '/exames/notas',
-        icon: 'exams',
       },
     ],
   },
