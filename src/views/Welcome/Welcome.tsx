@@ -1,27 +1,38 @@
-import { Box, Grid, Typography } from '@mui/material';
+import { Box, Card, Typography } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import { Theme } from '@mui/material/styles';
+import { AppButton, AppLink } from '../../components';
 
 export const useStyles = makeStyles((theme: Theme) => ({
-  formBody: {
-    marginTop: theme.spacing(10),
+  root: {
     width: '100%',
-    maxWidth: '40rem', // 1000px
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  paragraph: {
-    // marginTop: theme.spacing(2),
+  welcomeCard: {
+    marginTop: theme.spacing(10),
+    padding: theme.spacing(5),
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    // backgroundColor: theme.palette.primary.light,
+    // width: '100%',
   },
-  box: {
-    // height: 300,
+  title: {
+    textAlign: 'center',
+    fontSize: 30,
+    fontFamily: 'Roboto',
+    fontWeight: 500,
+  },
+  text: {
+    marginTop: theme.spacing(5),
+  },
+  button: {
+    marginTop: theme.spacing(5),
 
-    marginTop: theme.spacing(2),
-    borderRadius: theme.shape.borderRadius,
-    backgroundColor: theme.palette.primary.main,
-    padding: theme.spacing(),
-    '&:hover': {
-      backgroundColor: theme.palette.primary.light,
-      opacity: [0.9, 0.8, 0.7],
-    },
+    fontSize: 20,
   },
 }));
 /**
@@ -31,28 +42,21 @@ export const useStyles = makeStyles((theme: Theme) => ({
 const WelcomeView = () => {
   const classes = useStyles();
 
-  const pendencies: any[] = [];
-
   return (
-    <Grid container direction="column" alignItems="center">
-      <Box className={classes.formBody}>
-        <Typography className={classes.paragraph} variant="h5">
-          Bem vindo
-        </Typography>
+    <Box className={classes.root}>
+      <Card className={classes.welcomeCard}>
+        <Typography className={classes.title}>BEM VINDO!</Typography>
 
-        <Typography className={classes.paragraph} variant="body1">
-          Para começar a utilizar o sistema primeiramente será necessário realizar os passos abaixo:
+        <Typography className={classes.text}>
+          Sua instituição foi cadastrada com sucesso, agora já pode iniciar os trabalhos.
         </Typography>
-
-        {pendencies.map((pendencie) => (
-          <Box key={pendencie.id} className={classes.box}>
-            <Typography className={classes.paragraph} variant="body1">
-              {pendencie.text}
-            </Typography>
-          </Box>
-        ))}
-      </Box>
-    </Grid>
+        <AppLink to="/">
+          <AppButton color="primary" className={classes.button}>
+            Iniciar
+          </AppButton>
+        </AppLink>
+      </Card>
+    </Box>
   );
 };
 
