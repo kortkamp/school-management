@@ -12,6 +12,13 @@ import { LinkToPage } from '../../utils/type';
 import { MessagesDialog } from '../../components/dialogs';
 import { RoleTypes } from '../../services/models/IRole';
 import SelectSchoolView from '../../views/Schools/SelectSchoolView';
+import {
+  SIDE_BAR_ADMIN_ITEMS,
+  SIDE_BAR_PRINCIPAL_ITEMS,
+  SIDE_BAR_REGISTER_ITEMS,
+  SIDE_BAR_STUDENT_ITEMS,
+  SIDE_BAR_TEACHER_ITEMS,
+} from './sidebarMenus';
 
 const TITLE_PRIVATE = 'Área Administrativa ';
 const MOBILE_SIDEBAR_ANCHOR = 'left'; // 'right';
@@ -58,211 +65,12 @@ function updateDocumentTitle(roleName: string) {
  * "Link to Page" items in Sidebar
  */
 
-const SIDE_BAR_REGISTER_ITEMS: Array<LinkToPage> = [
-  {
-    title: 'Cadastrar Instituição',
-    path: '/registro',
-    icon: 'school',
-  },
-  {
-    title: 'Cadastrar Funcionário',
-    path: '/funcionarios/criar',
-    icon: 'person',
-  },
-];
-const SIDE_BAR_STUDENT_ITEMS: Array<LinkToPage> = [
-  {
-    title: 'Home',
-    path: '/',
-    icon: 'home',
-  },
-  {
-    title: 'Profile',
-    path: '/user',
-    icon: 'account',
-  },
-];
-const SIDE_BAR_TEACHER_ITEMS: Array<LinkToPage> = [
-  {
-    title: 'Home',
-    path: '/',
-    icon: 'home',
-  },
-  {
-    title: 'Profile',
-    path: '/user',
-    icon: 'account',
-  },
-  {
-    title: 'Avaliações',
-    path: '/exames',
-    icon: 'exams',
-    subMenus: [
-      {
-        title: 'Listar Avaliações',
-        path: '/exames',
-        icon: 'exams',
-      },
-      {
-        title: 'Criar Avaliações',
-        path: '/exames/criar',
-        icon: 'exams',
-      },
-      {
-        title: 'Notas',
-        path: '/exames/notas',
-        icon: 'exams',
-      },
-    ],
-  },
-];
-const SIDE_BAR_ADMIN_ITEMS: Array<LinkToPage> = [
-  {
-    title: 'Home',
-    path: '/',
-    icon: 'home',
-  },
-  {
-    title: 'Profile',
-    path: '/user',
-    icon: 'account',
-  },
-  {
-    title: 'Escola',
-    path: '/escola',
-    icon: 'school',
-    subMenus: [
-      {
-        title: 'Editar Dados',
-        path: '/escola/atualizar',
-        icon: 'search',
-      },
-    ],
-  },
-  {
-    title: 'Definir Horários',
-    path: '/horarios',
-    icon: 'clock',
-    subMenus: [
-      {
-        title: 'Definir por Turma',
-        path: '/horarios/turma',
-        icon: 'search',
-      },
-
-      {
-        title: 'Definir por Professor',
-        path: '/horarios/professor',
-        icon: 'search',
-      },
-    ],
-  },
-  {
-    title: 'Professores',
-    icon: 'teacher',
-    subMenus: [
-      {
-        title: 'Listar Professores',
-        path: '/professores',
-        icon: 'search',
-      },
-      {
-        title: 'Cadastrar Professor',
-        path: '/professores/criar',
-        icon: 'search',
-      },
-      {
-        title: 'Associar Turma',
-        path: '/professores/turmas',
-        icon: 'search',
-      },
-      {
-        title: 'Associar Disciplina',
-        path: '/professores/disciplinas',
-        icon: 'search',
-      },
-    ],
-  },
-  {
-    title: 'Alunos',
-    icon: 'person',
-    subMenus: [
-      {
-        title: 'Listar Alunos',
-        path: '/alunos',
-        icon: 'search',
-      },
-      {
-        title: 'Cadastrar Aluno',
-        path: '/alunos/criar',
-        icon: 'search',
-      },
-      {
-        title: 'Designar Turma',
-        path: '/alunos/designar',
-        icon: 'search',
-      },
-    ],
-  },
-
-  {
-    title: 'Turmas',
-    path: '/turmas',
-    icon: 'group',
-    subMenus: [
-      {
-        title: 'Listar Turmas',
-        path: '/turmas',
-        icon: 'group',
-      },
-      {
-        title: 'Criar Turma',
-        path: '/turmas/criar',
-        icon: 'group',
-      },
-    ],
-  },
-  {
-    title: 'Bimestres',
-    path: '/bimestres',
-    icon: 'calendar',
-  },
-
-  {
-    title: 'Avaliações',
-    path: '/exames',
-    icon: 'exams',
-    subMenus: [
-      {
-        title: 'Listar Avaliações',
-        path: '/exames',
-        icon: 'exams',
-      },
-      {
-        title: 'Criar Avaliações',
-        path: '/exames/criar',
-        icon: 'exams',
-      },
-      {
-        title: 'Notas',
-        path: '/exames/notas',
-        icon: 'exams',
-      },
-    ],
-  },
-  {
-    title: 'Sobre',
-    path: '/about',
-    icon: 'info',
-  },
-];
-
 const SideBarItens: Record<string, Array<LinkToPage>> = {
   [RoleTypes.ADMIN]: SIDE_BAR_ADMIN_ITEMS,
   [RoleTypes.TEACHER]: SIDE_BAR_TEACHER_ITEMS,
   [RoleTypes.STUDENT]: SIDE_BAR_STUDENT_ITEMS,
   [RoleTypes.REGISTER]: SIDE_BAR_REGISTER_ITEMS,
-  [RoleTypes.PRINCIPAL]: SIDE_BAR_ADMIN_ITEMS,
+  [RoleTypes.PRINCIPAL]: SIDE_BAR_PRINCIPAL_ITEMS,
 };
 
 /**

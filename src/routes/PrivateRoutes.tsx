@@ -1,5 +1,5 @@
 import { Route, Switch } from 'react-router-dom';
-import { routeNames } from '.';
+
 import {
   About,
   NotFound,
@@ -12,8 +12,10 @@ import {
   Schools,
   Home,
   Messages,
+  Courses,
 } from '../views';
 import { PrivateLayout } from './Layout';
+import { routePaths } from './RoutePaths';
 
 /**
  * List of routes available only for authenticated users
@@ -30,8 +32,9 @@ const PrivateRoutes = () => {
         <Route path="/alunos" component={Students} />,
         <Route path="/exames" component={Exams} />,
         <Route path="/bimestres" component={Terms} />,
-        <Route path="/horarios" component={Routines} />,
-        <Route path={routeNames.school.path} component={Schools} />,
+        <Route path={routePaths.routines.path} component={Routines} />,
+        <Route path={routePaths.courses.path} component={Courses} />,
+        <Route path={routePaths.school.path} component={Schools} />,
         <Route path="/mensagens" component={Messages} />,
         <Route component={NotFound} />
       </Switch>

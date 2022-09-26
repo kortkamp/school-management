@@ -1,5 +1,5 @@
 import { Route, Switch } from 'react-router-dom';
-import { routeNames } from '../../routes';
+import { routePaths } from '../../routes/RoutePaths';
 
 import SchoolYearView from './SchoolYearView';
 
@@ -10,7 +10,7 @@ import SchoolYearView from './SchoolYearView';
 const ExamsRoutes = () => {
   return (
     <Switch>
-      <Route exact path={routeNames.schoolYear.path} component={SchoolYearView} />
+      <Route exact path={routePaths.schoolYear.path} component={SchoolYearView} />
     </Switch>
   );
 };

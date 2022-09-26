@@ -12,6 +12,7 @@ import Schools from './Schools';
 import Messages from './Messages';
 import Welcome from './Welcome';
 import RegisterSchool from './RegisterSchool';
+import Courses from './Courses';
 
 export {
   NotFound,
@@ -28,4 +29,5 @@ export {
   Messages,
   Welcome,
   RegisterSchool,
+  Courses,
 };
