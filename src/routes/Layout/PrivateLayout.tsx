@@ -30,7 +30,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     minHeight: '100vh', // Full screen height
     paddingTop: 56,
     [theme.breakpoints.up('sm')]: {
-      paddingTop: 64,
+      paddingTop: 48,
     },
     flexWrap: 'nowrap',
   },

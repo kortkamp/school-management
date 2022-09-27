@@ -1,4 +1,4 @@
-import { SvgIcon } from '@mui/material';
+import { IconProps, SvgIcon } from '@mui/material';
 // SVG assets
 import { ReactComponent as LogoIcon } from './logo.svg';
 // Material Icons
@@ -95,7 +95,7 @@ const ICONS: Record<string, React.ComponentType> = {
  * @param {string} [props.name] - name of the Icon to render
  * @param {string} [props.icon] - name of the Icon to render
  */
-interface Props {
+interface Props extends IconProps {
   name?: string; // Icon's name
   icon?: string; // Icon's name alternate prop
 }

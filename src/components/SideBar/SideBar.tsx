@@ -27,8 +27,8 @@ const useStyles = makeStyles((theme: Theme) => ({
   paperInDrawer: {
     width: SIDEBAR_WIDTH,
     [theme.breakpoints.up('md')]: {
-      marginTop: 64,
-      height: 'calc(100% - 64px)',
+      marginTop: 48,
+      height: 'calc(100% - 48px)',
     },
   },
   profile: {

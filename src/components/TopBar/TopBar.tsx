@@ -1,8 +1,9 @@
 import clsx from 'clsx';
-import { Theme, AppBar, Toolbar, Typography } from '@mui/material';
+import { Theme, AppBar, Toolbar, Typography, Button } from '@mui/material';
 import makeStyles from '@mui/styles/makeStyles';
 import AppIconButton from '../AppIconButton';
 import { SIDEBAR_WIDTH } from '../../routes/Layout/PrivateLayout';
+import AppIcon from '../AppIcon';
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -19,6 +20,10 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
   logo: {
     height: theme.spacing(5),
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    color: theme.palette.primary.contrastText,
   },
   title: {
     // marginLeft: theme.spacing(1),
@@ -55,13 +60,14 @@ const TopBar: React.FC<Props> = ({
 
   return (
     <AppBar {...restOfProps} className={clsx(classes.root, className)} component="div">
-      <Toolbar className={classes.toolbar} disableGutters>
+      <Toolbar className={classes.toolbar} disableGutters variant="dense">
         <div className={classes.logo} style={{ marginRight: isMenuOpen ? SIDEBAR_WIDTH + 'px' : '0' }}>
-          <AppIconButton
-            icon="logo"
-            // color="primary"
-            onClick={onMenu}
-          />
+          <Button onClick={onMenu} color="inherit" style={{ marginBottom: 7 }}>
+            <AppIcon name="logo" />
+          </Button>
+          <Typography variant="h6" className={classes.title}>
+            SMSystem
+          </Typography>
         </div>
 
         <Typography variant="h6" className={classes.title}>
