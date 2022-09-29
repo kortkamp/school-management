@@ -12,12 +12,11 @@ import {
   Tabs,
   TextField,
 } from '@mui/material';
-import { ReactNode, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useApi, useRequestApi } from '../../api/useApi';
-import { AppButton, AppIcon, AppLoading } from '../../components';
+import { AppLoading } from '../../components';
 import { routinesService } from '../../services/routines.service';
 import { schoolsService } from '../../services/schools.service';
-import { termsService } from '../../services/terms.service';
 import ListRoutinesView from '../Routines/ListRoutinesView';
 import CreateSchoolConfigurationsView from '../Schools/CreateSchoolConfigurationsView';
 import UpdateSchoolInfoView from '../Schools/UpdateSchoolInfoView';
@@ -31,6 +30,8 @@ import { coursesService } from '../../services/courses.service';
 import { rolesService } from '../../services/roles.service';
 import { useAppStore } from '../../store';
 import RegistrationSuccess from './components/RegistrationSuccess';
+import { useHistory } from 'react-router-dom';
+import { routePaths } from '../../routes/RoutePaths';
 
 /**
  * Renders "RegisterSchool" view
@@ -56,6 +57,8 @@ const RegisterSchool = () => {
   const [completedStep, setCompletedSteps] = useState([false, false, false, false, false, false]);
 
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
+
+  const history = useHistory();
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);
@@ -83,12 +86,9 @@ const RegisterSchool = () => {
 
       dispatch({ type: 'CURRENT_USER', payload: { ...currentUser, schools: newUserSchools } });
 
+      history.push(routePaths.welcome.path);
       // should change state with new role for the current user
     }
-  };
-
-  const handleLogout = () => {
-    dispatch({ type: 'LOG_OUT' });
   };
 
   interface TabPanelProps {
