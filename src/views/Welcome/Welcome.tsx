@@ -32,7 +32,7 @@ export const useStyles = makeStyles((theme: Theme) => ({
   button: {
     marginTop: theme.spacing(5),
 
-    fontSize: 20,
+    fontSize: 15,
   },
 }));
 /**
