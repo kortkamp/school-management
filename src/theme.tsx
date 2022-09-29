@@ -20,11 +20,11 @@ declare module '@mui/styles/defaultTheme' {
  */
 const FRONT_COLORS = {
   primary: {
-    main: '#64B5F6',
-    contrastText: '#000000',
+    main: '#1C4E80',
+    contrastText: '#e4e4e4',
   },
   secondary: {
-    main: '#EF9A9A',
+    main: '#EA6A47',
     contrastText: '#000000',
   },
 };

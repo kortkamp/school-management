@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import clsx from 'clsx';
 import { Theme, AppBar, Toolbar, Typography, Button } from '@mui/material';
 import makeStyles from '@mui/styles/makeStyles';
 import AppIconButton from '../AppIconButton';
 import { SIDEBAR_WIDTH } from '../../routes/Layout/PrivateLayout';
 import AppIcon from '../AppIcon';
+import AppLink from '../AppLink';
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -12,18 +14,34 @@ const useStyles = makeStyles((theme: Theme) => ({
     // backgroundColor: theme.palette.primary.main, // Uncomment if you also need colored background in dark mode
   },
   toolbar: {
-    paddingLeft: theme.spacing(1),
+    // paddingLeft: theme.spacing(1),
     paddingRight: theme.spacing(1),
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   logo: {
-    height: theme.spacing(5),
+    // height: theme.spacing(5),
+    // padding: theme.spacing(1, 3),
     display: 'flex',
-    justifyContent: 'space-between',
     alignItems: 'center',
     color: theme.palette.primary.contrastText,
+    paddingLeft: theme.spacing(3),
+
+    // color: theme.palette.button,
+    textDecoration: 'none',
+    justifyContent: 'flex-start',
+    letterSpacing: 0,
+    width: '100%',
+    // fontWeight: theme.typography.fontWeightMedium,
+  },
+  icon: {
+    width: 24,
+    height: 24,
+    display: 'flex',
+    alignItems: 'center',
+    marginRight: theme.spacing(1),
+    paddingBottom: 6,
   },
   title: {
     // marginLeft: theme.spacing(1),
@@ -31,8 +49,11 @@ const useStyles = makeStyles((theme: Theme) => ({
     // flexGrow: 1,
     // textAlign: 'center',
     // whiteSpace: 'nowrap',
+    [theme.breakpoints.down('md')]: {
+      display: 'none',
+    },
   },
-  buttons: { position: 'relative' },
+  buttons: {},
 }));
 
 /**
@@ -61,14 +82,12 @@ const TopBar: React.FC<Props> = ({
   return (
     <AppBar {...restOfProps} className={clsx(classes.root, className)} component="div">
       <Toolbar className={classes.toolbar} disableGutters variant="dense">
-        <div className={classes.logo} style={{ marginRight: isMenuOpen ? SIDEBAR_WIDTH + 'px' : '0' }}>
-          <Button onClick={onMenu} color="inherit" style={{ marginBottom: 7 }}>
+        <AppLink className={classes.logo} to="/" style={{ width: SIDEBAR_WIDTH, textDecoration: 'none' }}>
+          <div className={classes.icon}>
             <AppIcon name="logo" />
-          </Button>
-          <Typography variant="h6" className={classes.title}>
-            SMSystem
-          </Typography>
-        </div>
+          </div>
+          <Typography variant="h6">SMSystem</Typography>
+        </AppLink>
 
         <Typography variant="h6" className={classes.title}>
           {title}
