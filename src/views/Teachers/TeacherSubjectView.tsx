@@ -1,30 +1,24 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Card, CardContent, CardHeader, Grid, CircularProgress, TextField, MenuItem } from '@mui/material';
 import { useCallback, useEffect, useState } from 'react';
-import { AppButton } from '../../components';
+import { AppButton, AppLoading } from '../../components';
 import { teachersService } from '../../services/teachers.service';
-import { subjectsService } from '../../services/subjects.service';
+import { ISubject, subjectsService } from '../../services/subjects.service';
 import { SHARED_CONTROL_PROPS, useAppForm } from '../../utils/form';
 import { DataGrid, GridOverlay } from '@mui/x-data-grid';
 import { segmentsService } from '../../services/segments.service';
 import { useParams } from 'react-router-dom';
 import { useAppStore } from '../../store';
-
-interface ISegment {
-  id: string;
-  name: string;
-}
-
-interface ISubject {
-  id: string;
-  name: string;
-  segment: ISegment;
-}
+import { useApi, useRequestApi } from '../../api/useApi';
 
 interface FormStateValues {
   teacher_id: string;
   segment_id: string;
   subjects_ids: string[];
+}
+
+interface ITeacherSubject extends ISubject {
+  segment: { name: string };
 }
 
 const teacherSubjectSchema = {};
@@ -34,18 +28,19 @@ const teacherSubjectSchema = {};
  * url: /professores/disciplina
  */
 const TeacherSubjectView = () => {
-  const [appState] = useAppStore();
-  const [teachers, setTeachers] = useState<any[]>([]);
-
   const { id: teacherIdPAram } = useParams<{ id: string }>();
+  const [appState] = useAppStore();
 
-  const [subjects, setSubjects] = useState<ISubject[]>([]);
+  const [teachersData, , loadingTeachers] = useApi(teachersService.getAll);
+  const [subjects, , loadingSubjects] = useApi(subjectsService.getAll, { defaultValue: [] });
+  const [segments, , loadingSegments] = useApi(segmentsService.getAll, { defaultValue: [] });
+
+  const [getUserSubjects, loadingUserSubjects] = useRequestApi(subjectsService.getByUser);
+  const [addTeacherSubject, addingTeacherSubject] = useRequestApi(teachersService.addTeacherSubjects);
+  const [removeTeacherSubject, removingTeacherSubject] = useRequestApi(teachersService.removeTeacherSubject);
+
   const [filteredSubjects, setFilteredSubjects] = useState<ISubject[]>([]);
-  const [teacherSubjects, setTeacherSubjects] = useState<ISubject[]>([]);
-  const [segments, setSegments] = useState<ISegment[]>([]);
-
-  const [loading, setLoading] = useState(true);
-  const [loadingTeacher, setLoadingTeacher] = useState(false);
+  const [teacherSubjects, setTeacherSubjects] = useState<ITeacherSubject[]>([]);
 
   const [formState, , onFieldChange] = useAppForm({
     validationSchema: teacherSubjectSchema, // the state value, so could be changed in time
@@ -58,46 +53,15 @@ const TeacherSubjectView = () => {
 
   const values = formState.values as FormStateValues;
 
-  const loadTeacherList = useCallback(async () => {
-    try {
-      const response = await teachersService.getAll({ schoolId: '', token: '' });
-      setTeachers(response.result);
-    } catch (err: any) {
-      console.log(err);
-    }
-  }, []);
-
-  const loadSubjectsList = useCallback(async () => {
-    try {
-      const response = await subjectsService.getAll();
-      setSubjects(response.data.subjects);
-      setLoading(false);
-    } catch (err: any) {
-      console.log(err);
-    }
-  }, []);
-
-  const loadSegmentsList = useCallback(async () => {
-    try {
-      // const response = await segmentsService.getAll();
-
-      // setSegments(response.data.segments);
-      setLoading(false);
-    } catch (err: any) {
-      console.log(err);
-    }
-  }, []);
-
   const loadTeacherSubjectsList = useCallback(async () => {
-    try {
-      if (values.teacher_id) {
-        setLoadingTeacher(true);
-        const response = await subjectsService.getByUser(values.teacher_id);
-        setTeacherSubjects(response.data.user_subjects.map((user_subject: any) => user_subject.subject));
-        setLoadingTeacher(false);
-      }
-    } catch (err: any) {
-      console.log(err);
+    if (!values.teacher_id) {
+      return;
+    }
+
+    const userSubjects = await getUserSubjects({ id: values.teacher_id });
+
+    if (userSubjects) {
+      setTeacherSubjects(userSubjects.map((user_subject: any) => user_subject.subject));
     }
   }, [values.teacher_id, teacherIdPAram]);
 
@@ -105,7 +69,7 @@ const TeacherSubjectView = () => {
     setFilteredSubjects(
       subjects.filter((subject) => {
         return (
-          subject.segment.id === values.segment_id &&
+          subject.segment_id === values.segment_id &&
           !teacherSubjects.find((teacherSubject) => teacherSubject.id === subject.id)
         );
       })
@@ -116,56 +80,27 @@ const TeacherSubjectView = () => {
     loadTeacherSubjectsList();
   }, [values.teacher_id, loadTeacherSubjectsList]);
 
-  useEffect(() => {
-    loadTeacherList();
-    loadSubjectsList();
-    loadSegmentsList();
-    // if(teacherIdPAram){
-
-    // }
-  }, [loadTeacherList, loadSubjectsList, loadSegmentsList]);
-
   const handleRemoveTeacherSubject = async (teacher_id: string, subject_id: string) => {
-    try {
-      const response = await teachersService.removeTeacherSubject(appState?.currentSchool?.id as string, {
-        teacher_id,
-        subject_id,
-      });
-      console.log(response);
+    const response = await removeTeacherSubject({
+      user_id: teacher_id,
+      subject_id,
+    });
+
+    if (response?.success) {
       setTeacherSubjects(teacherSubjects.filter((subject) => subject.id !== subject_id));
-    } catch (err) {
-      console.log(err);
     }
   };
 
   const handleAddTeacherSubject = async (teacher_id: string, subject: ISubject) => {
-    try {
-      const response = await teachersService.addTeacherSubjects(appState?.currentSchool?.id as string, {
-        teacher_id,
-        subjects_ids: [subject.id],
-      });
-      console.log(response);
-      setTeacherSubjects([...teacherSubjects, subject]);
-    } catch (err) {
-      console.log(err);
+    const response = await addTeacherSubject({
+      user_id: teacher_id,
+      subject_id: subject.id,
+    });
+    if (response?.success) {
+      const segmentName = segments.find((s) => s.id === subject.segment_id)?.name;
+      setTeacherSubjects([...teacherSubjects, { ...subject, segment: { name: segmentName || '' } }]);
     }
   };
-
-  if (loading)
-    return (
-      <Grid
-        container
-        spacing={0}
-        direction="column"
-        alignItems="center"
-        justifyContent="center"
-        style={{ minHeight: '100vh', minWidth: '100%' }}
-      >
-        <Grid item xs={3}>
-          <CircularProgress />
-        </Grid>
-      </Grid>
-    );
 
   const subjectsColumns = [
     { field: 'name', headerName: 'Matérias', width: 100, flex: 1 },
@@ -184,6 +119,7 @@ const TeacherSubjectView = () => {
               handleAddTeacherSubject(values.teacher_id, params.row);
             }}
             disabled={!values.teacher_id}
+            loading={addingTeacherSubject}
           >
             Adicionar
           </AppButton>
@@ -217,6 +153,10 @@ const TeacherSubjectView = () => {
     },
   ];
 
+  const isLoading = loadingTeachers || loadingSegments || loadingSubjects;
+
+  if (isLoading) return <AppLoading />;
+
   return (
     <Grid container spacing={3}>
       <Grid item xs={12} md={12}>
@@ -235,7 +175,7 @@ const TeacherSubjectView = () => {
                   onChange={onFieldChange}
                   {...SHARED_CONTROL_PROPS}
                 >
-                  {teachers.map((teacher) => {
+                  {teachersData?.result.map((teacher) => {
                     return (
                       <MenuItem key={teacher.id} value={teacher.id}>
                         {teacher.name}
@@ -245,8 +185,8 @@ const TeacherSubjectView = () => {
                 </TextField>
                 <DataGrid
                   rows={teacherSubjects}
-                  columns={loadingTeacher ? [] : teacherColumns}
-                  loading={loadingTeacher}
+                  columns={loadingUserSubjects ? [] : teacherColumns}
+                  loading={loadingUserSubjects}
                   // pageSize={5}
                   // rowsPerPageOptions={[5]}
                   // checkboxSelection
@@ -284,7 +224,7 @@ const TeacherSubjectView = () => {
                 <DataGrid
                   rows={filteredSubjects}
                   columns={subjectsColumns}
-                  loading={loading}
+                  loading={loadingSubjects}
                   hideFooter
                   disableSelectionOnClick
                   // pageSize={5}
