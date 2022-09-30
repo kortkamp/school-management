@@ -49,11 +49,19 @@ const useStyles = makeStyles((theme: Theme) => ({
     // flexGrow: 1,
     // textAlign: 'center',
     // whiteSpace: 'nowrap',
+    marginLeft: 48,
     [theme.breakpoints.down('md')]: {
       display: 'none',
     },
   },
   buttons: {},
+  menu: {
+    color: theme.palette.primary.contrastText,
+
+    [theme.breakpoints.up('md')]: {
+      display: 'none',
+    },
+  },
 }));
 
 /**
@@ -82,6 +90,7 @@ const TopBar: React.FC<Props> = ({
   return (
     <AppBar {...restOfProps} className={clsx(classes.root, className)} component="div">
       <Toolbar className={classes.toolbar} disableGutters variant="dense">
+        <AppIconButton icon="menu" className={classes.menu} onClick={onMenu} />
         <AppLink className={classes.logo} to="/" style={{ width: SIDEBAR_WIDTH, textDecoration: 'none' }}>
           <div className={classes.icon}>
             <AppIcon name="logo" />
