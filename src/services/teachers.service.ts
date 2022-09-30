@@ -3,13 +3,11 @@ import api from './api.service';
 
 interface ITeachersList {
   success: boolean;
-  result: [
-    {
-      id: string;
-      name: string;
-      phone: null;
-    }[]
-  ];
+  result: {
+    id: string;
+    name: string;
+    phone: null;
+  }[];
   total_filtered: number;
   page: number;
   per_page: number;
@@ -43,11 +41,18 @@ const create = async ({ schoolId, token, args }: IApiFuncParams) =>
 
 const remove = async (id: object) => api.delete('/${school_id}/teachers/' + id);
 
-const addTeacherSubjects = async (school_id: string, data: { teacher_id: string; subjects_ids: string[] }) =>
-  api.post(`/${school_id}/teachers/subjects/`, { ...data });
+const addTeacherSubjects = async ({ schoolId, token, args }: IApiFuncParams) =>
+  (await api.post(`/${schoolId}/subjects/user/`, args, { headers: { Authorization: `Bearer ${token}` } })).data;
 
-const removeTeacherSubject = async (school_id: string, data: { teacher_id: string; subject_id: string }) =>
-  api.delete(`/${school_id}/teachers/subjects/`, { data });
+//TODO preciso associar o userSubject a uma escola!!!!!!!!!!!
+// const addTeacherSubjects2 = async (school_id: string, data: { teacher_id: string; subjects_id: string }) =>
+//   api.post(`/${school_id}/teachers/subjects/`, { ...data });
+
+// const removeTeacherSubject = async (school_id: string, data: { teacher_id: string; subject_id: string }) =>
+//   api.delete(`/${school_id}/teachers/subjects/`, { data });
+
+const removeTeacherSubject = async ({ schoolId, token, args }: IApiFuncParams) =>
+  (await api.delete(`/${schoolId}/subjects/user/`, { data: args, headers: { Authorization: `Bearer ${token}` } })).data;
 
 const update = async (school_id: string, id: string, data: object) => api.put(`/${school_id}/teachers/` + id, data);
 
