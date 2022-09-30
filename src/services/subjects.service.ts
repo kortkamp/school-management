@@ -1,13 +1,37 @@
+import { IApiFuncParams } from '../api/useApi';
 import api from './api.service';
 
-const getAll = async (per_page = 10, page = 1, filterBy = '', filterValue = '', filterType = '') =>
-  api.get(
-    `/subjects?per_page=${per_page}&page=${page}&orderBy=created_at&orderType=DESC${
-      !!filterValue ? `&filterBy=${filterBy}&filterValue=${filterValue}&filterType=${filterType}` : ''
-    }`
-  );
+export interface ISubject {
+  id: string;
+  name: string;
+  segment_id: string;
+}
 
-const getByUser = async (user_id: string) => api.get('/subjects/user/' + user_id);
+export interface IUserSubject {
+  user_id: string;
+  subject_id: string;
+  type: string;
+  subject: {
+    id: string;
+    name: string;
+    segment: {
+      id: string;
+      name: string;
+    };
+  };
+}
+
+const getAll = async ({ schoolId, token, cancelToken }: IApiFuncParams) =>
+  (await api.get(`/${schoolId}/subjects`, { headers: { Authorization: `Bearer ${token}` }, cancelToken })).data
+    .subjects as ISubject[];
+
+const getByUser = async ({ schoolId, token, cancelToken, args }: IApiFuncParams) =>
+  (
+    await api.get(`/${schoolId}/subjects/user/${args.id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cancelToken,
+    })
+  ).data.user_subjects as IUserSubject[];
 
 const create = async (data: object) => api.post('/subjects', data);
 
