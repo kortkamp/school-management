@@ -218,6 +218,7 @@ const CourseView = ({ data: { id, ...courseData }, onSave = () => {}, onRemove =
       name: `${newGradesNumber}º ${course.phase_name}`,
       total_hours: gradeHours,
       days: 200,
+      class_groups: [],
     });
     setValue('phases_number', newGradesNumber);
     setValue('total_hours', newTotalGradesHours);
@@ -235,15 +236,24 @@ const CourseView = ({ data: { id, ...courseData }, onSave = () => {}, onRemove =
   };
 
   const handleAddClassGroup = (gradeIndex: number) => {
+    const classNamePrefix = (segment: ISegment | undefined, index: number) => {
+      switch (segment?.name) {
+        case 'Médio':
+          return (segment?.starting_phase + gradeIndex) * 1000;
+        case 'Outro':
+          return ((segment?.starting_phase || 1) + gradeIndex) * 10;
+        default:
+          return ((segment?.starting_phase || 1) + gradeIndex) * 100;
+      }
+    };
     const course = getValues();
     const segment = segments.find((s) => s.id === course.segment_id);
-    const namePrefix =
-      segment?.name === 'Médio'
-        ? (segment?.starting_phase + gradeIndex) * 1000
-        : ((segment?.starting_phase || 1) + gradeIndex) * 100;
+    const namePrefix = classNamePrefix(segment, gradeIndex);
+
     const classIndex = (course.grades[gradeIndex].class_groups?.length || 0) + 1;
 
     const classGroupName = `${namePrefix + classIndex}`;
+
     const updatedClassGroups = course.grades[gradeIndex].class_groups
       ? course.grades[gradeIndex].class_groups?.concat([{ id: uuid(), name: classGroupName }])
       : [{ id: uuid(), name: classGroupName }];
