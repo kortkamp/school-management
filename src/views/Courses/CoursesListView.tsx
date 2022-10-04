@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useApi } from '../../api/useApi';
 import { AppLoading } from '../../components';
 import { AppAddButton } from '../../components/AppCustomButton';
+import AppError from '../../components/AppError';
 import { coursesService, ICourse } from '../../services/courses.service';
 import CourseView, { FormValues } from './CourseView';
 
@@ -70,6 +71,10 @@ const CoursesListView = ({ onSuccess }: Props) => {
 
   if (loading) {
     return <AppLoading />;
+  }
+
+  if (error) {
+    return <AppError>{error}</AppError>;
   }
 
   return (
