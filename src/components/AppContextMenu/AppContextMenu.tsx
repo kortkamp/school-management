@@ -5,12 +5,13 @@ import MenuItem from '@mui/material/MenuItem';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { CircularProgress } from '@mui/material';
 
-interface Props {
+export interface Props {
   loading?: boolean;
   options: { label: string; action: () => void }[];
+  className?: string;
 }
 
-const AppContextMenu = ({ options, loading = false }: Props) => {
+const AppContextMenu = ({ options, loading = false, className }: Props) => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -21,7 +22,7 @@ const AppContextMenu = ({ options, loading = false }: Props) => {
   };
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={{ position: 'relative' }} className={className}>
       <IconButton
         aria-label="more"
         id="long-button"
