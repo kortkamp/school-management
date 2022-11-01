@@ -145,13 +145,12 @@ export const SIDE_BAR_PRINCIPAL_ITEMS: Array<LinkToPage> = [
     subMenus: [
       {
         title: 'Listar Alunos',
-        path: '/alunos',
-        icon: 'search',
+        path: `${routePaths.students.path}`,
       },
+
       {
         title: 'Cadastrar Aluno',
-        path: '/alunos/criar',
-        icon: 'search',
+        path: `${routePaths.students.create.path}`,
       },
       {
         title: 'Designar Turma',
