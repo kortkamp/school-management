@@ -54,10 +54,10 @@ const AppAllocationSelect: React.FC<Props> = ({ onChange, getClassGroup }) => {
     try {
       // const segmentResponse = await segmentsService.getAll();
       const gradeResponse = await gradesService.getAll();
-      const classGroupResponse = await classGroupsService.getAll();
-      // setSegments(segmentResponse.data.segments.sort((a: any, b: any) => a.name.localeCompare(b.name)));
-      setGrades(gradeResponse.data.grades);
-      setClassGroups(classGroupResponse.data.classGroups);
+      // const classGroupResponse = await classGroupsService.getAll();
+      // // setSegments(segmentResponse.data.segments.sort((a: any, b: any) => a.name.localeCompare(b.name)));
+      // setGrades(gradeResponse.data.grades);
+      // setClassGroups(classGroupResponse.data.classGroups);
     } catch (err: any) {
       console.log(err);
     }
