@@ -26,4 +26,12 @@ export const routePaths = {
     path: '/funcionarios',
     create: { path: '/funcionarios/criar' },
   },
+  students: {
+    path: '/alunos',
+    create: { path: '/alunos/cadastrar' },
+    createMany: { path: '/alunos/cadastrar-por-lista' },
+  },
+  classGroups: {
+    path: '/turmas',
+  },
 };
