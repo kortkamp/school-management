@@ -54,11 +54,11 @@ export interface IRoutineGroup {
   }[];
 }
 
-interface IListRoutineGroupsResponse {
-  success: boolean;
-  message?: string;
-  routineGroups: IRoutineGroup[];
-}
+// interface IListRoutineGroupsResponse {
+//   success: boolean;
+//   message?: string;
+//   routineGroups: IRoutineGroup[];
+// }
 
 interface ICreateRoutineGroupResponse {
   success: boolean;
@@ -82,8 +82,8 @@ interface ICreateRoutineResponse {
 const getAll = async () => (await api.get(`/routines`)).data.routines as IRoutine[];
 
 const getAllRoutineGroups = async ({ schoolId, token, cancelToken }: IApiFuncParams) =>
-  (await api.get(`/${schoolId}/routine-groups`, { headers: { Authorization: `Bearer ${token}` }, cancelToken }))
-    .data as IListRoutineGroupsResponse;
+  (await api.get(`/${schoolId}/routine-groups`, { headers: { Authorization: `Bearer ${token}` }, cancelToken })).data
+    .routineGroups as IRoutineGroup[];
 
 const getRoutineSubjectsByClassGroup = async (id: string) =>
   (await api.get('/routines/subjects/class-group/' + id)).data.routineSubjects as IRoutineSubject[];
