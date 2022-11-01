@@ -49,9 +49,9 @@ const ListRoutinesView = ({ onSuccess }: Props) => {
   const [selectedRoutineGroup, selectRoutineGroup] = useState<IRoutineGroup>({ id: '23', name: 'teste', routines: [] });
 
   useEffect(() => {
-    if (routineGroupsData?.routineGroups) {
-      setRoutineGroups(routineGroupsData.routineGroups);
-      selectRoutineGroup(routineGroupsData.routineGroups[0]);
+    if (routineGroupsData) {
+      setRoutineGroups(routineGroupsData);
+      selectRoutineGroup(routineGroupsData[0]);
     }
   }, [routineGroupsData]);
 

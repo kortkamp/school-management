@@ -15,11 +15,11 @@ import { useCallback, useEffect, useReducer, useState } from 'react';
 import { useParams } from 'react-router';
 import { AppButton, AppLoading } from '../../components';
 import { examsService } from '../../services/exams.service';
-import { studentsService } from '../../services/students.service';
+// import { studentsService } from '../../services/students.service';
 import Moment from 'moment';
 import { createStyles, makeStyles } from '@mui/styles';
 import { useAppMessage } from '../../utils/message';
-import { useAppStore } from '../../store';
+// import { useAppStore } from '../../store';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -104,7 +104,7 @@ const ExamView: React.FC<Props> = ({ examId }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const [appState] = useAppStore();
+  // const [appState] = useAppStore();
 
   const { id } = useParams<{ id: string }>();
 
@@ -136,30 +136,27 @@ const ExamView: React.FC<Props> = ({ examId }) => {
   }, [id]);
 
   const loadStudentsFromClass = useCallback(async () => {
-    try {
-      const studentsResponse = await studentsService.getAll(
-        appState?.currentSchool?.id as string,
-        1000,
-        1,
-        'class_group_id',
-        exam.class_id,
-        'eq'
-      );
-
-      const studentsData = studentsResponse.data.result as any[];
-
-      const resultData = studentsData.map((student) => {
-        return {
-          student_id: student.id,
-          name: student.name,
-          value: '' as '',
-        };
-      });
-
-      resultsDispatch({ type: ExamResultActionKind.CREATE, payload: resultData });
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.response });
-    }
+    // try {
+    //   const studentsResponse = await studentsService.getAll(
+    //     appState?.currentSchool?.id as string,
+    //     1000,
+    //     1,
+    //     'class_group_id',
+    //     exam.class_id,
+    //     'eq'
+    //   );
+    //   const studentsData = studentsResponse.data.result as any[];
+    //   const resultData = studentsData.map((student) => {
+    //     return {
+    //       student_id: student.id,
+    //       name: student.name,
+    //       value: '' as '',
+    //     };
+    //   });
+    //   resultsDispatch({ type: ExamResultActionKind.CREATE, payload: resultData });
+    // } catch (err: any) {
+    //   setMessage({ type: 'error', text: err.response });
+    // }
   }, [exam]);
 
   const handleSaveResults = useCallback(async () => {

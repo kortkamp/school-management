@@ -20,15 +20,7 @@ import { useAppMessage } from '../../utils/message';
 import { IRoutine, routinesService } from '../../services/routines.service';
 import { subjectsService } from '../../services/subjects.service';
 import SubjectsTimeTable from '../../components/SubjectsTimeTable';
-
-interface ISubject {
-  id: string;
-  name: string;
-  segment: {
-    id: string;
-    name: string;
-  };
-}
+import { useApi } from '../../api/useApi';
 
 interface IRoutineSubject {
   routine_id: string;
@@ -50,10 +42,11 @@ interface ISubjectsTotalTime {
 const RoutinesView = () => {
   const weekDays = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
 
+  const [subjects, , loadingSubjects] = useApi(subjectsService.getAll, { defaultValue: [] });
+
   const [routines, setRoutines] = useState<IRoutine[]>([]);
   const [routineSubjects, setRoutineSubjects] = useState<IRoutineSubject[]>([]);
   const [defaultRoutineSubjects, setDefaultRoutineSubjects] = useState<IRoutineSubject[]>([]);
-  const [subjects, setSubjects] = useState<ISubject[]>([]);
   const [subjectsTime, setSubjectsTime] = useState<ISubjectsTotalTime[]>([]);
 
   const [allocation, setAllocation] = useState<IAllocation>({
@@ -82,13 +75,10 @@ const RoutinesView = () => {
     const fetchData = async () => {
       const routinesResponse = await routinesService.getAll();
 
-      const subjectsResponse = await subjectsService.getAll();
-
       if (!mounted.current) {
         return;
       }
 
-      setSubjects(subjectsResponse.data.subjects);
       setRoutines(routinesResponse);
     };
 
@@ -118,7 +108,7 @@ const RoutinesView = () => {
 
   const generateSubjectsResume = () => {
     const newSubjectsTime = subjects
-      .filter((subject) => subject.segment.id === selectedClassGroup?.grade?.segment.id)
+      .filter((subject) => subject.segment_id === selectedClassGroup?.grade?.segment.id)
       .map((subject) => {
         const subjectTimes = routineSubjects.filter(
           (routineSubject) => routineSubject.subject_id === subject.id
@@ -167,6 +157,12 @@ const RoutinesView = () => {
     setIsSaving(false);
     setDataHasBeenUpdated(false);
   };
+
+  const isLoading = loadingSubjects;
+
+  if (isLoading) {
+    return <AppLoading />;
+  }
 
   return (
     <>
@@ -227,7 +223,7 @@ const RoutinesView = () => {
                                         >
                                           <MenuItem value={''}>Vaga</MenuItem>
                                           {subjects
-                                            .filter((subject) => subject.segment.id === allocation.segmentId)
+                                            .filter((subject) => subject.segment_id === allocation.segmentId)
                                             .map((subject) => (
                                               <MenuItem key={subject.id} value={subject.id}>
                                                 {subject.name}

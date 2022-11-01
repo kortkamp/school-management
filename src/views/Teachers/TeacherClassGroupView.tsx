@@ -11,6 +11,7 @@ import { useParams } from 'react-router-dom';
 import { classGroupsService } from '../../services/classGroups.service';
 import { gradesService } from '../../services/grades.service';
 import { teacherClassGroupsService } from '../../services/teacherClassGroups.service';
+import { useApi } from '../../api/useApi';
 
 interface ISegment {
   id: string;
@@ -63,9 +64,10 @@ const teacherClassGroupSchema = {};
 const TeacherClassGroupView = () => {
   const [teachers, setTeachers] = useState<any[]>([]);
 
+  const [classGroups, , loadingClassGroups] = useApi(classGroupsService.getAll, { defaultValue: [] });
+
   const { id: teacherIdPAram } = useParams<{ id: string }>();
 
-  const [classGroups, setClassGroups] = useState<IClassGroup[]>([]);
   const [grades, setGrades] = useState<IGrade[]>([]);
   const [teacherSubjects, setTeacherSubjects] = useState<ISubject[]>([]);
   const [filteredClassGroups, setFilteredClassGroups] = useState<IClassGroup[]>([]);
@@ -100,10 +102,10 @@ const TeacherClassGroupView = () => {
   const loadTeacherSubjectsList = useCallback(async () => {
     try {
       if (values.teacher_id) {
-        setLoadingTeacher(true);
-        const response = await subjectsService.getByUser(values.teacher_id);
-        setTeacherSubjects(response.data.user_subjects.map((user_subject: any) => user_subject.subject));
-        setLoadingTeacher(false);
+        // setLoadingTeacher(true);
+        // const response = await subjectsService.getByUser(values.teacher_id);
+        // setTeacherSubjects(response.data.user_subjects.map((user_subject: any) => user_subject.subject));
+        // setLoadingTeacher(false);
       }
     } catch (err: any) {
       console.log(err);
@@ -113,16 +115,6 @@ const TeacherClassGroupView = () => {
   useEffect(() => {
     loadTeacherSubjectsList();
   }, [values.teacher_id, loadTeacherSubjectsList]);
-
-  const loadSubjectsList = useCallback(async () => {
-    try {
-      const response = await classGroupsService.getAll();
-      setClassGroups(response.data.classGroups);
-      setLoading(false);
-    } catch (err: any) {
-      console.log(err);
-    }
-  }, []);
 
   const loadSegmentsList = useCallback(async () => {
     try {
@@ -166,21 +158,6 @@ const TeacherClassGroupView = () => {
   }, [values.teacher_id, teacherIdPAram]);
 
   useEffect(() => {
-    setFilteredClassGroups(
-      classGroups.filter((classGroup) => {
-        return (
-          classGroup.grade_id === values.grade_id
-          // && !teacherClassGroups.find((teacherClassGroup) => teacherClassGroup.class_group_id === classGroup.id)
-        );
-      })
-    );
-  }, [teacherClassGroups, values.segment_id, values.grade_id]);
-
-  // useEffect(() => {
-  //   setSelectedSubjects([]);
-  // }, [values.segment_id]);
-
-  useEffect(() => {
     setFormState((state) => ({
       ...state,
       values: {
@@ -196,10 +173,9 @@ const TeacherClassGroupView = () => {
 
   useEffect(() => {
     loadTeacherList();
-    loadSubjectsList();
     loadSegmentsList();
     loadGradesList();
-  }, [loadTeacherList, loadSubjectsList, loadSegmentsList, loadGradesList]);
+  }, [loadTeacherList, loadSegmentsList, loadGradesList]);
 
   const handleRemoveTeacherClassGroup = async ({ teacher_id, subject_id, class_group_id }: ITeacherClassGroup) => {
     try {

@@ -1,8 +1,8 @@
-import { Card, CardContent, CardHeader, Grid, CircularProgress, Button } from '@mui/material';
+import { Card, CardHeader, Grid } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import { useCallback, useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
-import AppAllocationSelect, { IAllocation } from '../../components/AppAllocationSelect/AppAllocationSelect';
+import { useApi } from '../../api/useApi';
+import { AppIconButton, AppLoading } from '../../components';
 import { classGroupsService } from '../../services/classGroups.service';
 
 /**
@@ -10,101 +10,63 @@ import { classGroupsService } from '../../services/classGroups.service';
  * url: /professores/*
  */
 const ClassGroupsView = () => {
-  const [classGroups, setClassGroups] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const [, setAllocation] = useState<IAllocation>({
-    segmentId: '',
-    gradeId: '',
-    classGroupId: '',
-  });
+  const [classGroups, , loadingClassGroups] = useApi(classGroupsService.getAll, { defaultValue: [] });
 
   const history = useHistory();
 
-  const loadClassGroupsList = useCallback(async () => {
-    // try{
-    const response = await classGroupsService.getAll();
-    setClassGroups(response.data.classGroups);
-    setLoading(false);
-
-    // } catch(err:any){
-    //     throw new Error('err')
-    //   }
-  }, []);
-
-  useEffect(() => {
-    loadClassGroupsList();
-  }, [loadClassGroupsList]);
-
-  if (loading)
-    return (
-      <Grid
-        container
-        spacing={0}
-        direction="column"
-        alignItems="center"
-        justifyContent="center"
-        style={{ minHeight: '100vh', minWidth: '100%' }}
-      >
-        <Grid item xs={3}>
-          <CircularProgress />
-          <h1>Carregando...</h1>
-        </Grid>
-      </Grid>
-    );
-
   const columns = [
-    { field: 'name', headerName: 'Nome', width: 150 },
     {
-      field: 'grade',
-      headerName: 'Ano',
-      width: 150,
-      valueGetter: (params: any) => {
-        return params.row.grade?.name;
-      },
-    },
-    {
-      field: 'segment',
-      headerName: 'Segmento',
-      width: 150,
-      valueGetter: (params: any) => {
-        return params.row.grade?.segment?.name;
-      },
-    },
-    { field: 'students_count', headerName: 'Alunos', width: 150 },
-    {
-      field: 'action',
-      headerName: 'Action',
+      field: 'show',
+      headerName: 'Detalhes',
       sortable: false,
+      width: 80,
       renderCell: (params: any) => {
         const onClick = (e: any) => {
           e.stopPropagation(); // don't select this row after clicking
           history.push('/turmas/' + params.row.id);
         };
 
-        return <Button onClick={onClick}>Mostrar</Button>;
+        return <AppIconButton icon="details" onClick={onClick} title="Mostrar Turma" />;
       },
     },
+    { field: 'name', headerName: 'Turma', width: 150 },
+
+    {
+      field: 'course',
+      headerName: 'Curso',
+      width: 150,
+      valueGetter: (params: any) => {
+        return params.row.grade?.course?.name;
+      },
+    },
+    {
+      field: 'grade',
+      headerName: 'Fase',
+      width: 150,
+      valueGetter: (params: any) => {
+        return params.row.grade?.name;
+      },
+    },
+    {
+      field: 'routineGroup',
+      headerName: 'Turno',
+      width: 150,
+      valueGetter: (params: any) => {
+        return params.row.routineGroup?.name;
+      },
+    },
+    { field: 'students_count', headerName: 'Alunos', width: 150 },
   ];
+
+  if (loadingClassGroups) return <AppLoading />;
 
   return (
     <Grid container spacing={3}>
       <Grid item xs={12} md={12}>
         <Card style={{ padding: '20px' }}>
           <CardHeader style={{ textAlign: 'center' }} title="Turmas" subheader="Lista de turmas" />
-          <CardContent>Detailed description of the application here...</CardContent>
-          <Grid container spacing={1}>
-            <AppAllocationSelect onChange={setAllocation} />
-          </Grid>
 
-          <DataGrid
-            rows={classGroups}
-            columns={columns}
-            pageSize={5}
-            rowsPerPageOptions={[5]}
-            checkboxSelection
-            autoHeight
-          />
+          <DataGrid rows={classGroups} columns={columns} pageSize={15} rowsPerPageOptions={[15]} autoHeight />
         </Card>
       </Grid>
     </Grid>

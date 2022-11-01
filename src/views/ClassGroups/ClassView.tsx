@@ -1,85 +1,206 @@
-import { Card, CardContent, CardHeader, Grid, Button } from '@mui/material';
-import { DataGrid } from '@mui/x-data-grid';
-import { useCallback, useEffect, useState } from 'react';
-import { useHistory, useParams } from 'react-router';
-import { AppLoading } from '../../components';
+import { useParams } from 'react-router';
+import { useApi } from '../../api/useApi';
+import { useForm } from 'react-hook-form';
+
+import AppView, { AppViewActions, AppViewData, AppViewParams } from '../../components/AppView';
 import { classGroupsService } from '../../services/classGroups.service';
+
+import * as yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { AppSaveButton } from '../../components/AppCustomButton';
+import { useCallback, useEffect, useState } from 'react';
+import { Grid, MenuItem } from '@mui/material';
+import { FormOutlinedInput } from '../../components/HookFormInput';
+import { coursesService, ICourse } from '../../services/courses.service';
+import { routinesService } from '../../services/routines.service';
+import StudentsTable from './components/StudentsTable';
+
+const schema = yup
+  .object({
+    name: yup.string().required('Campo obrigatório'),
+    courseId: yup.string().required('Campo obrigatório'),
+    gradeId: yup.string().required('Campo obrigatório'),
+    routineGroupId: yup.string().required('Campo obrigatório'),
+  })
+  .required();
+
+interface FormValues {
+  id: string;
+  name: string;
+  courseId: string;
+  gradeId: string;
+  routineGroupId: string;
+  students: any[];
+  teachers: any[];
+}
+
+const defaultValues: FormValues = {
+  id: '',
+  name: '',
+  courseId: '',
+  gradeId: '',
+  routineGroupId: '',
+  students: [],
+  teachers: [],
+};
 
 /**
  * Renders "ClassGroups" view
- * url: /professores/*
+ * url: /turmas/*
  */
 const ClassView = () => {
   const { id } = useParams<{ id: string }>();
 
-  const [classGroup, setClassGroup] = useState<any>();
-  const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
 
-  const history = useHistory();
+  const [classGroup, classGroupError, loadingClassGroup] = useApi(classGroupsService.getById, { args: { id } });
 
-  const loadClassGroupsList = useCallback(async () => {
-    // try{
-    const response = await classGroupsService.getById(id);
-    setClassGroup(response.data.classGroup);
-    setLoading(false);
+  const [courses, coursesError, loadingCourses] = useApi(coursesService.getAll, { defaultValue: [] });
 
-    // } catch(err:any){
-    //     throw new Error('err')
-    //   }
-  }, [id]);
+  const [routineGroups, routineGroupsError, loadingRoutineGroups] = useApi(routinesService.getAllRoutineGroups, {
+    defaultValue: [],
+  });
+
+  const [grades, setGrades] = useState<ICourse['grades']>([]);
+
+  const {
+    handleSubmit,
+    reset,
+    control,
+    setValue,
+    // getValues,
+
+    formState: { errors, isDirty },
+  } = useForm({
+    defaultValues: Object.assign({}, defaultValues),
+    resolver: yupResolver(schema),
+  });
 
   useEffect(() => {
-    loadClassGroupsList();
-  }, [loadClassGroupsList]);
+    if (classGroup) {
+      const values: FormValues = {
+        id: classGroup.id,
+        name: classGroup.name,
+        gradeId: classGroup.grade?.id || '',
+        courseId: classGroup.grade?.course.id || '',
+        routineGroupId: classGroup.routineGroup?.id || '',
+        students: classGroup.students,
+        teachers: classGroup.teachers,
+      };
+      reset(values);
+    }
+  }, [classGroup]);
 
-  if (loading) return <AppLoading />;
+  useEffect(() => {
+    if (classGroup || courses.length > 0) {
+      const course = courses.find((c) => c.id === classGroup?.grade?.course.id);
 
-  const columns = [
-    { field: 'name', headerName: 'Nome', width: 150 },
+      if (!course) return;
 
-    // {
-    //   field: 'segment',
-    //   headerName: 'Segmento',
-    //   width: 150,
-    //   valueGetter: (params: any) => {
-    //     return params.row.grade?.segment?.name
-    //   },
-    // },
-    { field: 'email', headerName: 'Email', width: 200 },
-    {
-      field: 'action',
-      headerName: 'Action',
-      sortable: false,
-      renderCell: (params: any) => {
-        const onClick = (e: any) => {
-          e.stopPropagation(); // don't select this row after clicking
-          history.push('/turmas/' + params.row.id);
-        };
+      setGrades(course.grades);
+    }
+  }, [classGroup, courses]);
 
-        return <Button onClick={onClick}>Mostrar</Button>;
-      },
-    },
-  ];
+  const onSubmit = async (formData: FormValues) => {
+    console.log(formData);
+  };
+
+  const handleSelectCourse = useCallback((event: any) => {
+    const course = courses.find((c) => c.id === event.target.value);
+
+    setValue('gradeId', '');
+
+    if (!course) return;
+
+    setGrades(course.grades);
+  }, []);
+
+  const isLoading = loadingClassGroup || loadingCourses || loadingRoutineGroups;
+
+  const error = classGroupError || coursesError || routineGroupsError;
 
   return (
-    <Grid container spacing={3}>
-      <Grid item xs={12} md={12}>
-        <Card>
-          <CardHeader style={{ textAlign: 'center' }} title="Turma" subheader={classGroup.name} />
-          <CardContent>Alunos</CardContent>
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <AppView
+        dataFieldsKeys={[]}
+        titleFieldKey="name"
+        title="Turma"
+        loading={isLoading}
+        error={error}
+        formErrors={errors}
+        control={control}
+        editable={isEditing}
+        contextMenuItens={[
+          {
+            label: isEditing ? 'Encerrar Edição' : 'Editar os dados',
+            action: () => setIsEditing((prev) => !prev),
+          },
+        ]}
+      >
+        <AppViewParams>
+          <Grid item md={4} sm={12} xs={12}>
+            <FormOutlinedInput
+              name={'courseId'}
+              label={'Curso'}
+              select
+              control={control}
+              editable={isEditing}
+              errorMessage={errors.courseId?.message}
+              fullWidth
+              customOnChange={handleSelectCourse}
+            >
+              {courses.map((course) => (
+                <MenuItem key={course.id} value={course.id}>
+                  {course.name}
+                </MenuItem>
+              ))}
+            </FormOutlinedInput>
+          </Grid>
+          <Grid item md={4} sm={12} xs={12}>
+            <FormOutlinedInput
+              name={'gradeId'}
+              label={'Fase'}
+              select
+              control={control}
+              editable={isEditing}
+              errorMessage={errors.courseId?.message}
+              fullWidth
+            >
+              {grades.map((grade) => (
+                <MenuItem key={grade.id} value={grade.id}>
+                  {grade.name}
+                </MenuItem>
+              ))}
+            </FormOutlinedInput>
+          </Grid>
+          <Grid item md={4} sm={12} xs={12}>
+            <FormOutlinedInput
+              name={'routineGroupId'}
+              label={'Turno'}
+              select
+              control={control}
+              editable={isEditing}
+              errorMessage={errors.courseId?.message}
+              fullWidth
+            >
+              {routineGroups.map((routineGroup) => (
+                <MenuItem key={routineGroup.id} value={routineGroup.id}>
+                  {routineGroup.name}
+                </MenuItem>
+              ))}
+            </FormOutlinedInput>
+          </Grid>
+        </AppViewParams>
 
-          <DataGrid
-            rows={classGroup.students}
-            columns={columns}
-            // pageSize={5}
-            // rowsPerPageOptions={[5]}
-            autoPageSize
-            checkboxSelection
-            autoHeight
-          />
-        </Card>
-      </Grid>
-    </Grid>
+        <AppViewData title="Alunos:">
+          <StudentsTable students={[{ id: 'd', name: 'teste' }]} />
+        </AppViewData>
+
+        <AppViewActions>
+          <AppSaveButton type="submit" disabled={!isDirty} />
+        </AppViewActions>
+      </AppView>
+    </form>
   );
 };
 

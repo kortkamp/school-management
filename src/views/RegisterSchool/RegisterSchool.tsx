@@ -42,7 +42,7 @@ const RegisterSchool = () => {
 
   const [schoolData, , loadingSchool] = useApi(schoolsService.getById, {});
 
-  const [routineGroupsData, , loadingRoutines] = useApi(routinesService.getAllRoutineGroups, {});
+  const [routineGroups, , loadingRoutines] = useApi(routinesService.getAllRoutineGroups, {});
 
   const [finishRegistration, isFinishing] = useRequestApi(schoolsService.finishRegistration);
 
@@ -160,7 +160,7 @@ const RegisterSchool = () => {
       const schoolHasBeenUpdated = schoolData.school.name !== '';
       const schoolYearHasBeenCreated = schoolData.school.active_year_id !== null;
       const parameterHasBeenCreated = schoolData.school.parameters !== null;
-      const routinesHasBeenCreated = routineGroupsData && routineGroupsData.routineGroups.length > 0;
+      const routinesHasBeenCreated = routineGroups && routineGroups.length > 0;
       const coursesHasBeenCreated = coursesList && coursesList.length > 0;
 
       let index = 5;
@@ -194,7 +194,7 @@ const RegisterSchool = () => {
 
       setTabIndex(index);
     }
-  }, [schoolData, routineGroupsData, coursesList]);
+  }, [schoolData, routineGroups, coursesList]);
 
   if (registrationSuccess) {
     return <RegistrationSuccess />;

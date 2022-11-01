@@ -308,7 +308,7 @@ const CourseView = ({ data: { id, ...courseData }, onSave = () => {}, onRemove =
                 errorMessage={errors.segment_id?.message}
                 fullWidth
                 loading={loadingSegments}
-                customOnChange={(e) => handleSelectSegment(e.target.value)}
+                customOnChange={(e: any) => handleSelectSegment(e.target.value)}
               >
                 {segments.map((segment) => (
                   <MenuItem key={segment.id} value={loadingSegments ? '' : segment.id}>
