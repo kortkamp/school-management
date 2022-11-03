@@ -98,7 +98,8 @@ const ListEmployeesView = ({ onSuccess }: Props) => {
   );
 
   const dataGridTeachersColumns = [
-    { field: 'name', headerName: 'Nome', width: 250 },
+    { field: 'person_name', headerName: 'Nome', width: 250 },
+    { field: 'number_id', headerName: 'ID', width: 100 },
     { field: 'role', headerName: 'Função', width: 150 },
 
     {
