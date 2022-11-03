@@ -55,7 +55,15 @@ const TeachersListView = () => {
   const history = useHistory();
 
   const dataGridTeachersColumns = [
-    { field: 'name', headerName: 'Nome', width: 150 },
+    {
+      field: 'name',
+      headerName: 'Nome',
+      width: 150,
+      valueGetter: (params: any) => {
+        return params.row.person.name;
+      },
+    },
+
     { field: 'enroll_id', headerName: 'Matrícula', width: 150 },
 
     {
