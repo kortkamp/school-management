@@ -9,37 +9,39 @@ import {
   Checkbox,
   FormControlLabel,
   InputAdornment,
-  MenuItem,
 } from '@mui/material';
-import { AppButton, AppIconButton, AppForm } from '../../../components';
+import { AppIconButton, AppForm } from '../../../components';
 import { useAppForm, SHARED_CONTROL_PROPS, eventPreventDefault } from '../../../utils/form';
 
 import * as yup from 'yup';
 import { usersService } from '../../../services/users.service';
-import NumberFormat from 'react-number-format';
+
 import { useApi } from '../../../api/useApi';
+import { AppSaveButton } from '../../../components/AppCustomButton';
 
 const createUserSchema = {
   email: yup.string().email('Email inválido'),
-  phone: yup.string().required('O campo é obrigatório'),
   name: yup
     .string()
     .matches(/^[A-Za-z ]+$/, 'Apenas letras são permitidas')
     .required('O campo é obrigatório'),
-  CPF: yup.string(),
-  // password: yup.string().min(6, 'Mínimo de 6 caracteres').max(12, 'Máximo de 12 caracteres'),\
+  tenant_name: yup
+    .string()
+    .matches(/^[A-Za-z ]+$/, 'Apenas letras são permitidas')
+    .required('O campo é obrigatório'),
+  school_name: yup
+    .string()
+    .matches(/^[A-Za-z ]+$/, 'Apenas letras são permitidas')
+    .required('O campo é obrigatório'),
   password: yup.string().min(6, 'Mínimo de 6 caracteres').max(12, 'Máximo de 12 caracteres').required(),
   password_confirmation: yup.string().oneOf([yup.ref('password'), null], 'As senhas não conferem!'),
-  sex: yup.string().required('O campo é obrigatório'),
-  birth: yup.date().required('O campo é obrigatório'),
 };
 
 interface FormStateValues {
   name: string;
-  sex: 'M' | 'F' | '';
-  birth: string;
   email: string;
-  phone: string;
+  tenant_name: string;
+  school_name: string;
   password: string;
   password_confirmation?: string;
 }
@@ -57,10 +59,9 @@ const SignupView = () => {
     validationSchema: createUserSchema,
     initialValues: {
       name: '',
-      sex: '',
-      birth: '',
       email: '',
-      phone: '',
+      tenant_name: '',
+      school_name: '',
       password: '',
       password_confirmation: '',
     } as FormStateValues,
@@ -81,6 +82,8 @@ const SignupView = () => {
     async (event: SyntheticEvent) => {
       event.preventDefault();
 
+      console.log(values);
+
       const response = await createUser(values);
 
       if (response?.success) {
@@ -94,13 +97,13 @@ const SignupView = () => {
     <AppForm onSubmit={handleFormSubmit}>
       <Grid marginTop={5}></Grid>
       <Card>
-        <CardHeader title="Cadastro de Responsável pela Escola" />
+        <CardHeader title="Cadastro Inicial da Instituição" />
         <CardContent>
           <Grid container spacing={1}>
             <Grid item md={12} sm={12} xs={12}>
               <TextField
                 required
-                label="Nome Completo"
+                label="Nome Completo do Responsável"
                 name="name"
                 value={values.name}
                 error={fieldHasError('name')}
@@ -110,52 +113,32 @@ const SignupView = () => {
               />
             </Grid>
 
-            <Grid item md={6} sm={12} xs={12}>
+            <Grid item md={12} sm={12} xs={12}>
               <TextField
                 required
-                // disabled={}
-                select
-                label="Sexo"
-                name="sex"
-                value={values.sex}
+                label="Nome da Rede de Ensino ou Pessoa Jurídica"
+                name="tenant_name"
+                value={values.tenant_name}
+                error={fieldHasError('tenant_name')}
+                helperText={fieldGetError('tenant_name') || ' '}
                 onChange={onFieldChange}
-                error={fieldHasError('sex')}
-                helperText={fieldGetError('sex') || ' '}
                 {...SHARED_CONTROL_PROPS}
-              >
-                <MenuItem value="M">Masculino</MenuItem>
-                <MenuItem value="F">Feminino</MenuItem>
-              </TextField>
+              />
             </Grid>
 
-            <Grid item md={6} sm={12} xs={12}>
+            <Grid item md={12} sm={12} xs={12}>
               <TextField
                 required
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                label="Nascimento"
-                name="birth"
-                value={values.birth}
+                label="Nome da Instituição de Ensino"
+                name="school_name"
+                value={values.school_name}
+                error={fieldHasError('school_name')}
+                helperText={fieldGetError('school_name') || ' '}
                 onChange={onFieldChange}
-                error={fieldHasError('birth')}
-                helperText={fieldGetError('birth') || ' '}
                 {...SHARED_CONTROL_PROPS}
               />
             </Grid>
-            <Grid item md={12} sm={12} xs={12}>
-              <NumberFormat
-                {...SHARED_CONTROL_PROPS}
-                label="Telefone"
-                value={values.phone}
-                name="phone"
-                format="(##) #####-####"
-                customInput={TextField}
-                type="text"
-                onValueChange={({ value: v }) => {
-                  onFieldChange({ target: { name: 'phone', value: v } });
-                }}
-              />
-            </Grid>
+
             <Grid item md={12} sm={12} xs={12}>
               <TextField
                 required
@@ -217,9 +200,12 @@ const SignupView = () => {
             </Grid>
 
             <Grid container justifyContent="center" alignItems="center">
-              <AppButton type="submit" loading={isSaving} disabled={!(formState.isValid && agree) || isSaving}>
-                Confirmar e Cadastrar
-              </AppButton>
+              <AppSaveButton
+                type="submit"
+                loading={isSaving}
+                disabled={!(formState.isValid && agree) || isSaving}
+                label="Cadastrar"
+              ></AppSaveButton>
             </Grid>
           </Grid>
         </CardContent>
