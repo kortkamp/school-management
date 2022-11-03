@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Card, CardContent, CardHeader, Grid, CircularProgress, Button, Box } from '@mui/material';
+import { Card, CardContent, CardHeader, Grid, CircularProgress, Button, Box, TextField, MenuItem } from '@mui/material';
 import {
   DataGrid,
   GridOverlay,
@@ -49,8 +49,11 @@ function CustomPagination() {
 const TeachersListView = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [activeTeachersFilter, setActiveTeachersFilter] = useState<'all' | 'active' | 'inactive'>('active');
 
-  const [data, , loading] = useApi(teachersService.getAll, { args: { page, per_page: pageSize } });
+  const [data, , loading] = useApi(teachersService.getAll, {
+    args: { page, per_page: pageSize, filter: activeTeachersFilter },
+  });
 
   const history = useHistory();
 
@@ -89,6 +92,19 @@ const TeachersListView = () => {
           <CardHeader style={{ textAlign: 'center' }} title={'Professores'} subheader={'Lista de Professores'} />
 
           <CardContent>
+            <TextField
+              required
+              label="Filtrar por"
+              select
+              name="name"
+              value={activeTeachersFilter}
+              onChange={(e) => setActiveTeachersFilter(e.target.value as any)}
+              fullWidth
+            >
+              <MenuItem value="active">Ativos</MenuItem>
+              <MenuItem value="inactive">Inativos</MenuItem>
+              <MenuItem value="all">Todos</MenuItem>
+            </TextField>
             <Grid container spacing={1}>
               <Grid item md={12} sm={12} xs={12}>
                 <DataGrid
