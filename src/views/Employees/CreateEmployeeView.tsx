@@ -1,517 +1,248 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/naming-convention */
-import { SyntheticEvent, useCallback, useState } from 'react';
+import { SyntheticEvent, useCallback, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { Grid, TextField, CardHeader, MenuItem, Divider, InputAdornment, CircularProgress } from '@mui/material';
+import { Grid, TextField, CardHeader, MenuItem, InputAdornment, CircularProgress, Divider } from '@mui/material';
 
 import NumberFormat, { NumberFormatValues } from 'react-number-format';
 import Moment from 'moment';
 
 import * as yup from 'yup';
 
-import { AppForm } from '../../components';
-import { useAppForm, SHARED_CONTROL_PROPS } from '../../utils/form';
-import AppStepSelector from '../../components/AppStepSelector';
-import AppAddressForm from '../../components/AppAddressForm/AppAddressForm';
+import { SHARED_CONTROL_PROPS } from '../../utils/form';
+
 import { useApi, useRequestApi } from '../../api/useApi';
 import { usersService } from '../../services/users.service';
 import { rolesService } from '../../services/roles.service';
 import { employeesService } from '../../services/employees.service';
-import { AppSaveButton } from '../../components/AppCustomButton';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { AppClearButton, AppSaveButton } from '../../components/AppCustomButton';
+import { FormOutlinedInput } from '../../components/HookFormInput';
+import FormStandardInput from '../../components/HookFormInput/FormStandardInput';
+import FormNumberFormat from '../../components/HookFormInput/FormNumberFormat';
+import { personsService } from '../../services/persons.service';
+import { routePaths } from '../../routes/RoutePaths';
+import { toast } from 'react-toastify';
 
-const createTeacherMainSchema = {
+const schema = yup.object({
   name: yup
     .string()
     .matches(/^[A-Za-z ]+$/, 'Apenas letras')
     .required('O campo é obrigatório'),
-  birth: yup.date().required('O campo é obrigatório'),
-  CPF: yup.string().required('O campo é obrigatório'),
+  birth: yup.string().length(8, 'Data inválida').required('O campo é obrigatório'),
+  cpf: yup.string().length(11, 'CPF inválido').required('O campo é obrigatório'),
+  rg: yup.string().required('O campo é obrigatório'),
   sex: yup.string().required('O campo é obrigatório'),
-};
-
-const addressDataSchema = {
-  street: yup.string().required('O campo é obrigatório'),
-  number: yup.string().required('O campo é obrigatório'),
-  complement: yup.string(),
-  district: yup.string().required('O campo é obrigatório'),
-  city: yup.string().required('O campo é obrigatório'),
-  state: yup.string().required('O campo é obrigatório'),
-  CEP: yup.string().required('O campo é obrigatório'),
-};
-
-const complementaryDataSchema = {
-  email: yup.string().email('Email inválido').required('O campo é obrigatório'),
-  phone: yup.string().required('O campo é obrigatório'),
   role_id: yup.string().required('O campo é obrigatório'),
-};
+});
 
-interface FormStateValues {
-  id?: string;
-  email: string;
+const roleSchema = yup.object({
+  role_id: yup.string().required('O campo é obrigatório'),
+});
+
+interface FormValues {
+  // id: string;
   name: string;
-  CPF: string; // unique
-  phone: string;
-  sex: 'M' | 'F' | '';
+  cpf: string;
+  rg: string;
+  sex: string;
   birth: string;
-  street: string;
-  number: string;
-  complement: string;
-  district: string;
-  city: string;
-  state: string;
-  CEP: string;
   role_id: string;
 }
 
+const defaultValues: FormValues = {
+  // id: '',
+  name: '',
+  cpf: '',
+  rg: '',
+  sex: '',
+  birth: '',
+  role_id: '',
+};
+
 /**
- * Renders "Create Teacher" view
- * url: /professores/criar
+ * Renders "Create Employee" view
+ * url: /funcionarios/criar
  */
 function CreateEmployeeView() {
   const history = useHistory();
-
   const [rolesData, , loadingRoles] = useApi(rolesService.getAll, { defaultValue: [] });
 
-  const [getUserByCPF, loadingUser] = useRequestApi(usersService.getByCPF, { silent: true });
+  const [getPersonByCPF, loadingUser] = useRequestApi(personsService.getByCPF);
+  const [createPerson, saving] = useRequestApi(personsService.create);
+  const [createPersonRole, isCreatingRole] = useRequestApi(employeesService.createRole);
 
-  const [createTeacher, isSaving] = useRequestApi(employeesService.create);
+  const [isEditing, setIsEditing] = useState(true);
+  const [personAlreadyExists, setPersonAlreadyExists] = useState(false);
+  const [userId, setUserId] = useState('');
 
-  const [stepValidationSchema, setStepValidationSchema] = useState<object>(createTeacherMainSchema);
+  const {
+    setValue,
+    handleSubmit,
+    reset,
+    control,
+    watch,
 
-  const [formState, setFormState, onFieldChange, fieldGetError, fieldHasError, isFieldRequired, setField] = useAppForm({
-    validationSchema: stepValidationSchema,
-    initialValues: {
-      name: '',
-      CPF: '',
-      phone: '',
-      sex: '',
-      birth: '',
-      street: '',
-      number: '',
-      complement: '',
-      district: '',
-      city: '',
-      state: '',
-      CEP: '',
-      email: '',
-      role_id: '',
-    } as FormStateValues,
+    formState: { errors },
+  } = useForm<FormValues>({
+    defaultValues: defaultValues,
+    resolver: yupResolver(personAlreadyExists ? roleSchema : schema),
   });
 
-  const values = formState.values as FormStateValues;
+  const onSubmit = async (formData: FormValues) => {
+    let response: any;
 
-  const handleFormSubmit = useCallback(
-    async (event: SyntheticEvent) => {
-      event.preventDefault();
-
-      const { name, CPF, phone, sex, birth, street, number, complement, district, city, state, CEP, email, role_id } =
-        values;
-
-      const data = {
-        name,
-        CPF,
-        phone,
-        sex,
-        birth,
-        role_id,
-        address: {
-          street,
-          number,
-          complement,
-          district,
-          city,
-          state,
-          CEP,
-        },
-        email,
-      };
-
-      const response = await createTeacher(data);
-
-      if (response?.success) {
-        history.goBack();
-      }
-    },
-    [values, history]
-  );
-
-  const handleChangeUserCPF = useCallback(async ({ value }: NumberFormatValues) => {
-    onFieldChange({ target: { name: 'CPF', value } });
-    if (value.length === 11) {
-      const response = await getUserByCPF({ CPF: value });
-      if (response?.success) {
-        setFormState((prev) => ({ ...prev, values: response.user }));
-        // setUserAlreadyExists({ id: response.user.id, name: response.user.name });
-      }
+    if (personAlreadyExists) {
+      response = await createPersonRole({ employee_id: userId, role_id: formData.role_id });
+    } else {
+      response = await createPerson(formData);
     }
-  }, []);
+    console.log(response);
 
-  const mainForm = (
-    <Grid container spacing={1}>
-      <Grid item md={12} sm={12} xs={12}>
-        <NumberFormat
-          {...SHARED_CONTROL_PROPS}
-          label="CPF"
-          value={values.CPF}
-          required={isFieldRequired('CPF')}
-          name="CPF"
-          format="###.###.###-##"
-          customInput={TextField}
-          type="text"
-          onValueChange={handleChangeUserCPF}
-          error={fieldHasError('CPF')}
-          helperText={fieldGetError('CPF') || ' '}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end" style={{ width: 20 }}>
-                {loadingUser && <CircularProgress size={20} />}
-              </InputAdornment>
-            ),
-          }}
-        />
-      </Grid>
-      <Grid item md={12} sm={12} xs={12}>
-        <TextField
-          required={isFieldRequired('name')}
-          label="Nome Completo"
-          name="name"
-          value={values.name}
-          onChange={onFieldChange}
-          error={fieldHasError('name')}
-          helperText={fieldGetError('name') || ' '}
-          {...SHARED_CONTROL_PROPS}
-        />
-      </Grid>
-      <Grid item md={12} sm={12} xs={12}>
-        <TextField
-          required={isFieldRequired('birth')}
-          type="date"
-          InputLabelProps={{ shrink: true }}
-          label="Nascimento"
-          name="birth"
-          value={values.birth ? Moment(values.birth).format('YYYY-MM-DD') : ''}
-          onChange={onFieldChange}
-          error={fieldHasError('birth')}
-          helperText={fieldGetError('birth') || ' '}
-          {...SHARED_CONTROL_PROPS}
-        />
-      </Grid>
+    if (response?.success) {
+      history.push(routePaths.employees.path);
+      toast.success('Funcionário cadastrado com sucesso');
+    }
+  };
 
-      <Grid item md={12} sm={12} xs={12}>
-        <TextField
-          required
-          // disabled={}
-          select
-          label="Sexo"
-          name="sex"
-          value={values.sex}
-          onChange={onFieldChange}
-          error={fieldHasError('sex')}
-          helperText={fieldGetError('sex') || ' '}
-          {...SHARED_CONTROL_PROPS}
-        >
-          <MenuItem value="M">Masculino</MenuItem>
-          <MenuItem value="F">Feminino</MenuItem>
-        </TextField>
-      </Grid>
-    </Grid>
-  );
+  useEffect(() => {
+    const fetchPerson = async (cpf: string) => {
+      const response = await getPersonByCPF({ cpf });
+      if (response?.success && response.person) {
+        const { user, name, rg, birth, sex } = response.person;
+        reset({ ...defaultValues, name, rg, birth, sex, cpf });
+        setIsEditing(false);
+        setPersonAlreadyExists(true);
+        setUserId(user.id);
+      }
+    };
 
-  const complementForm = (
-    <Grid container spacing={1}>
-      <Grid item md={12} sm={12} xs={12}>
-        <TextField
-          label="Email"
-          name="email"
-          required={isFieldRequired('email')}
-          // type="email"
-          value={values.email}
-          error={fieldHasError('email')}
-          helperText={fieldGetError('email') || ' '}
-          onChange={onFieldChange}
-          {...SHARED_CONTROL_PROPS}
-        />
-      </Grid>
-      <Grid item md={12} sm={12} xs={12}>
-        <NumberFormat
-          {...SHARED_CONTROL_PROPS}
-          label="Telefone"
-          value={values.phone}
-          name="phone"
-          format="(##) #####-####"
-          customInput={TextField}
-          type="text"
-          onValueChange={({ value: v }) => {
-            onFieldChange({ target: { name: 'phone', value: v } });
-          }}
-        />
-      </Grid>
-      <Grid item md={12} sm={12} xs={12}>
-        <TextField
-          required
-          select
-          label="Função"
-          name="role_id"
-          value={values.role_id || ''}
-          onChange={onFieldChange}
-          error={fieldHasError('role_id')}
-          helperText={fieldGetError('role_id') || ' '}
-          {...SHARED_CONTROL_PROPS}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end" style={{ width: 20 }}>
-                {loadingRoles && <CircularProgress size={20} />}
-              </InputAdornment>
-            ),
-          }}
-        >
-          {rolesData?.map((role) => (
-            <MenuItem key={role.id} value={role.id}>
-              {role.name}
-            </MenuItem>
-          ))}
-        </TextField>
-      </Grid>
-    </Grid>
-  );
+    const cpf = watch('cpf');
+    if (cpf.length === 11) {
+      fetchPerson(cpf);
+    }
+  }, [watch('cpf')]);
 
-  const confirmationForm = (
-    <Grid container spacing={1}>
-      <Grid item md={12} sm={12} xs={12}>
-        <TextField
-          select
-          label="Função"
-          name="role_id"
-          value={values.role_id || ''}
-          onChange={onFieldChange}
-          {...SHARED_CONTROL_PROPS}
-          variant="standard"
-          inputProps={{ readOnly: true }}
-        >
-          {rolesData?.map((role) => (
-            <MenuItem key={role.id} value={role.id}>
-              {role.name}
-            </MenuItem>
-          ))}
-        </TextField>
-      </Grid>
-      <Grid item md={12} sm={12} xs={12}>
-        <TextField
-          label="Nome"
-          name="name"
-          value={values.name}
-          inputProps={{ readOnly: true }}
-          {...SHARED_CONTROL_PROPS}
-          variant="standard"
-        />
-      </Grid>
-
-      <Grid item md={5} sm={5} xs={5}>
-        <TextField
-          label="Nascimento"
-          name="birth"
-          value={values.birth}
-          inputProps={{ readOnly: true }}
-          {...SHARED_CONTROL_PROPS}
-          variant="standard"
-        />
-      </Grid>
-
-      <Grid item md={5} sm={5} xs={5}>
-        <TextField
-          label="CPF"
-          name="CPF"
-          value={values.CPF.replace(/\D/g, '')
-            .replace(/(\d{3})(\d)/, '$1.$2')
-            .replace(/(\d{3})(\d)/, '$1.$2')
-            .replace(/(\d{3})(\d{1,2})/, '$1-$2')
-            .replace(/(-\d{2})\d+?$/, '$1')}
-          inputProps={{ readOnly: true }}
-          {...SHARED_CONTROL_PROPS}
-          variant="standard"
-        />
-      </Grid>
-
-      <Grid item md={2} sm={2} xs={2}>
-        <TextField
-          label="Sexo"
-          name="sex"
-          value={values.sex}
-          inputProps={{ readOnly: true }}
-          {...SHARED_CONTROL_PROPS}
-          variant="standard"
-        />
-      </Grid>
-      <Grid item md={12} sm={12} xs={12}>
-        <Divider />
-      </Grid>
-
-      <Grid item md={10} sm={10} xs={10}>
-        <TextField
-          label="Logradouro"
-          name="street"
-          value={values.street}
-          inputProps={{ readOnly: true }}
-          {...SHARED_CONTROL_PROPS}
-          variant="standard"
-        />
-      </Grid>
-      <Grid item md={2} sm={2} xs={2}>
-        <TextField
-          label="Número"
-          name="number"
-          value={values.number}
-          inputProps={{ readOnly: true }}
-          {...SHARED_CONTROL_PROPS}
-          variant="standard"
-        />
-      </Grid>
-
-      <Grid item md={6} sm={6} xs={6}>
-        <TextField
-          label="Complemento"
-          name="complement"
-          value={values.complement}
-          inputProps={{ readOnly: true }}
-          {...SHARED_CONTROL_PROPS}
-          variant="standard"
-        />
-      </Grid>
-
-      <Grid item md={6} sm={6} xs={6}>
-        <TextField
-          label="Bairro"
-          name="district"
-          value={values.district}
-          inputProps={{ readOnly: true }}
-          {...SHARED_CONTROL_PROPS}
-          variant="standard"
-        />
-      </Grid>
-
-      <Grid item md={5} sm={5} xs={5}>
-        <TextField
-          label="Complemento"
-          name="complement"
-          value={values.city}
-          inputProps={{ readOnly: true }}
-          {...SHARED_CONTROL_PROPS}
-          variant="standard"
-        />
-      </Grid>
-
-      <Grid item md={2} sm={2} xs={2}>
-        <TextField
-          label="UF"
-          name="state"
-          value={values.state}
-          inputProps={{ readOnly: true }}
-          {...SHARED_CONTROL_PROPS}
-          variant="standard"
-        />
-      </Grid>
-
-      <Grid item md={5} sm={5} xs={5}>
-        <TextField
-          label="Bairro"
-          name="district"
-          value={values.CEP}
-          inputProps={{ readOnly: true }}
-          {...SHARED_CONTROL_PROPS}
-          variant="standard"
-        />
-      </Grid>
-
-      <Grid item md={12} sm={12} xs={12}>
-        <Divider />
-      </Grid>
-
-      <Grid item md={6} sm={12} xs={12}>
-        <TextField
-          label="Email"
-          name="email"
-          value={values.email}
-          inputProps={{ readOnly: true }}
-          {...SHARED_CONTROL_PROPS}
-          variant="standard"
-        />
-      </Grid>
-
-      <Grid item md={6} sm={12} xs={12}>
-        <TextField
-          label="Telefone"
-          name="phone"
-          value={
-            values.phone
-              .replace(/\D/g, '')
-              .replace(/(\d{2})(\d)/, '($1) $2')
-              .replace(/(\d{5})(\d)/, '$1-$2')
-            // .replace(/(\d{5})(\d{4})(\d)/, '$1-$2')
-          }
-          inputProps={{ readOnly: true }}
-          {...SHARED_CONTROL_PROPS}
-          variant="standard"
-        />
-      </Grid>
-
-      <Grid container justifyContent="center" alignItems="center">
-        <AppSaveButton
-          loading={isSaving}
-          disabled={isSaving || !formState.isValid}
-          type="submit"
-          label="Cadastrar"
-        ></AppSaveButton>
-      </Grid>
-    </Grid>
-  );
-
-  const stepsTitles = [
-    {
-      name: 'Funcionário',
-      isValid: ['name', 'birth', 'CPF', 'phone', 'sex'].every((field) => !fieldHasError(field)),
-    },
-    { name: 'Endereço', isValid: [].every((field) => fieldHasError(field)) },
-    { name: 'Outros', isValid: [].every((field) => fieldHasError(field)) },
-    { name: 'Confirmar', isValid: true },
-  ];
-
-  const stepsValidationSchema = [
-    createTeacherMainSchema,
-    addressDataSchema,
-    complementaryDataSchema,
-    { ...createTeacherMainSchema, ...addressDataSchema, ...complementaryDataSchema },
-  ];
-
-  const stepForms = [
-    mainForm,
-    <AppAddressForm
-      key={'address'}
-      values={formState.values as FormStateValues}
-      onFieldChange={onFieldChange}
-      fieldGetError={fieldGetError}
-      fieldHasError={fieldHasError}
-      setField={setField}
-    />,
-    complementForm,
-    confirmationForm,
-  ];
+  // const handleChangeUserCPF = useCallback(async ({ value }: NumberFormatValues) => {
+  //   onFieldChange({ target: { name: 'CPF', value } });
+  //   if (value.length === 11) {
+  //     const response = await getPersonByCPF({ CPF: value });
+  //     if (response?.success) {
+  //       setFormState((prev) => ({ ...prev, values: response.user }));
+  //       // setUserAlreadyExists({ id: response.user.id, name: response.user.name });
+  //     }
+  //   }
+  // }, []);
 
   return (
-    <AppForm style={{ minWidth: '100%' }} onSubmit={handleFormSubmit}>
+    <form onSubmit={handleSubmit(onSubmit)} style={{ padding: 24 }}>
       <CardHeader
         style={{ textAlign: 'center', margin: '30px' }}
         title={'Funcionários'}
         subheader={'Cadastro de Funcionários'}
       />
+      <Grid container spacing={2}>
+        <Grid item md={6} sm={12} xs={12}>
+          <FormNumberFormat
+            format="###.###.###-##"
+            name={'cpf'}
+            label={'CPF'}
+            control={control}
+            editable={isEditing}
+            errorMessage={errors.cpf?.message}
+            fullWidth
+          />
+        </Grid>
+        <Grid item md={6} sm={12} xs={12}>
+          <FormStandardInput
+            name={'name'}
+            label={'Nome'}
+            control={control}
+            disabled={personAlreadyExists}
+            editable={isEditing}
+            errorMessage={errors.name?.message}
+            fullWidth
+          />
+        </Grid>
+        <Grid item md={4} sm={12} xs={12}>
+          <FormStandardInput
+            name={'rg'}
+            label={'RG'}
+            disabled={personAlreadyExists}
+            control={control}
+            editable={isEditing}
+            errorMessage={errors.rg?.message}
+            fullWidth
+          />
+        </Grid>
 
-      <AppStepSelector
-        forms={stepForms}
-        stepTitles={stepsTitles}
-        isValid={formState.isValid}
-        onStepChange={(step) => {
-          setStepValidationSchema(stepsValidationSchema[step]);
+        <Grid item md={4} sm={12} xs={12}>
+          <FormNumberFormat
+            name={'birth'}
+            format="##/##/####"
+            label={'Data de Nascimento'}
+            control={control}
+            editable={isEditing}
+            disabled={personAlreadyExists}
+            errorMessage={errors.birth?.message}
+            fullWidth
+          />
+        </Grid>
+        <Grid item md={4} sm={12} xs={12}>
+          <FormStandardInput
+            name={'sex'}
+            label={'Sexo'}
+            select
+            control={control}
+            editable={isEditing}
+            disabled={personAlreadyExists}
+            errorMessage={errors.sex?.message}
+            fullWidth
+          >
+            <MenuItem value={'M'}>Masculino</MenuItem>
+            <MenuItem value={'F'}>Feminino</MenuItem>
+          </FormStandardInput>
+        </Grid>
+        <Grid item md={12} sm={12} xs={12}>
+          <Divider />
+        </Grid>
+        <Grid item md={12} sm={12} xs={12}>
+          <FormStandardInput
+            name={'role_id'}
+            label={'Função'}
+            select
+            control={control}
+            editable={isEditing || personAlreadyExists}
+            errorMessage={errors.role_id?.message}
+            fullWidth
+          >
+            {rolesData.map((role) => (
+              <MenuItem key={role.id} value={role.id}>
+                {role.name}
+              </MenuItem>
+            ))}
+          </FormStandardInput>
+        </Grid>
+      </Grid>
+
+      <AppSaveButton
+        type="submit"
+        loading={saving || isCreatingRole}
+        disabled={saving || isCreatingRole}
+        // label={isCreatingNewCourse ? 'Criar' : 'Salvar'}
+      />
+      <AppClearButton
+        onClick={() => {
+          setPersonAlreadyExists(false);
+          setIsEditing(true);
+          reset(defaultValues);
         }}
-      ></AppStepSelector>
-    </AppForm>
+        // loading={saving || updating}
+        // disabled={saving || updating || !isDirty}
+        // label={isCreatingNewCourse ? 'Criar' : 'Salvar'}
+      />
+    </form>
   );
 }
 
