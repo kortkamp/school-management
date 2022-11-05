@@ -29,6 +29,7 @@ export const routePaths = {
   students: {
     path: '/alunos',
     create: { path: '/alunos/cadastrar' },
+    designate: { path: '/alunos/designar' },
     createMany: { path: '/alunos/cadastrar-por-lista' },
   },
   classGroups: {
