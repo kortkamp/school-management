@@ -11,6 +11,15 @@ export interface IGetPerson {
     sex: string;
     birth: string;
     user: { id: string };
+    addresses: {
+      street: string;
+      number: string;
+      complement: string;
+      district: string;
+      city: string;
+      state: string;
+      CEP: string;
+    }[];
   };
 }
 
