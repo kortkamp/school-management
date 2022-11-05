@@ -1,71 +1,78 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/naming-convention */
-import { SyntheticEvent, useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { Grid, TextField, CardHeader, MenuItem, InputAdornment, CircularProgress, Divider } from '@mui/material';
-
-import NumberFormat, { NumberFormatValues } from 'react-number-format';
-import Moment from 'moment';
+import { Grid, CardHeader, MenuItem, Divider, Theme, Typography } from '@mui/material';
 
 import * as yup from 'yup';
 
-import { SHARED_CONTROL_PROPS } from '../../utils/form';
-
 import { useApi, useRequestApi } from '../../api/useApi';
-import { usersService } from '../../services/users.service';
 import { rolesService } from '../../services/roles.service';
 import { employeesService } from '../../services/employees.service';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { AppClearButton, AppSaveButton } from '../../components/AppCustomButton';
-import { FormOutlinedInput } from '../../components/HookFormInput';
 import FormStandardInput from '../../components/HookFormInput/FormStandardInput';
-import FormNumberFormat from '../../components/HookFormInput/FormNumberFormat';
 import { personsService } from '../../services/persons.service';
 import { routePaths } from '../../routes/RoutePaths';
 import { toast } from 'react-toastify';
+import { RoleTypes } from '../../services/models/IRole';
+import AddressForm, {
+  addressDefaultValues,
+  AddressFormValues,
+  addressSchema,
+} from '../../components/HookFormInput/Forms/AddressForm';
+import { makeStyles } from '@mui/styles';
+import PersonForm, {
+  personDefaultValues,
+  PersonFormValues,
+  personSchema,
+} from '../../components/HookFormInput/Forms/PersonForm';
+
+const useStyles = makeStyles((theme: Theme) => ({
+  divider: {
+    margin: theme.spacing(0, 0, 2, 0),
+  },
+  section_title: {
+    marginTop: theme.spacing(2),
+    fontSize: 20,
+    fontWeight: 'medium',
+  },
+}));
 
 const schema = yup.object({
-  name: yup
-    .string()
-    .matches(/^[A-Za-z ]+$/, 'Apenas letras')
-    .required('O campo é obrigatório'),
-  birth: yup.string().length(8, 'Data inválida').required('O campo é obrigatório'),
-  cpf: yup.string().length(11, 'CPF inválido').required('O campo é obrigatório'),
-  rg: yup.string().required('O campo é obrigatório'),
-  sex: yup.string().required('O campo é obrigatório'),
+  ...personSchema,
+  address: yup.object({
+    ...addressSchema,
+  }),
   role_id: yup.string().required('O campo é obrigatório'),
 });
 
-const roleSchema = yup.object({
+const complementarySchema = yup.object({
   role_id: yup.string().required('O campo é obrigatório'),
 });
 
-interface FormValues {
-  // id: string;
-  name: string;
-  cpf: string;
-  rg: string;
-  sex: string;
-  birth: string;
-  role_id: string;
+interface FormValues extends PersonFormValues {
+  address: AddressFormValues;
 }
 
 const defaultValues: FormValues = {
   // id: '',
-  name: '',
-  cpf: '',
-  rg: '',
-  sex: '',
-  birth: '',
-  role_id: '',
+  ...personDefaultValues,
+  address: {
+    ...addressDefaultValues,
+  },
 };
+
+const employeeRoles = [RoleTypes.SECRETARY, RoleTypes.PRINCIPAL, RoleTypes.TEACHER];
 
 /**
  * Renders "Create Employee" view
  * url: /funcionarios/criar
  */
 function CreateEmployeeView() {
+  const classes = useStyles();
+
   const history = useHistory();
   const [rolesData, , loadingRoles] = useApi(rolesService.getAll, { defaultValue: [] });
 
@@ -87,18 +94,19 @@ function CreateEmployeeView() {
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: defaultValues,
-    resolver: yupResolver(personAlreadyExists ? roleSchema : schema),
+    resolver: yupResolver(personAlreadyExists ? complementarySchema : schema),
   });
 
   const onSubmit = async (formData: FormValues) => {
     let response: any;
 
+    const { address, ...personData } = formData;
+
     if (personAlreadyExists) {
       response = await createPersonRole({ employee_id: userId, role_id: formData.role_id });
     } else {
-      response = await createPerson(formData);
+      response = await createPerson({ ...personData, addresses: [{ ...address }] });
     }
-    console.log(response);
 
     if (response?.success) {
       history.push(routePaths.employees.path);
@@ -109,9 +117,10 @@ function CreateEmployeeView() {
   useEffect(() => {
     const fetchPerson = async (cpf: string) => {
       const response = await getPersonByCPF({ cpf });
+
       if (response?.success && response.person) {
-        const { user, name, rg, birth, sex } = response.person;
-        reset({ ...defaultValues, name, rg, birth, sex, cpf });
+        const { user, name, rg, birth, sex, addresses } = response.person;
+        reset({ ...defaultValues, name, rg, birth, sex, cpf, address: addresses[0] });
         setIsEditing(false);
         setPersonAlreadyExists(true);
         setUserId(user.id);
@@ -124,17 +133,6 @@ function CreateEmployeeView() {
     }
   }, [watch('cpf')]);
 
-  // const handleChangeUserCPF = useCallback(async ({ value }: NumberFormatValues) => {
-  //   onFieldChange({ target: { name: 'CPF', value } });
-  //   if (value.length === 11) {
-  //     const response = await getPersonByCPF({ CPF: value });
-  //     if (response?.success) {
-  //       setFormState((prev) => ({ ...prev, values: response.user }));
-  //       // setUserAlreadyExists({ id: response.user.id, name: response.user.name });
-  //     }
-  //   }
-  // }, []);
-
   return (
     <form onSubmit={handleSubmit(onSubmit)} style={{ padding: 24 }}>
       <CardHeader
@@ -142,71 +140,23 @@ function CreateEmployeeView() {
         title={'Funcionários'}
         subheader={'Cadastro de Funcionários'}
       />
-      <Grid container spacing={2}>
-        <Grid item md={6} sm={12} xs={12}>
-          <FormNumberFormat
-            format="###.###.###-##"
-            name={'cpf'}
-            label={'CPF'}
-            control={control}
-            editable={isEditing}
-            errorMessage={errors.cpf?.message}
-            fullWidth
-          />
-        </Grid>
-        <Grid item md={6} sm={12} xs={12}>
-          <FormStandardInput
-            name={'name'}
-            label={'Nome'}
-            control={control}
-            disabled={personAlreadyExists}
-            editable={isEditing}
-            errorMessage={errors.name?.message}
-            fullWidth
-          />
-        </Grid>
-        <Grid item md={4} sm={12} xs={12}>
-          <FormStandardInput
-            name={'rg'}
-            label={'RG'}
-            disabled={personAlreadyExists}
-            control={control}
-            editable={isEditing}
-            errorMessage={errors.rg?.message}
-            fullWidth
-          />
-        </Grid>
+      <Typography className={classes.section_title}>Dados Pessoais</Typography>
+      <Divider textAlign="left" className={classes.divider}></Divider>
+      <PersonForm control={control} isEditing={isEditing} personAlreadyExists={personAlreadyExists} errors={errors} />
 
-        <Grid item md={4} sm={12} xs={12}>
-          <FormNumberFormat
-            name={'birth'}
-            format="##/##/####"
-            label={'Data de Nascimento'}
-            control={control}
-            editable={isEditing}
-            disabled={personAlreadyExists}
-            errorMessage={errors.birth?.message}
-            fullWidth
-          />
-        </Grid>
-        <Grid item md={4} sm={12} xs={12}>
-          <FormStandardInput
-            name={'sex'}
-            label={'Sexo'}
-            select
-            control={control}
-            editable={isEditing}
-            disabled={personAlreadyExists}
-            errorMessage={errors.sex?.message}
-            fullWidth
-          >
-            <MenuItem value={'M'}>Masculino</MenuItem>
-            <MenuItem value={'F'}>Feminino</MenuItem>
-          </FormStandardInput>
-        </Grid>
-        <Grid item md={12} sm={12} xs={12}>
-          <Divider />
-        </Grid>
+      <Typography className={classes.section_title}>Endereço</Typography>
+      <Divider textAlign="left" className={classes.divider}></Divider>
+      <AddressForm
+        control={control}
+        isEditing={isEditing}
+        errors={errors.address}
+        setValue={setValue as any}
+        watch={watch as any}
+      />
+
+      <Typography className={classes.section_title}>Complemento</Typography>
+      <Divider textAlign="left" className={classes.divider}></Divider>
+      <Grid container spacing={2}>
         <Grid item md={12} sm={12} xs={12}>
           <FormStandardInput
             name={'role_id'}
@@ -217,30 +167,24 @@ function CreateEmployeeView() {
             errorMessage={errors.role_id?.message}
             fullWidth
           >
-            {rolesData.map((role) => (
-              <MenuItem key={role.id} value={role.id}>
-                {role.name}
-              </MenuItem>
-            ))}
+            {rolesData
+              .filter((role) => employeeRoles.includes(role.type as RoleTypes))
+              .map((role) => (
+                <MenuItem key={role.id} value={role.id}>
+                  {role.name}
+                </MenuItem>
+              ))}
           </FormStandardInput>
         </Grid>
       </Grid>
 
-      <AppSaveButton
-        type="submit"
-        loading={saving || isCreatingRole}
-        disabled={saving || isCreatingRole}
-        // label={isCreatingNewCourse ? 'Criar' : 'Salvar'}
-      />
+      <AppSaveButton type="submit" loading={saving || isCreatingRole} disabled={saving || isCreatingRole} />
       <AppClearButton
         onClick={() => {
           setPersonAlreadyExists(false);
           setIsEditing(true);
           reset(defaultValues);
         }}
-        // loading={saving || updating}
-        // disabled={saving || updating || !isDirty}
-        // label={isCreatingNewCourse ? 'Criar' : 'Salvar'}
       />
     </form>
   );
