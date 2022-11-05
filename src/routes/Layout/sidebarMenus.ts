@@ -152,11 +152,6 @@ export const SIDE_BAR_PRINCIPAL_ITEMS: Array<LinkToPage> = [
         title: 'Cadastrar Aluno',
         path: `${routePaths.students.create.path}`,
       },
-      {
-        title: 'Designar Turma',
-        path: '/alunos/designar',
-        icon: 'search',
-      },
     ],
   },
 
