@@ -20,29 +20,36 @@ interface IGetAllStudentsParams extends IApiFuncParams {
   args?: {
     page?: number;
     per_page?: number;
-    filterBy?: string;
-    filterType?: string;
-    filterValue?: string;
+    course_id?: string;
+    grade_id?: string;
+    class_group_id?: string;
   };
 }
 
 const getAll = async ({ schoolId, token, args = {}, cancelToken }: IGetAllStudentsParams) =>
   (
     await api.get(
-      `/${schoolId}/students?per_page=${args.per_page || 10}&page=${args.page || 1}&${
-        !!args.filterValue
-          ? `&filterBy=${args.filterBy}&filterValue=${args.filterValue}&filterType=${args.filterType}`
-          : ''
-      }`,
-      { headers: { Authorization: `Bearer ${token}` }, cancelToken }
+      `/${schoolId}/students?per_page=${args.per_page || 10}&page=${args.page || 1}&course_id=${
+        args.course_id
+      }&grade_id=${args.grade_id}&class_group_id=${args.class_group_id}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        cancelToken,
+      }
     )
   ).data as IStudentsList;
 
-const create = async (data: object) => api.post('/students', data);
+const create = async ({ schoolId, token, args }: IApiFuncParams) =>
+  (await api.post(`/${schoolId}/students`, args, { headers: { Authorization: `Bearer ${token}` } })).data;
 
 const remove = async (id: object) => api.delete('/students/' + id);
 
-const update = async (id: string, data: object) => api.put('/students/' + id, data);
+const update = async ({ schoolId, token, args }: IApiFuncParams) =>
+  (
+    await api.put(`/${schoolId}/students/${args.id}`, args.data, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+  ).data;
 
 const getById = async (id: string) => api.get('/students/' + id);
 
