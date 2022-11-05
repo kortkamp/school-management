@@ -8,7 +8,16 @@ export interface ICourse {
   total_hours: number | '';
   phase_name: string;
   phases_number: number | '';
-  grades: { id: string; name: string; total_hours: number; days: number }[];
+  grades: {
+    id: string;
+    name: string;
+    total_hours: number;
+    days: number;
+    class_groups: {
+      id: string;
+      name: string;
+    }[];
+  }[];
 }
 
 interface ICoursesResponseData {
