@@ -28,10 +28,13 @@ import { AppAddButton } from '../../components/AppCustomButton';
 import { routePaths } from '../../routes/RoutePaths';
 import { studentsService } from '../../services/students.service';
 import AppView from '../../components/AppView';
+import StudentAllocation, { IStudentAllocation } from './StudentAllocation';
 
 interface Props {
   onSuccess?: () => void;
 }
+
+const defaultAllocation = { course_id: '', grade_id: '', class_group_id: '' };
 
 function CustomPagination() {
   const apiRef = useGridApiContext();
@@ -56,17 +59,47 @@ const ListStudentsView = ({ onSuccess }: Props) => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
+  const [allocation, setAllocation] = useState<IStudentAllocation>(defaultAllocation);
+
   const [data, , loading, , setData] = useApi(studentsService.getAll, {
-    args: { page, per_page: pageSize },
+    args: { page, per_page: pageSize, ...allocation },
   });
 
   const history = useHistory();
 
   const dataGridTeachersColumns = [
-    { field: 'name', headerName: 'Nome', width: 250 },
-    { field: 'course', headerName: 'Curso', width: 150 },
-    { field: 'grade', headerName: 'Fase', width: 150 },
-    { field: 'classGroup', headerName: 'Turma', width: 150 },
+    {
+      field: 'name',
+      headerName: 'Nome',
+      width: 250,
+      valueGetter: (params: any) => {
+        return params.row.person?.name;
+      },
+    },
+    {
+      field: 'course',
+      headerName: 'Curso',
+      width: 150,
+      valueGetter: (params: any) => {
+        return params.row.course?.name;
+      },
+    },
+    {
+      field: 'grade',
+      headerName: 'Fase',
+      width: 150,
+      valueGetter: (params: any) => {
+        return params.row.grade?.name;
+      },
+    },
+    {
+      field: 'classGroup',
+      headerName: 'Turma',
+      width: 150,
+      valueGetter: (params: any) => {
+        return params.row.classGroup?.name;
+      },
+    },
 
     {
       field: 'action',
@@ -77,14 +110,20 @@ const ListStudentsView = ({ onSuccess }: Props) => {
         return (
           <>
             <AppIconButton
-              title="Alterar Função"
+              title="Alterar Turma"
               icon="edit"
               onClick={(event) => {
                 event.stopPropagation();
-                const { id, role_id: currentRoleId, name } = params.row;
+                const { id, person, course, grade, classGroup } = params.row;
 
-                history.push('/funcionarios/nova-funcao', {
-                  user: { id, name, currentRoleId },
+                history.push(routePaths.students.designate.path, {
+                  student: {
+                    id,
+                    name: person.name,
+                    course_id: course?.id,
+                    grade_id: grade?.id,
+                    class_group_id: classGroup?.id,
+                  },
                 });
               }}
             />
@@ -122,7 +161,8 @@ const ListStudentsView = ({ onSuccess }: Props) => {
   }
 
   return (
-    <AppView title="Alunos" loading={loading}>
+    <AppView title="Alunos" loading={false}>
+      <StudentAllocation onChange={(allocData) => setAllocation(allocData)} values={defaultAllocation} />
       <DataGrid
         rows={(data?.result || []) as any[]}
         getRowId={(row) => row.id + row.role_id}
@@ -149,7 +189,7 @@ const ListStudentsView = ({ onSuccess }: Props) => {
           Pagination: CustomPagination,
           NoRowsOverlay: () => (
             <GridOverlay>
-              <div>Nenhum funcionário encontrado</div>
+              <div>Nenhum aluno encontrado</div>
             </GridOverlay>
           ),
         }}
