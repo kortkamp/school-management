@@ -110,6 +110,16 @@ const ListStudentsView = ({ onSuccess }: Props) => {
         return (
           <>
             <AppIconButton
+              title="Dados Pessoais"
+              icon="person"
+              onClick={(event) => {
+                event.stopPropagation();
+                const { person } = params.row;
+
+                history.push(routePaths.person.path + person.id);
+              }}
+            />
+            <AppIconButton
               title="Alterar Turma"
               icon="edit"
               onClick={(event) => {

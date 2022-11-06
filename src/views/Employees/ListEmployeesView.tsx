@@ -27,6 +27,7 @@ import { employeesService } from '../../services/employees.service';
 import { rolesService } from '../../services/roles.service';
 import { SHARED_CONTROL_PROPS } from '../../utils/form';
 import { AppAddButton } from '../../components/AppCustomButton';
+import { routePaths } from '../../routes/RoutePaths';
 
 interface Props {
   onSuccess?: () => void;
@@ -110,6 +111,16 @@ const ListEmployeesView = ({ onSuccess }: Props) => {
       renderCell: (params: any) => {
         return (
           <>
+            <AppIconButton
+              title="Dados Pessoais"
+              icon="person"
+              onClick={(event) => {
+                event.stopPropagation();
+                const { person_id: personId } = params.row;
+
+                history.push(routePaths.person.path + personId);
+              }}
+            />
             <AppIconButton
               title="Alterar Função"
               icon="edit"
