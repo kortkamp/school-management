@@ -1,6 +1,6 @@
 import { Grid, MenuItem } from '@mui/material';
-import { useEffect } from 'react';
-import { Control, FieldErrorsImpl, UseFormSetValue, UseFormWatch } from 'react-hook-form';
+import { useCallback } from 'react';
+import { Control, FieldErrorsImpl, UseFormSetValue } from 'react-hook-form';
 import FormNumberFormat from '../../../components/HookFormInput/FormNumberFormat';
 import FormStandardInput from '../../../components/HookFormInput/FormStandardInput';
 
@@ -37,6 +37,7 @@ const UFList = [
 ];
 
 export interface AddressFormValues {
+  id?: string;
   street: string;
   number: string;
   complement: string;
@@ -50,7 +51,6 @@ interface Props {
   control: Control<any, any>;
   isEditing: boolean;
   errors?: FieldErrorsImpl<AddressFormValues>;
-  watch: UseFormWatch<{ address: AddressFormValues }>;
   setValue: UseFormSetValue<{ address: AddressFormValues }>;
 }
 
@@ -74,28 +74,28 @@ export const addressDefaultValues = {
   CEP: '',
 };
 
-const AddressForm = ({ control, isEditing, errors, watch, setValue }: Props) => {
-  useEffect(() => {
-    const fetchAddress = async (cep: string) => {
-      fetch(`https://viacep.com.br/ws/${cep}/json/`)
-        .then((res) => res.json())
-        .then((data) => {
-          setValue('address.street', data.logradouro);
-          setValue('address.complement', data.complemento);
-          setValue('address.district', data.bairro);
-          setValue('address.city', data.localidade);
-          setValue('address.state', data.uf);
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-    };
+const AddressForm = ({ control, isEditing, errors, setValue }: Props) => {
+  const HandleChangeCEP = useCallback((event: any) => {
+    const cep = event.target.value as string;
 
-    const cep = watch('address.CEP');
-    if (cep.length === 8) {
-      fetchAddress(cep);
+    const sanitizedCEP = cep.replace(/[ .-]/g, '');
+
+    if (sanitizedCEP.length !== 8) {
+      return;
     }
-  }, [watch('address.CEP')]);
+    fetch(`https://viacep.com.br/ws/${sanitizedCEP}/json/`)
+      .then((res) => res.json())
+      .then((data) => {
+        setValue('address.street', data.logradouro);
+        setValue('address.complement', data.complemento);
+        setValue('address.district', data.bairro);
+        setValue('address.city', data.localidade);
+        setValue('address.state', data.uf);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, []);
 
   return (
     <Grid container spacing={2}>
@@ -107,6 +107,8 @@ const AddressForm = ({ control, isEditing, errors, watch, setValue }: Props) => 
           control={control}
           editable={isEditing}
           errorMessage={errors?.CEP?.message}
+          // onKeyDown={HandleChangeCEP}
+          onKeyUp={HandleChangeCEP}
           fullWidth
         />
       </Grid>
