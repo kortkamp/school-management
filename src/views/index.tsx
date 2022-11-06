@@ -14,6 +14,7 @@ import Welcome from './Welcome';
 import RegisterSchool from './RegisterSchool';
 import Courses from './Courses';
 import Employees from './Employees';
+import Person from './Person';
 
 export {
   NotFound,
@@ -32,4 +33,5 @@ export {
   RegisterSchool,
   Courses,
   Employees,
+  Person,
 };

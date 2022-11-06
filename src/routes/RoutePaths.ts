@@ -35,4 +35,8 @@ export const routePaths = {
   classGroups: {
     path: '/turmas',
   },
+  person: {
+    view: { path: '/pessoa/:id' },
+    path: '/pessoa/',
+  },
 };
