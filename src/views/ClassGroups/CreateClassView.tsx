@@ -1,25 +1,41 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/naming-convention */
-import { SyntheticEvent, useCallback, useState, useEffect } from 'react';
-import { useHistory } from 'react-router-dom';
-import { Grid, TextField, Card, CardHeader, CardContent, LinearProgress, MenuItem } from '@mui/material';
-import { useAppStore } from '../../store';
-import { AppButton, AppAlert, AppForm } from '../../components';
-import { useAppForm, SHARED_CONTROL_PROPS } from '../../utils/form';
-import { classGroupsService } from '../../services/classGroups.service';
-// import { segmentsService } from '../../services/segments.service';
-import { gradesService } from '../../services/grades.service';
+
+import { FormControlLabel, Grid, MenuItem, Radio } from '@mui/material';
 
 import * as yup from 'yup';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import AppView, { AppViewActions, AppViewData, AppViewParams } from '../../components/AppView';
+import FormStandardInput from '../../components/HookFormInput/FormStandardInput';
+import { useApi, useRequestApi } from '../../api/useApi';
+import { coursesService } from '../../services/courses.service';
+import { AppSaveButton } from '../../components/AppCustomButton';
+import FormRadioInput from '../../components/HookFormInput/FormRadioInput';
+import { routinesService } from '../../services/routines.service';
+import { useEffect, useState } from 'react';
+import { classGroupsService } from '../../services/classGroups.service';
+import { useHistory } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
-const createClassGroupSchema = {
+const schema = yup.object({
   name: yup.string().required('O campo é obrigatório'),
-};
+  routine_group_id: yup.string().required('O campo é obrigatório'),
+});
 
-interface FormStateValues {
+interface FormValues {
   name: string;
-  segment_id: string;
+  course_id: string;
   grade_id: string;
+  routine_group_id: string;
 }
+
+const defaultValues: FormValues = {
+  name: '',
+  course_id: '',
+  grade_id: '',
+  routine_group_id: '',
+};
 
 /**
  * Renders "Create ClassGroup" view
@@ -27,144 +43,116 @@ interface FormStateValues {
  */
 function CreateClassView() {
   const history = useHistory();
-  const [, dispatch] = useAppStore();
+  const [coursesData, loadingError, loadingCourses] = useApi(coursesService.getAll, { defaultValue: [] });
 
-  const [formState, , /* setFormState */ onFieldChange, fieldGetError, fieldHasError] = useAppForm({
-    validationSchema: createClassGroupSchema,
-    initialValues: {
-      name: '',
-      segment_id: '',
-      grade_id: '',
-    } as FormStateValues,
+  const [grades, setGrades] = useState<typeof coursesData[number]['grades']>([]);
+
+  const [routineGroupsData, loadingRoutineError, loadingRoutines] = useApi(routinesService.getAllRoutineGroups, {
+    defaultValue: [],
   });
 
-  const [segments, setSegments] = useState<any[]>([]);
-  const [grades, setGrades] = useState<any[]>([]);
+  const [createClassGroup, saving] = useRequestApi(classGroupsService.create);
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>();
-  const values = formState.values as FormStateValues; // Typed alias to formState.values as the "Source of Truth"
+  const {
+    handleSubmit,
+    control,
+    watch,
+
+    formState: { errors },
+  } = useForm<FormValues>({
+    defaultValues: defaultValues,
+    resolver: yupResolver(schema),
+  });
 
   useEffect(() => {
-    // Component Mount
-    let componentMounted = true;
+    const course_id = watch('course_id');
+    const selectedCourse = coursesData.find((course) => course.id === course_id);
+    setGrades(selectedCourse?.grades || []);
+  }, [watch('course_id')]);
 
-    async function fetchData() {
-      let segmentsData: any[] = [];
-      let gradesData = [];
+  const onSubmit = async (formData: FormValues) => {
+    const response = await createClassGroup(formData);
 
-      try {
-        // const segmentsResponse = await segmentsService.getAll();
-        // segmentsData = segmentsResponse.data.segments;
-
-        const gradesResponse = await gradesService.getAll();
-        gradesData = gradesResponse.data.grades;
-      } catch (err: any) {
-        console.log(err);
-      }
-
-      if (!componentMounted) return;
-
-      setSegments(segmentsData.sort((a: any, b: any) => a.name.localeCompare(b.name)));
-      setGrades(gradesData.sort((a: any, b: any) => a.name.localeCompare(b.name)));
-
-      setLoading(false); // Reset "Loading..." indicator
+    if (response.success) {
+      toast.success('Turma criada com sucesso');
+      history.goBack();
     }
-    fetchData();
-
-    return () => {
-      // Component Un-mount
-      componentMounted = false;
-    };
-  }, []);
-
-  const handleFormSubmit = useCallback(
-    async (event: SyntheticEvent) => {
-      event.preventDefault();
-
-      const { grade_id, name } = values;
-      const apiResult = await classGroupsService.create({ grade_id, name });
-
-      if (!apiResult) {
-        setError('Erro ao criar a turma');
-        return;
-      }
-
-      history.replace('/turmas');
-    },
-    [dispatch, values, history]
-  );
-
-  const handleCloseError = useCallback(() => setError(undefined), []);
-
-  if (loading) return <LinearProgress />;
+  };
 
   return (
-    <AppForm onSubmit={handleFormSubmit} style={{ minWidth: '100%', marginTop: '50px' }}>
-      <Card>
-        <CardHeader style={{ textAlign: 'center' }} title="Criar uma nova turma" />
-        <CardContent>
-          <TextField
-            required
-            select
-            label="Segmento"
-            name="segment_id"
-            value={values.segment_id}
-            onChange={onFieldChange}
-            {...SHARED_CONTROL_PROPS}
-          >
-            {segments.map((item) => {
-              return (
-                <MenuItem key={item.id} value={item.id}>
-                  {item.name}
-                </MenuItem>
-              );
-            })}
-          </TextField>
-          <TextField
-            required
-            select
-            label="Ano"
-            name="grade_id"
-            value={values.grade_id}
-            onChange={onFieldChange}
-            {...SHARED_CONTROL_PROPS}
-          >
-            {grades
-              .filter((grade) => grade.segment_id === values.segment_id)
-              .map((grade) => {
-                return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <AppView title="Turma" loading={loadingCourses || loadingRoutines} error={loadingError || loadingRoutineError}>
+        <AppViewParams>
+          <Grid item md={4} sm={12} xs={12}>
+            <FormStandardInput
+              name={'name'}
+              label={'Nome da Turma'}
+              control={control}
+              editable={true}
+              errorMessage={errors.name?.message}
+              fullWidth
+            ></FormStandardInput>
+          </Grid>
+        </AppViewParams>
+        <AppViewData>
+          <Grid container spacing={10}>
+            <Grid item md={6} sm={12} xs={12}>
+              <FormStandardInput
+                name={'course_id'}
+                label={'Curso'}
+                select
+                control={control}
+                editable={true}
+                errorMessage={errors.course_id?.message}
+                fullWidth
+              >
+                {coursesData?.map((course) => (
+                  <MenuItem key={course.id} value={course.id}>
+                    {course.name}
+                  </MenuItem>
+                ))}
+              </FormStandardInput>
+
+              <FormStandardInput
+                name={'grade_id'}
+                label={'Fase'}
+                select
+                control={control}
+                editable={true}
+                errorMessage={errors.grade_id?.message}
+                fullWidth
+              >
+                {grades?.map((grade) => (
                   <MenuItem key={grade.id} value={grade.id}>
                     {grade.name}
                   </MenuItem>
-                );
-              })}
-          </TextField>
-          <TextField
-            required
-            label="Nome"
-            name="name"
-            value={values.name}
-            error={fieldHasError('name')}
-            helperText={fieldGetError('name') || ' '}
-            onChange={onFieldChange}
-            {...SHARED_CONTROL_PROPS}
-          />
-
-          {error ? (
-            <AppAlert severity="error" onClose={handleCloseError}>
-              {error}
-            </AppAlert>
-          ) : null}
-
-          <Grid container justifyContent="center" alignItems="center">
-            <AppButton type="submit" disabled={!formState.isValid}>
-              Criar
-            </AppButton>
+                ))}
+              </FormStandardInput>
+            </Grid>
+            <Grid item md={6} sm={12} xs={12}>
+              <FormRadioInput
+                control={control}
+                name="routine_group_id"
+                label="Turno"
+                errorMessage={errors.routine_group_id?.message}
+              >
+                {routineGroupsData.map((routineGroup) => (
+                  <FormControlLabel
+                    key={routineGroup.id}
+                    value={routineGroup.id}
+                    control={<Radio />}
+                    label={routineGroup.name}
+                  />
+                ))}
+              </FormRadioInput>
+            </Grid>
           </Grid>
-        </CardContent>
-      </Card>
-    </AppForm>
+        </AppViewData>
+        <AppViewActions>
+          <AppSaveButton type="submit" loading={saving} disabled={saving} />
+        </AppViewActions>
+      </AppView>
+    </form>
   );
 }
 

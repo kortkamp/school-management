@@ -34,7 +34,8 @@ const getAll = async ({ schoolId, token, cancelToken }: IApiFuncParams) =>
   (await api.get(`/${schoolId}/class-groups`, { headers: { Authorization: `Bearer ${token}` }, cancelToken })).data
     .classGroups as IClassGroup[];
 
-const create = async (data: object) => api.post('/class-groups', data);
+const create = async ({ schoolId, token, args }: IApiFuncParams) =>
+  (await api.post(`/${schoolId}/class-groups`, args, { headers: { Authorization: `Bearer ${token}` } })).data;
 
 const remove = async (id: object) => api.delete('/class-groups/' + id);
 
