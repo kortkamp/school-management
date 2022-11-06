@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Grid, CardHeader, MenuItem, Divider, Theme, Typography } from '@mui/material';
 
+import Moment from 'moment';
+
 import * as yup from 'yup';
 
 import { useApi, useRequestApi } from '../../api/useApi';
@@ -54,6 +56,7 @@ const complementarySchema = yup.object({
 
 interface FormValues extends PersonFormValues {
   address: AddressFormValues;
+  role_id: string;
 }
 
 const defaultValues: FormValues = {
@@ -62,6 +65,7 @@ const defaultValues: FormValues = {
   address: {
     ...addressDefaultValues,
   },
+  role_id: '',
 };
 
 const employeeRoles = [RoleTypes.SECRETARY, RoleTypes.PRINCIPAL, RoleTypes.TEACHER];
@@ -100,12 +104,16 @@ function CreateEmployeeView() {
   const onSubmit = async (formData: FormValues) => {
     let response: any;
 
-    const { address, ...personData } = formData;
+    const { address, birth, ...personData } = formData;
 
     if (personAlreadyExists) {
       response = await createPersonRole({ employee_id: userId, role_id: formData.role_id });
     } else {
-      response = await createPerson({ ...personData, addresses: [{ ...address }] });
+      response = await createPerson({
+        ...personData,
+        birth: Moment(birth, 'DDMMYYYY').toDate(),
+        addresses: [{ ...address }],
+      });
     }
 
     if (response?.success) {
@@ -120,7 +128,7 @@ function CreateEmployeeView() {
 
       if (response?.success && response.person) {
         const { user, name, rg, birth, sex, addresses } = response.person;
-        reset({ ...defaultValues, name, rg, birth, sex, cpf, address: addresses[0] });
+        reset({ ...defaultValues, name, rg, birth: Moment(birth).format('DDMMYYYY'), sex, cpf, address: addresses[0] });
         setIsEditing(false);
         setPersonAlreadyExists(true);
         setUserId(user.id);
@@ -146,13 +154,7 @@ function CreateEmployeeView() {
 
       <Typography className={classes.section_title}>Endereço</Typography>
       <Divider textAlign="left" className={classes.divider}></Divider>
-      <AddressForm
-        control={control}
-        isEditing={isEditing}
-        errors={errors.address}
-        setValue={setValue as any}
-        watch={watch as any}
-      />
+      <AddressForm control={control} isEditing={isEditing} errors={errors.address} setValue={setValue as any} />
 
       <Typography className={classes.section_title}>Complemento</Typography>
       <Divider textAlign="left" className={classes.divider}></Divider>

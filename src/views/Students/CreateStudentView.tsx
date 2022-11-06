@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Grid, CardHeader, Divider, Theme, Typography } from '@mui/material';
 
+import Moment from 'moment';
+
 import * as yup from 'yup';
 
 import { useRequestApi } from '../../api/useApi';
@@ -112,17 +114,20 @@ function CreateStudentView() {
   const onSubmit = async (formData: FormValues) => {
     let response: any;
 
-    const { address, ...personData } = formData;
+    const { address, birth, ...personData } = formData;
 
     if (personAlreadyExists) {
-      response = await createPersonRole({ employee_id: userId, role_id: formData.role_id });
     } else {
-      response = await createStudent({ ...personData, addresses: [{ ...address }] });
+      response = await createStudent({
+        ...personData,
+        birth: Moment(birth, 'DDMMYYYY').toDate(),
+        addresses: [{ ...address }],
+      });
     }
 
     if (response?.success) {
-      history.push(routePaths.employees.path);
-      toast.success('Funcionário cadastrado com sucesso');
+      history.push(routePaths.students.path);
+      toast.success('Aluno cadastrado com sucesso');
     }
   };
 
@@ -160,13 +165,7 @@ function CreateStudentView() {
 
       <Typography className={classes.section_title}>Endereço</Typography>
       <Divider textAlign="left" className={classes.divider}></Divider>
-      <AddressForm
-        control={control}
-        isEditing={isEditing}
-        errors={errors.address}
-        setValue={setValue as any}
-        watch={watch as any}
-      />
+      <AddressForm control={control} isEditing={isEditing} errors={errors.address} setValue={setValue as any} />
 
       <Typography className={classes.section_title}>Complemento</Typography>
       <Divider textAlign="left" className={classes.divider}></Divider>
