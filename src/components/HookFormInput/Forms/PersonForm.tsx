@@ -6,18 +6,18 @@ import FormStandardInput from '../FormStandardInput';
 import * as yup from 'yup';
 
 export interface PersonFormValues {
+  id?: string;
   name: string;
   cpf: string;
   rg: string;
   sex: string;
-  birth: string;
-  role_id: string;
+  birth: Date | string;
 }
 
 interface Props {
   control: Control<any, any>;
   isEditing: boolean;
-  personAlreadyExists: boolean;
+  personAlreadyExists?: boolean;
   errors?: FieldErrorsImpl<PersonFormValues>;
 }
 
@@ -38,10 +38,9 @@ export const personDefaultValues = {
   rg: '',
   sex: '',
   birth: '',
-  role_id: '',
 };
 
-const PersonForm = ({ control, isEditing, errors, personAlreadyExists }: Props) => {
+const PersonForm = ({ control, isEditing, errors, personAlreadyExists = false }: Props) => {
   return (
     <Grid container spacing={2}>
       <Grid item md={6} sm={12} xs={12}>
