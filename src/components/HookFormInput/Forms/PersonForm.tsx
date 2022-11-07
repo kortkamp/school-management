@@ -77,7 +77,7 @@ const PersonForm = ({ control, isEditing, errors, personAlreadyExists = false }:
         />
       </Grid>
 
-      <Grid item md={4} sm={12} xs={12}>
+      <Grid item md={4} sm={6} xs={6}>
         <FormNumberFormat
           name={'birth'}
           format="##/##/####"
@@ -89,7 +89,7 @@ const PersonForm = ({ control, isEditing, errors, personAlreadyExists = false }:
           fullWidth
         />
       </Grid>
-      <Grid item md={4} sm={12} xs={12}>
+      <Grid item md={4} sm={6} xs={6}>
         <FormStandardInput
           name={'sex'}
           label={'Sexo'}
