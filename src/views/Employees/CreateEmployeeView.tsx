@@ -30,6 +30,11 @@ import PersonForm, {
   PersonFormValues,
   personSchema,
 } from '../../components/HookFormInput/Forms/PersonForm';
+import ContactForm, {
+  ContactFormValues,
+  contactDefaultValues,
+  contactSchema,
+} from '../../components/HookFormInput/Forms/ContactForm';
 
 const useStyles = makeStyles((theme: Theme) => ({
   divider: {
@@ -47,6 +52,9 @@ const schema = yup.object({
   address: yup.object({
     ...addressSchema,
   }),
+  contact: yup.object({
+    ...contactSchema,
+  }),
   role_id: yup.string().required('O campo é obrigatório'),
 });
 
@@ -56,6 +64,7 @@ const complementarySchema = yup.object({
 
 interface FormValues extends PersonFormValues {
   address: AddressFormValues;
+  contact: ContactFormValues;
   role_id: string;
 }
 
@@ -64,6 +73,9 @@ const defaultValues: FormValues = {
   ...personDefaultValues,
   address: {
     ...addressDefaultValues,
+  },
+  contact: {
+    ...contactDefaultValues,
   },
   role_id: '',
 };
@@ -100,6 +112,8 @@ function CreateEmployeeView() {
     defaultValues: defaultValues,
     resolver: yupResolver(personAlreadyExists ? complementarySchema : schema),
   });
+
+  console.log(errors);
 
   const onSubmit = async (formData: FormValues) => {
     let response: any;
@@ -155,6 +169,10 @@ function CreateEmployeeView() {
       <Typography className={classes.section_title}>Endereço</Typography>
       <Divider textAlign="left" className={classes.divider}></Divider>
       <AddressForm control={control} isEditing={isEditing} errors={errors.address} setValue={setValue as any} />
+
+      <Typography className={classes.section_title}>Contato</Typography>
+      <Divider textAlign="left" className={classes.divider}></Divider>
+      <ContactForm control={control} isEditing={isEditing} errors={errors.contact} />
 
       <Typography className={classes.section_title}>Complemento</Typography>
       <Divider textAlign="left" className={classes.divider}></Divider>
