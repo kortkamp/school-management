@@ -1,7 +1,8 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { localStorageGet } from '../utils/localStorage';
 
-const baseURL = 'http://10.157.246.116:3003';
+// const baseURL = 'http://10.157.246.116:3003';
+const baseURL = process.env.REACT_APP_API_URL;
 
 const api = () => {
   const defaultOptions = {
