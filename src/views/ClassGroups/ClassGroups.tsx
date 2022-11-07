@@ -15,22 +15,7 @@ const ClassGroupsView = () => {
   const history = useHistory();
 
   const columns = [
-    {
-      field: 'show',
-      headerName: 'Detalhes',
-      sortable: false,
-      width: 80,
-      renderCell: (params: any) => {
-        const onClick = (e: any) => {
-          e.stopPropagation(); // don't select this row after clicking
-          history.push('/turmas/' + params.row.id);
-        };
-
-        return <AppIconButton icon="details" onClick={onClick} title="Mostrar Turma" />;
-      },
-    },
     { field: 'name', headerName: 'Turma', width: 150 },
-
     {
       field: 'course',
       headerName: 'Curso',
@@ -56,6 +41,24 @@ const ClassGroupsView = () => {
       },
     },
     { field: 'students_count', headerName: 'Alunos', width: 150 },
+    {
+      field: 'actions',
+      headerName: 'Ações',
+      sortable: false,
+      width: 80,
+      renderCell: (params: any) => (
+        <>
+          <AppIconButton
+            icon="group"
+            onClick={(e: any) => {
+              e.stopPropagation(); // don't select this row after clicking
+              history.push('/turmas/' + params.row.id);
+            }}
+            title="Mostrar Turma"
+          />
+        </>
+      ),
+    },
   ];
 
   if (loadingClassGroups) return <AppLoading />;
