@@ -68,6 +68,7 @@ const ClassView = () => {
     reset,
     control,
     setValue,
+    watch,
     // getValues,
 
     formState: { errors, isDirty },
@@ -193,7 +194,7 @@ const ClassView = () => {
         </AppViewParams>
 
         <AppViewData title="Alunos:">
-          <StudentsTable students={[{ id: 'd', name: 'teste' }]} />
+          <StudentsTable students={watch('students')} />
         </AppViewData>
 
         <AppViewActions>
