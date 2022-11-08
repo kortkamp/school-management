@@ -1,15 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  Grid,
-  CircularProgress,
-  Box,
-  TextField,
-  InputAdornment,
-  MenuItem,
-} from '@mui/material';
+import { Box } from '@mui/material';
 import {
   DataGrid,
   GridOverlay,
@@ -75,6 +65,11 @@ const ListStudentsView = ({ onSuccess }: Props) => {
       valueGetter: (params: any) => {
         return params.row.person?.name;
       },
+    },
+    {
+      field: 'enroll_id',
+      headerName: 'Matrícula',
+      width: 200,
     },
     {
       field: 'course',
