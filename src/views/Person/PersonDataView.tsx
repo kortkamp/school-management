@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
-import { Grid, CardHeader, Divider, Theme, Typography } from '@mui/material';
+import { CardHeader, Divider, Theme, Typography } from '@mui/material';
 import Moment from 'moment';
 
 import * as yup from 'yup';
@@ -23,11 +23,15 @@ import PersonForm, {
   PersonFormValues,
   personSchema,
 } from '../../components/HookFormInput/Forms/PersonForm';
-import { studentsService } from '../../services/students.service';
 import { personsService } from '../../services/persons.service';
 import { AppLoading } from '../../components';
 import AppBackButton from '../../components/AppCustomButton/AppBackButton';
 import AppError from '../../components/AppError';
+import ContactForm, {
+  ContactFormValues,
+  contactDefaultValues,
+  contactSchema,
+} from '../../components/HookFormInput/Forms/ContactForm';
 
 const useStyles = makeStyles((theme: Theme) => ({
   divider: {
@@ -45,16 +49,23 @@ const schema = yup.object({
   address: yup.object({
     ...addressSchema,
   }),
+  contact: yup.object({
+    ...contactSchema,
+  }),
 });
 
 interface FormValues extends PersonFormValues {
   address?: AddressFormValues;
+  contact: ContactFormValues;
 }
 
 const defaultValues: FormValues = {
   ...personDefaultValues,
   address: {
     ...addressDefaultValues,
+  },
+  contact: {
+    ...contactDefaultValues,
   },
 };
 
@@ -90,7 +101,7 @@ function PersonDataView() {
 
   useEffect(() => {
     if (person) {
-      const { addresses, id, name, cpf, rg, birth, sex } = person;
+      const { addresses, id, name, cpf, rg, birth, sex, contact } = person;
       const {
         id: address_id,
         CEP,
@@ -101,6 +112,8 @@ function PersonDataView() {
         state,
         street,
       } = addresses[0] || addressDefaultValues;
+
+      const { email, cel_phone, phone } = contact || contactDefaultValues;
       reset({
         id,
         name,
@@ -109,6 +122,7 @@ function PersonDataView() {
         birth: Moment(birth).format('DDMMYYYY'),
         sex,
         address: { id: address_id, CEP, city, complement, district, number, state, street },
+        contact: { email, cel_phone, phone },
       });
     }
   }, [person]);
@@ -147,6 +161,10 @@ function PersonDataView() {
       <Typography className={classes.section_title}>Endereço</Typography>
       <Divider textAlign="left" className={classes.divider}></Divider>
       <AddressForm control={control} isEditing={isEditing} errors={errors.address} setValue={setValue as any} />
+
+      <Typography className={classes.section_title}>Contato</Typography>
+      <Divider textAlign="left" className={classes.divider}></Divider>
+      <ContactForm control={control} isEditing={isEditing} errors={errors.contact} />
 
       <AppSaveButton type="submit" loading={saving} disabled={saving} />
       <AppBackButton />

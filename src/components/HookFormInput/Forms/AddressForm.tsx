@@ -152,7 +152,7 @@ const AddressForm = ({ control, isEditing, errors, setValue }: Props) => {
           fullWidth
         />
       </Grid>
-      <Grid item md={6} sm={6} xs={12}>
+      <Grid item md={6} sm={6} xs={8}>
         <FormStandardInput
           name={'address.city'}
           label={'Cidade'}
@@ -162,7 +162,7 @@ const AddressForm = ({ control, isEditing, errors, setValue }: Props) => {
           fullWidth
         />
       </Grid>
-      <Grid item md={6} sm={6} xs={12}>
+      <Grid item md={6} sm={6} xs={4}>
         <FormStandardInput
           name={'address.state'}
           select

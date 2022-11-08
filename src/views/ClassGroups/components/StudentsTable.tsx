@@ -2,8 +2,17 @@ import { Table, TableBody, TableCell, TableHead, TableRow, TextField } from '@mu
 import { AppIconButton } from '../../../components';
 // import { AppAddButton } from '../../../components/AppCustomButton';
 
+interface IClassStudent {
+  id: string;
+  enroll_id: string;
+  person: {
+    id: string;
+    name: string;
+  };
+}
+
 interface Props {
-  students: { id: string; name: string }[];
+  students: IClassStudent[];
 }
 
 const StudentsTable = ({
@@ -22,7 +31,7 @@ Props) => {
       <TableHead>
         <TableRow>
           <TableCell>Nome</TableCell>
-          <TableCell>dado1</TableCell>
+          <TableCell>Matrícula</TableCell>
           <TableCell>dado2</TableCell>
           <TableCell>Ações</TableCell>
         </TableRow>
@@ -34,13 +43,22 @@ Props) => {
               <TextField
                 required
                 name="type"
-                value={student.name}
+                value={student.person.name}
                 // onChange={(event) => handleChangeRoutineValue(routine.id, event)}
                 variant="standard"
                 InputProps={{ disableUnderline: true }}
               ></TextField>
             </TableCell>
-            <TableCell component="th" scope="row"></TableCell>
+            <TableCell component="th" scope="row">
+              <TextField
+                required
+                name="enroll_id"
+                value={student.enroll_id}
+                // onChange={(event) => handleChangeRoutineValue(routine.id, event)}
+                variant="standard"
+                InputProps={{ disableUnderline: true }}
+              ></TextField>
+            </TableCell>
             <TableCell component="th" scope="row"></TableCell>
 
             <TableCell component="th" scope="row">

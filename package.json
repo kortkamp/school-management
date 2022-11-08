@@ -54,6 +54,7 @@
     "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^5.27.0",
     "@typescript-eslint/parser": "^5.27.0",
+    "dotenv": "^16.0.3",
     "eslint": "7.32",
     "eslint-config-airbnb": "^18.2.1",
     "eslint-config-airbnb-typescript": "^17.0.0",

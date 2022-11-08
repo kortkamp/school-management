@@ -16,6 +16,7 @@ interface IClassGroup {
     id: string;
     name: string;
   } | null;
+  students_count: number;
 }
 
 export interface IClassGroupDetail extends IClassGroup {
