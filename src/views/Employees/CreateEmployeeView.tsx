@@ -113,8 +113,6 @@ function CreateEmployeeView() {
     resolver: yupResolver(personAlreadyExists ? complementarySchema : schema),
   });
 
-  console.log(errors);
-
   const onSubmit = async (formData: FormValues) => {
     let response: any;
 
@@ -141,8 +139,17 @@ function CreateEmployeeView() {
       const response = await getPersonByCPF({ cpf });
 
       if (response?.success && response.person) {
-        const { user, name, rg, birth, sex, addresses } = response.person;
-        reset({ ...defaultValues, name, rg, birth: Moment(birth).format('DDMMYYYY'), sex, cpf, address: addresses[0] });
+        const { user, name, rg, birth, sex, addresses, contact } = response.person;
+        reset({
+          ...defaultValues,
+          name,
+          rg,
+          birth: Moment(birth).format('DDMMYYYY'),
+          sex,
+          cpf,
+          address: addresses[0],
+          contact,
+        });
         setIsEditing(false);
         setPersonAlreadyExists(true);
         setUserId(user.id);
