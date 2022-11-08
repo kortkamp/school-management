@@ -6,7 +6,7 @@ import FormStandardInput from '../../../components/HookFormInput/FormStandardInp
 import * as yup from 'yup';
 
 export interface ContactFormValues {
-  id?: string;
+  person_id?: string;
   email: string;
   phone: string;
   cel_phone: string;
