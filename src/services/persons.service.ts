@@ -21,6 +21,12 @@ export interface IGetPerson {
       state: string;
       CEP: string;
     }[];
+    contact: {
+      person_id: string;
+      email: string;
+      phone: string;
+      cel_phone: string;
+    };
   };
 }
 
