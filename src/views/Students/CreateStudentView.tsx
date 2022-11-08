@@ -28,9 +28,13 @@ import PersonForm, {
   PersonFormValues,
   personSchema,
 } from '../../components/HookFormInput/Forms/PersonForm';
-import { coursesService } from '../../services/courses.service';
 import { studentsService } from '../../services/students.service';
 import StudentAllocation, { IStudentAllocation } from './StudentAllocation';
+import ContactForm, {
+  ContactFormValues,
+  contactDefaultValues,
+  contactSchema,
+} from '../../components/HookFormInput/Forms/ContactForm';
 
 const useStyles = makeStyles((theme: Theme) => ({
   divider: {
@@ -48,6 +52,9 @@ const schema = yup.object({
   address: yup.object({
     ...addressSchema,
   }),
+  contact: yup.object({
+    ...contactSchema,
+  }),
   enroll_id: yup.string().required('O campo é obrigatório'),
   course_id: yup.string().required('O campo é obrigatório'),
   grade_id: yup.string().required('O campo é obrigatório'),
@@ -63,6 +70,7 @@ const complementarySchema = yup.object({
 
 interface FormValues extends PersonFormValues {
   address: AddressFormValues;
+  contact: ContactFormValues;
   enroll_id: string;
   course_id: string;
   grade_id: string;
@@ -74,6 +82,9 @@ const defaultValues: FormValues = {
   ...personDefaultValues,
   address: {
     ...addressDefaultValues,
+  },
+  contact: {
+    ...contactDefaultValues,
   },
   enroll_id: '',
   course_id: '',
@@ -117,6 +128,7 @@ function CreateStudentView() {
     const { address, birth, ...personData } = formData;
 
     if (personAlreadyExists) {
+      toast.error('Esta pessoa já está cadastrada');
     } else {
       response = await createStudent({
         ...personData,
@@ -142,8 +154,8 @@ function CreateStudentView() {
       const response = await getPersonByCPF({ cpf });
 
       if (response?.success && response.person) {
-        const { user, name, rg, birth, sex, addresses } = response.person;
-        reset({ ...defaultValues, name, rg, birth, sex, cpf, address: addresses[0] });
+        const { user, name, rg, birth, sex, addresses, contact } = response.person;
+        reset({ ...defaultValues, name, rg, birth, sex, cpf, address: addresses[0], contact });
         setIsEditing(false);
         setPersonAlreadyExists(true);
         setUserId(user.id);
@@ -166,6 +178,10 @@ function CreateStudentView() {
       <Typography className={classes.section_title}>Endereço</Typography>
       <Divider textAlign="left" className={classes.divider}></Divider>
       <AddressForm control={control} isEditing={isEditing} errors={errors.address} setValue={setValue as any} />
+
+      <Typography className={classes.section_title}>Contato</Typography>
+      <Divider textAlign="left" className={classes.divider}></Divider>
+      <ContactForm control={control} isEditing={isEditing} errors={errors.contact} />
 
       <Typography className={classes.section_title}>Complemento</Typography>
       <Divider textAlign="left" className={classes.divider}></Divider>
