@@ -1,3 +1,4 @@
+import { IApiFuncParams } from '../api/useApi';
 import api from './api.service';
 
 export interface IStudentResult {
@@ -49,18 +50,24 @@ interface IExamListResponse {
   result: IExam[];
 }
 
-const getAll = async (per_page = 10, page = 1, filterBy = '', filterValue = '', filterType = '') => {
-  const response = await api.get(
-    `/exams?per_page=${per_page}&page=${page}&orderBy=date&orderType=ASC${
-      filterValue ? `&filterBy=${filterBy}&filterValue=${filterValue}&filterType=${filterType}` : ''
-    }`
-  );
-  return response.data.exams as IExamListResponse;
-};
+const getAll = async ({ schoolId, token, args = {}, cancelToken }: IApiFuncParams) =>
+  (
+    await api.get(
+      `/${schoolId}/exams?per_page=${args.per_page}&page=${args.page}${args.status ? '&status=' + args.status : ''}${
+        args.type ? '&type=' + args.type : ''
+      }${args.class_group_id ? '&class_group_id=' + args.class_group_id : ''}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        cancelToken,
+      }
+    )
+  ).data as IExamListResponse;
+
 const getResultsByClassSubject = async (class_id: string, subject_id: string) =>
   api.get(`/exams/subject/?class_id=${class_id}&subject_id=${subject_id}`);
 
-const create = async (data: object) => api.post('/exams', data);
+const create = async ({ schoolId, token, args }: IApiFuncParams) =>
+  (await api.post(`/${schoolId}/exams`, args, { headers: { Authorization: `Bearer ${token}` } })).data;
 
 const remove = async (id: string) => api.delete(`/exams/${id}`);
 
