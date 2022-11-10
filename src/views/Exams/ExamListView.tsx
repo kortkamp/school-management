@@ -1,15 +1,18 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Card, CardContent, CardHeader, Grid, Box, TextField, MenuItem } from '@mui/material';
 import { DataGrid, GridColumns, GridOverlay, GridPagination } from '@mui/x-data-grid';
-import { ReactNode, useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useHistory } from 'react-router';
 import Moment from 'moment';
 import { AppButton } from '../../components';
 import { examsService } from '../../services/exams.service';
-import { CommonDialog } from '../../components/dialogs';
 import { SHARED_CONTROL_PROPS } from '../../utils/form';
 
-import ExamView from './ExamView';
-import CreateExamView from './CreateExamView';
+import { useApi } from '../../api/useApi';
+import StudentAllocation, { IStudentAllocation } from '../Students/StudentAllocation';
+import CustomPagination from '../../components/AppCustomPagination/CustomPagination';
+import AppView, { AppViewData, AppViewParams } from '../../components/AppView';
+import { classGroupsService } from '../../services/classGroups.service';
 
 interface IExam {
   id: string;
@@ -40,162 +43,22 @@ interface IExam {
  * url: /exames/*
  */
 function ExamListView() {
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [classGroups, , loadingClassGroups] = useApi(classGroupsService.getAll, { defaultValue: [] });
+
   const [statusFilter, setStatusFilter] = useState('open');
   const [typeFilter, setTypeFilter] = useState('');
+  const [classGroupFilter, setClassGroupFilter] = useState('');
 
-  const [exams, setExams] = useState<IExam[]>([]);
-  const [filteredExams, setFilteredExams] = useState<IExam[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [modal, setModal] = useState<ReactNode | null>(null);
+  const [examsData, , loading] = useApi(examsService.getAll, {
+    args: { page, per_page: pageSize, status: statusFilter, type: typeFilter, class_group_id: classGroupFilter },
+  });
 
   const history = useHistory();
 
-  const onDialogClose = useCallback(() => {
-    setModal(null);
-  }, []);
-
-  const loadExamList = useCallback(async () => {
-    setLoading(true);
-
-    let filter = {
-      by: '',
-      value: '',
-      type: '',
-    };
-
-    if (statusFilter !== 'all') {
-      filter = {
-        by: 'status',
-        value: statusFilter,
-        type: 'eq',
-      };
-    }
-
-    try {
-      const examsData = await examsService.getAll(1000, 1, filter.by, filter.value, filter.type);
-      setExams(examsData.result);
-    } catch (err: any) {
-      console.log(err);
-      // setError(ErrorAPI(404));
-    }
-    setLoading(false);
-  }, [statusFilter]);
-
-  const handleDeleteExam = useCallback(
-    async (id: string) => {
-      const apiResult = await examsService.remove(id);
-
-      if (!apiResult) {
-        // setError('Não foi possível excluir o exame');
-        return;
-      }
-
-      // setExams(exams.filter((exam) => exam.id !== id));
-      loadExamList();
-    },
-    [history]
-  );
-
-  const onConfirmDialogConfirm = useCallback((data) => {
-    handleDeleteExam(data.id);
-    setModal(null);
-  }, []);
-
-  const onConfirmDeleteExamOpen = (exam: any) => {
-    setModal(
-      <CommonDialog
-        open
-        data={exam}
-        title="Deseja realmente excluir?"
-        body={
-          <>
-            <div>Tipo: {exam.type}</div>
-            <br />
-            <div>Matéria: {exam.subject.name}</div>
-            <br />
-            <div>Turma: {exam.class_group.name}</div>
-            <br />
-            <div>Data: {Moment(exam.date).format('DD-MM-YYYY')}</div>
-            <h2>Todas a notas serão apagadas</h2>
-          </>
-        }
-        confirmButtonText="Confirmar a exclusão"
-        confirmButtonColor="warning"
-        onClose={onDialogClose}
-        onConfirm={onConfirmDialogConfirm}
-      />
-    );
-  };
-
-  useEffect(() => {
-    loadExamList();
-  }, [loadExamList, statusFilter]);
-
-  useEffect(() => {
-    setFilteredExams(exams.filter((exam) => (typeFilter !== '' ? exam.type === typeFilter : true)));
-  }, [typeFilter, exams]);
-
-  const handleConfirmExamResults = () => {
-    onDialogClose();
-  };
-
-  const handleShowExamResults = (examId: string) => {
-    setModal(
-      <CommonDialog
-        open
-        hideCancelButton
-        title=""
-        body={<ExamView examId={examId} />}
-        fullWidth
-        confirmButtonText="Fechar"
-        // confirmButtonColor="warning"
-        onClose={onDialogClose}
-        onConfirm={handleConfirmExamResults}
-      />
-    );
-  };
-
-  const handleEditExam = (examId: string) => {
-    setModal(
-      <CommonDialog
-        open
-        hideCancelButton
-        title=""
-        body={
-          <CreateExamView
-            examId={examId}
-            getExamData={(examData) => {
-              setExams((prevExams) => {
-                return prevExams.map((exam) => {
-                  if (exam.id === examId) {
-                    return {
-                      ...exam,
-                      value: examData.value as number,
-                      date: examData.date as Date,
-                      type: examData.type,
-                      sub_type: examData.sub_type,
-                    };
-                  }
-                  return exam;
-                });
-              });
-              console.log(examData);
-            }}
-          />
-        }
-        fullWidth
-        confirmButtonText="Fechar"
-        // confirmButtonColor="warning"
-        onClose={onDialogClose}
-        onConfirm={handleConfirmExamResults}
-      />
-    );
-  };
-
   const columns: GridColumns<IExam> = [
     { field: 'type', headerName: 'Tipo', width: 100 },
-
-    { field: 'sub_type', headerName: 'SubTipo', width: 120 },
 
     {
       field: 'subject',
@@ -257,22 +120,23 @@ function ExamListView() {
       sortable: false,
       width: 330,
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       renderCell: (params: any) => {
         return (
           <>
             {/* <AppButton color="default" onClick={() => history.push(`/exames/${params.row.id}`)}> */}
-            <AppButton color="default" onClick={() => handleShowExamResults(params.row.id)}>
+            <AppButton color="default" onClick={() => {}}>
               Notas
             </AppButton>
             {/* <AppButton color="info" onClick={() => history.push(`/exames/editar/${params.row.id}`)}> */}
-            <AppButton color="info" onClick={() => handleEditExam(params.row.id)}>
+            <AppButton color="info" onClick={() => {}}>
               Editar
             </AppButton>
             <AppButton
               color="error"
               onClick={(event) => {
                 event.stopPropagation();
-                onConfirmDeleteExamOpen(params.row);
+                // onConfirmDeleteExamOpen(params.row);
               }}
             >
               CANCELAR
@@ -291,75 +155,96 @@ function ExamListView() {
             Criar Avaliação
           </AppButton>
         </div>
-        <GridPagination />
+        <CustomPagination />
       </Box>
     );
   }
 
   return (
-    <>
-      {modal}
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={12}>
-          <Card>
-            <CardHeader
-              style={{ textAlign: 'center' }}
-              title="Provas e Trabalhos Pendentes"
-              subheader="Lista de provas e trabalhos em aberto"
-            />
-            <CardContent>
-              <Grid container spacing={1}>
-                <Grid item xs={12} sm={12} md={3}>
-                  <TextField
-                    select
-                    label="Situação"
-                    name="status"
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    {...SHARED_CONTROL_PROPS}
-                  >
-                    <MenuItem value={'all'}>Todas</MenuItem>
-                    <MenuItem value={'open'}>Em Aberto</MenuItem>
-                    <MenuItem value={'closed'}>Encerradas</MenuItem>
-                  </TextField>
-                </Grid>
-                <Grid item xs={12} sm={12} md={3}>
-                  <TextField
-                    select
-                    label="Tipo"
-                    name="type"
-                    value={typeFilter}
-                    onChange={(e) => setTypeFilter(e.target.value)}
-                    {...SHARED_CONTROL_PROPS}
-                  >
-                    <MenuItem value={''}>Todas</MenuItem>
-                    <MenuItem value={'prova'}>Prova</MenuItem>
-                    <MenuItem value={'trabalho'}>Trabalho</MenuItem>
-                    <MenuItem value={'trabalho em grupo'}>Trabalho em grupo</MenuItem>
-                    <MenuItem value={'exercise'}>Exercício</MenuItem>
-                  </TextField>
-                </Grid>
-              </Grid>
-
-              <DataGrid
-                rows={filteredExams}
-                columns={!loading ? columns : []}
-                loading={loading}
-                autoHeight
-                components={{
-                  Footer: CustomFooterButtonsComponent,
-                  NoRowsOverlay: () => (
-                    <GridOverlay>
-                      <div>Nenhuma avaliação encontrada</div>
-                    </GridOverlay>
-                  ),
-                }}
-              />
-            </CardContent>
-          </Card>
+    <AppView title="Avaliações">
+      <AppViewParams>
+        <Grid item xs={12} sm={12} md={4}>
+          <TextField
+            select
+            label="Situação"
+            name="status"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            {...SHARED_CONTROL_PROPS}
+          >
+            <MenuItem value={''}>Todas</MenuItem>
+            <MenuItem value={'open'}>Em Aberto</MenuItem>
+            <MenuItem value={'closed'}>Encerradas</MenuItem>
+          </TextField>
         </Grid>
-      </Grid>
-    </>
+        <Grid item xs={12} sm={12} md={4}>
+          <TextField
+            select
+            label="Tipo"
+            name="type"
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            {...SHARED_CONTROL_PROPS}
+          >
+            <MenuItem value={''}>Todas</MenuItem>
+            <MenuItem value={'prova'}>Prova</MenuItem>
+            <MenuItem value={'trabalho'}>Trabalho</MenuItem>
+            <MenuItem value={'exercício'}>Exercício</MenuItem>
+            <MenuItem value={'comportamento'}>Comportamento</MenuItem>
+            <MenuItem value={'outros'}>Outros</MenuItem>
+          </TextField>
+        </Grid>
+        <Grid item xs={12} sm={12} md={4}>
+          <TextField
+            select
+            label="Turma"
+            name="classGroup"
+            value={classGroupFilter}
+            onChange={(e) => setClassGroupFilter(e.target.value)}
+            {...SHARED_CONTROL_PROPS}
+          >
+            <MenuItem value={''}>Todas</MenuItem>
+            {classGroups.map((classGroup) => (
+              <MenuItem key={classGroup.id} value={classGroup.id}>
+                {classGroup.name}
+              </MenuItem>
+            ))}
+          </TextField>
+        </Grid>
+      </AppViewParams>
+
+      <AppViewData>
+        <DataGrid
+          rows={examsData?.result || []}
+          columns={!loading ? columns : []}
+          onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+          onPageChange={(newPage) => setPage(newPage + 1)}
+          pagination
+          pageSize={pageSize}
+          page={page - 1}
+          rowCount={examsData?.total_filtered || 0}
+          paginationMode="server"
+          rowsPerPageOptions={[10, 20, 50]}
+          loading={loading}
+          autoHeight
+          disableSelectionOnClick
+          initialState={{
+            pagination: {
+              page: 1,
+            },
+          }}
+          components={{
+            Footer: CustomFooterButtonsComponent,
+            Pagination: CustomPagination,
+            NoRowsOverlay: () => (
+              <GridOverlay>
+                <div>Nenhuma avaliação encontrada</div>
+              </GridOverlay>
+            ),
+          }}
+        />
+      </AppViewData>
+    </AppView>
   );
 }
 
