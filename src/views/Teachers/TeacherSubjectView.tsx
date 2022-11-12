@@ -1,57 +1,37 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Card, CardContent, CardHeader, Grid, CircularProgress, TextField, MenuItem } from '@mui/material';
+import { Card, CardContent, CardHeader, Grid, TextField, MenuItem } from '@mui/material';
 import { useCallback, useEffect, useState } from 'react';
 import { AppButton, AppLoading } from '../../components';
 import { ITeacherClassSubject, teachersService } from '../../services/teachers.service';
 import { ISubject, subjectsService } from '../../services/subjects.service';
-import { SHARED_CONTROL_PROPS, useAppForm } from '../../utils/form';
+import { SHARED_CONTROL_PROPS } from '../../utils/form';
 import { DataGrid, GridOverlay } from '@mui/x-data-grid';
-import { segmentsService } from '../../services/segments.service';
 import { useParams } from 'react-router-dom';
 import { useApi, useRequestApi } from '../../api/useApi';
 import { classGroupsService } from '../../services/classGroups.service';
 import { coursesService } from '../../services/courses.service';
 
-interface FormStateValues {
-  teacher_id: string;
-  segment_id: string;
-  subjects_ids: string[];
-}
-
-const teacherSubjectSchema = {};
-
 /**
  * Renders "TeacherSubjectView" view
- * url: /professores/disciplina
+ * url: /professores/disciplinas
  */
 const TeacherSubjectView = () => {
   const { id: teacherIdPAram } = useParams<{ id: string }>();
 
   const [teachersData, , loadingTeachers] = useApi(teachersService.getAll, { args: { per_page: 1000 } });
+  console.log(teachersData);
   const [classGroups, , loadingClassGroups] = useApi(classGroupsService.getAll, { defaultValue: [] });
   const [coursesList, , loadingCourses] = useApi(coursesService.getAll, { defaultValue: [] });
   const [subjects, , loadingSubjects] = useApi(subjectsService.getAll, { defaultValue: [] });
-  // const [segments, , loadingSegments] = useApi(segmentsService.getAll, { defaultValue: [] });
 
   const [getTeacherClasses, loadingTeacherClasses] = useRequestApi(teachersService.getTeacherClasses);
   const [addTeacherSubject, addingTeacherSubject] = useRequestApi(teachersService.addTeacherSubjects);
   const [removeTeacherSubject, removingTeacherSubject] = useRequestApi(teachersService.removeTeacherSubject);
 
   const [selectedClassGroupId, setSelectedClassGroupId] = useState('');
-  const [selectedTeacherId, setSelectedTeacherId] = useState('');
+  const [selectedTeacherId, setSelectedTeacherId] = useState(teacherIdPAram || '');
   const [filteredSubjects, setFilteredSubjects] = useState<ISubject[]>([]);
   const [teacherSubjects, setTeacherSubjects] = useState<ITeacherClassSubject[]>([]);
-
-  const [formState, , onFieldChange] = useAppForm({
-    validationSchema: teacherSubjectSchema, // the state value, so could be changed in time
-    initialValues: {
-      teacher_id: teacherIdPAram || '',
-      segment_id: '',
-      subjects_ids: [],
-    } as FormStateValues,
-  });
-
-  const values = formState.values as FormStateValues;
 
   const loadTeacherSubjectsList = useCallback(async () => {
     if (!selectedTeacherId) {
@@ -113,24 +93,11 @@ const TeacherSubjectView = () => {
   };
 
   const handleAddTeacherSubject = async (subject: ISubject) => {
-    console.log(subject);
-
-    // const response = await addTeacherSubject({
-    //   user_id: teacher_id,
-    //   subject_id: subject.id,
-    // });
-    // if (response?.success) {
-    //   const segmentName = segments.find((s) => s.id === subject.segment_id)?.name;
-    //   setTeacherSubjects([...teacherSubjects, { ...subject, segment: { name: segmentName || '' } }]);
-    // }
-
     const response = await addTeacherSubject({
       teacher_id: selectedTeacherId,
       class_group_id: selectedClassGroupId,
       subject_id: subject.id,
     });
-
-    console.log(response);
 
     if (!response?.success) {
       return;
