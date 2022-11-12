@@ -19,7 +19,6 @@ const TeacherSubjectView = () => {
   const { id: teacherIdPAram } = useParams<{ id: string }>();
 
   const [teachersData, , loadingTeachers] = useApi(teachersService.getAll, { args: { per_page: 1000 } });
-  console.log(teachersData);
   const [classGroups, , loadingClassGroups] = useApi(classGroupsService.getAll, { defaultValue: [] });
   const [coursesList, , loadingCourses] = useApi(coursesService.getAll, { defaultValue: [] });
   const [subjects, , loadingSubjects] = useApi(subjectsService.getAll, { defaultValue: [] });
