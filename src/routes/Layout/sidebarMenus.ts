@@ -112,11 +112,6 @@ export const SIDE_BAR_PRINCIPAL_ITEMS: Array<LinkToPage> = [
         icon: 'search',
       },
       {
-        title: 'Associar Turma',
-        path: '/professores/turmas',
-        icon: 'search',
-      },
-      {
         title: 'Associar Disciplina',
         path: '/professores/disciplinas',
         icon: 'search',
