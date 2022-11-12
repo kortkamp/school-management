@@ -49,7 +49,7 @@ function CustomPagination() {
 const TeachersListView = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [activeTeachersFilter, setActiveTeachersFilter] = useState<'all' | 'active' | 'inactive'>('active');
+  const [activeTeachersFilter, setActiveTeachersFilter] = useState<'' | 'active' | 'inactive'>('active');
 
   const [data, , loading] = useApi(teachersService.getAll, {
     args: { page, per_page: pageSize, filter: activeTeachersFilter },
