@@ -1,5 +1,4 @@
 import { Route, Switch } from 'react-router-dom';
-import { CreateTeacherView } from './CreateTeacherView';
 import TeachersListView from './TeachersListView';
 import TeacherSubjectView from './TeacherSubjectView';
 
@@ -12,7 +11,6 @@ const TeachersRoutes = () => {
     <Switch>
       <Route path="/professores/disciplinas/:id" component={TeacherSubjectView} />
       <Route path="/professores/disciplinas" component={TeacherSubjectView} />
-      <Route path="/professores/criar" component={CreateTeacherView} />
       <Route exact path="/professores" component={TeachersListView} />
     </Switch>
   );
