@@ -2,23 +2,20 @@
 import { Card, CardContent, CardHeader, Grid, CircularProgress, TextField, MenuItem } from '@mui/material';
 import { useCallback, useEffect, useState } from 'react';
 import { AppButton, AppLoading } from '../../components';
-import { teachersService } from '../../services/teachers.service';
+import { ITeacherClassSubject, teachersService } from '../../services/teachers.service';
 import { ISubject, subjectsService } from '../../services/subjects.service';
 import { SHARED_CONTROL_PROPS, useAppForm } from '../../utils/form';
 import { DataGrid, GridOverlay } from '@mui/x-data-grid';
 import { segmentsService } from '../../services/segments.service';
 import { useParams } from 'react-router-dom';
-import { useAppStore } from '../../store';
 import { useApi, useRequestApi } from '../../api/useApi';
+import { classGroupsService } from '../../services/classGroups.service';
+import { coursesService } from '../../services/courses.service';
 
 interface FormStateValues {
   teacher_id: string;
   segment_id: string;
   subjects_ids: string[];
-}
-
-interface ITeacherSubject extends ISubject {
-  segment: { name: string };
 }
 
 const teacherSubjectSchema = {};
@@ -29,18 +26,21 @@ const teacherSubjectSchema = {};
  */
 const TeacherSubjectView = () => {
   const { id: teacherIdPAram } = useParams<{ id: string }>();
-  const [appState] = useAppStore();
 
-  const [teachersData, , loadingTeachers] = useApi(teachersService.getAll);
+  const [teachersData, , loadingTeachers] = useApi(teachersService.getAll, { args: { per_page: 1000 } });
+  const [classGroups, , loadingClassGroups] = useApi(classGroupsService.getAll, { defaultValue: [] });
+  const [coursesList, , loadingCourses] = useApi(coursesService.getAll, { defaultValue: [] });
   const [subjects, , loadingSubjects] = useApi(subjectsService.getAll, { defaultValue: [] });
-  const [segments, , loadingSegments] = useApi(segmentsService.getAll, { defaultValue: [] });
+  // const [segments, , loadingSegments] = useApi(segmentsService.getAll, { defaultValue: [] });
 
-  const [getUserSubjects, loadingUserSubjects] = useRequestApi(subjectsService.getByUser);
+  const [getTeacherClasses, loadingTeacherClasses] = useRequestApi(teachersService.getTeacherClasses);
   const [addTeacherSubject, addingTeacherSubject] = useRequestApi(teachersService.addTeacherSubjects);
   const [removeTeacherSubject, removingTeacherSubject] = useRequestApi(teachersService.removeTeacherSubject);
 
+  const [selectedClassGroupId, setSelectedClassGroupId] = useState('');
+  const [selectedTeacherId, setSelectedTeacherId] = useState('');
   const [filteredSubjects, setFilteredSubjects] = useState<ISubject[]>([]);
-  const [teacherSubjects, setTeacherSubjects] = useState<ITeacherSubject[]>([]);
+  const [teacherSubjects, setTeacherSubjects] = useState<ITeacherClassSubject[]>([]);
 
   const [formState, , onFieldChange] = useAppForm({
     validationSchema: teacherSubjectSchema, // the state value, so could be changed in time
@@ -54,52 +54,106 @@ const TeacherSubjectView = () => {
   const values = formState.values as FormStateValues;
 
   const loadTeacherSubjectsList = useCallback(async () => {
-    if (!values.teacher_id) {
+    if (!selectedTeacherId) {
       return;
     }
-
-    const userSubjects = await getUserSubjects({ id: values.teacher_id });
-
-    if (userSubjects) {
-      setTeacherSubjects(userSubjects.map((user_subject: any) => user_subject.subject));
+    const result = await getTeacherClasses({ teacher_id: selectedTeacherId });
+    if (result) {
+      setTeacherSubjects(result);
     }
-  }, [values.teacher_id, teacherIdPAram]);
-
-  useEffect(() => {
-    setFilteredSubjects(
-      subjects.filter((subject) => {
-        return (
-          subject.segment_id === values.segment_id &&
-          !teacherSubjects.find((teacherSubject) => teacherSubject.id === subject.id)
-        );
-      })
-    );
-  }, [teacherSubjects, values.segment_id]);
+  }, [selectedTeacherId, teacherIdPAram]);
 
   useEffect(() => {
     loadTeacherSubjectsList();
-  }, [values.teacher_id, loadTeacherSubjectsList]);
+  }, [selectedTeacherId, loadTeacherSubjectsList]);
 
-  const handleRemoveTeacherSubject = async (teacher_id: string, subject_id: string) => {
+  useEffect(() => {
+    if (!selectedClassGroupId) {
+      return;
+    }
+    const classGroupCourse = coursesList.find((course) =>
+      course.grades.find((grade) => grade.class_groups.find((classGroup) => classGroup.id === selectedClassGroupId))
+    );
+
+    if (classGroupCourse) {
+      const segmentId = classGroupCourse?.segment_id;
+
+      const selectedClassSubjects = subjects.filter((subject) => subject.segment_id === segmentId);
+
+      const newFilteredSubjects = selectedClassSubjects.filter((classSubject) => {
+        const isClassSubjectInTeacherClassSubject = teacherSubjects.find(
+          (teacherSubject) =>
+            teacherSubject.classGroup.id === selectedClassGroupId && teacherSubject.subject.id === classSubject.id
+        );
+        return !isClassSubjectInTeacherClassSubject;
+      });
+
+      setFilteredSubjects(newFilteredSubjects);
+    }
+  }, [selectedClassGroupId, teacherSubjects]);
+
+  const handleRemoveTeacherSubject = async (teacherClassGroupSubject: ITeacherClassSubject) => {
     const response = await removeTeacherSubject({
-      user_id: teacher_id,
-      subject_id,
+      teacher_id: selectedTeacherId,
+      class_group_id: teacherClassGroupSubject.classGroup.id,
+      subject_id: teacherClassGroupSubject.subject.id,
     });
 
-    if (response?.success) {
-      setTeacherSubjects(teacherSubjects.filter((subject) => subject.id !== subject_id));
+    if (!response?.success) {
+      return;
     }
+
+    setTeacherSubjects((prev) =>
+      prev.filter(
+        (items) =>
+          items.subject.id !== teacherClassGroupSubject.subject.id ||
+          items.classGroup.id !== teacherClassGroupSubject.classGroup.id
+      )
+    );
   };
 
-  const handleAddTeacherSubject = async (teacher_id: string, subject: ISubject) => {
+  const handleAddTeacherSubject = async (subject: ISubject) => {
+    console.log(subject);
+
+    // const response = await addTeacherSubject({
+    //   user_id: teacher_id,
+    //   subject_id: subject.id,
+    // });
+    // if (response?.success) {
+    //   const segmentName = segments.find((s) => s.id === subject.segment_id)?.name;
+    //   setTeacherSubjects([...teacherSubjects, { ...subject, segment: { name: segmentName || '' } }]);
+    // }
+
     const response = await addTeacherSubject({
-      user_id: teacher_id,
+      teacher_id: selectedTeacherId,
+      class_group_id: selectedClassGroupId,
       subject_id: subject.id,
     });
-    if (response?.success) {
-      const segmentName = segments.find((s) => s.id === subject.segment_id)?.name;
-      setTeacherSubjects([...teacherSubjects, { ...subject, segment: { name: segmentName || '' } }]);
+
+    console.log(response);
+
+    if (!response?.success) {
+      return;
     }
+
+    const classGroup = classGroups.find((item) => item.id === selectedClassGroupId);
+
+    const teacherClassSubject = {
+      subject,
+      classGroup: {
+        id: selectedClassGroupId,
+        name: classGroup?.name as string,
+      },
+      teacher: {
+        id: selectedTeacherId,
+        person: {
+          id: '',
+          name: '',
+        },
+      },
+    };
+
+    setTeacherSubjects((prev) => prev.concat(teacherClassSubject));
   };
 
   const subjectsColumns = [
@@ -116,9 +170,9 @@ const TeacherSubjectView = () => {
           <AppButton
             color="default"
             onClick={() => {
-              handleAddTeacherSubject(values.teacher_id, params.row);
+              handleAddTeacherSubject(params.row);
             }}
-            disabled={!values.teacher_id}
+            disabled={!selectedTeacherId}
             loading={addingTeacherSubject}
           >
             Adicionar
@@ -129,13 +183,19 @@ const TeacherSubjectView = () => {
   ];
 
   const teacherColumns = [
-    { field: 'name', headerName: 'Matérias do professor', width: 100, flex: 1 },
     {
-      field: 'segment',
-      headerName: 'Segmento',
+      field: 'name',
+      headerName: 'Matérias do professor',
       width: 100,
       flex: 1,
-      valueGetter: (params: any) => params.row.segment.name,
+      valueGetter: (params: any) => params.row.subject.name,
+    },
+    {
+      field: 'classGroup',
+      headerName: 'Turma',
+      width: 100,
+      flex: 1,
+      valueGetter: (params: any) => params.row.classGroup.name,
     },
     {
       field: 'actions',
@@ -145,7 +205,7 @@ const TeacherSubjectView = () => {
       flex: 1,
       renderCell: (params: any) => {
         return (
-          <AppButton color="error" onClick={() => handleRemoveTeacherSubject(values.teacher_id, params.row.id)}>
+          <AppButton color="error" onClick={() => handleRemoveTeacherSubject(params.row)}>
             Remover
           </AppButton>
         );
@@ -153,7 +213,7 @@ const TeacherSubjectView = () => {
     },
   ];
 
-  const isLoading = loadingTeachers || loadingSegments || loadingSubjects;
+  const isLoading = loadingTeachers || loadingSubjects || loadingClassGroups || loadingCourses;
 
   if (isLoading) return <AppLoading />;
 
@@ -171,22 +231,23 @@ const TeacherSubjectView = () => {
                   select
                   label="Professor(a)"
                   name="teacher_id"
-                  value={values.teacher_id}
-                  onChange={onFieldChange}
+                  value={selectedTeacherId}
+                  onChange={(event) => setSelectedTeacherId(event.target.value)}
                   {...SHARED_CONTROL_PROPS}
                 >
                   {teachersData?.result.map((teacher) => {
                     return (
                       <MenuItem key={teacher.id} value={teacher.id}>
-                        {teacher.name}
+                        {teacher.person.name}
                       </MenuItem>
                     );
                   })}
                 </TextField>
                 <DataGrid
+                  getRowId={(row) => row.classGroup.id + row.subject.id}
                   rows={teacherSubjects}
-                  columns={loadingUserSubjects ? [] : teacherColumns}
-                  loading={loadingUserSubjects}
+                  columns={loadingTeacherClasses ? [] : teacherColumns}
+                  loading={loadingTeacherClasses}
                   // pageSize={5}
                   // rowsPerPageOptions={[5]}
                   // checkboxSelection
@@ -207,13 +268,13 @@ const TeacherSubjectView = () => {
                   required
                   // disabled={isEditing}
                   select
-                  label="Segmento"
+                  label="Turma"
                   name="segment_id"
-                  value={values.segment_id}
-                  onChange={onFieldChange}
+                  value={selectedClassGroupId}
+                  onChange={(e) => setSelectedClassGroupId(e.target.value)}
                   {...SHARED_CONTROL_PROPS}
                 >
-                  {segments.map((segment) => {
+                  {classGroups.map((segment) => {
                     return (
                       <MenuItem key={segment.id} value={segment.id}>
                         {segment.name}

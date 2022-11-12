@@ -5,8 +5,12 @@ interface ITeachersList {
   success: boolean;
   result: {
     id: string;
-    name: string;
-    phone: null;
+    person: {
+      id: string;
+      name: string;
+      sex: string;
+      birth: string;
+    };
   }[];
   total_filtered: number;
   page: number;
@@ -25,6 +29,24 @@ interface IGetAllTeachersParams extends IApiFuncParams {
   };
 }
 
+export interface ITeacherClassSubject {
+  classGroup: {
+    id: string;
+    name: string;
+  };
+  teacher: {
+    id: string;
+    person: {
+      id: string;
+      name: string;
+    };
+  };
+  subject: {
+    id: string;
+    name: string;
+  };
+}
+
 const getAll = async ({ schoolId, token, args = {}, cancelToken }: IGetAllTeachersParams) =>
   (
     await api.get(
@@ -37,13 +59,21 @@ const getAll = async ({ schoolId, token, args = {}, cancelToken }: IGetAllTeache
     )
   ).data as ITeachersList;
 
+const getTeacherClasses = async ({ schoolId, token, args = {}, cancelToken }: IApiFuncParams) =>
+  (
+    await api.get(`/${schoolId}/teacher-classes?${args.teacher_id ? 'teacher_id=' + args.teacher_id : ''}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cancelToken,
+    })
+  ).data.teacherClasses as ITeacherClassSubject[];
+
 const create = async ({ schoolId, token, args }: IApiFuncParams) =>
   (await api.post(`/${schoolId}/teachers`, args, { headers: { Authorization: `Bearer ${token}` } })).data;
 
 const remove = async (id: object) => api.delete('/${school_id}/teachers/' + id);
 
 const addTeacherSubjects = async ({ schoolId, token, args }: IApiFuncParams) =>
-  (await api.post(`/${schoolId}/subjects/user/`, args, { headers: { Authorization: `Bearer ${token}` } })).data;
+  (await api.post(`/${schoolId}/teacher-classes/`, args, { headers: { Authorization: `Bearer ${token}` } })).data;
 
 //TODO preciso associar o userSubject a uma escola!!!!!!!!!!!
 // const addTeacherSubjects2 = async (school_id: string, data: { teacher_id: string; subjects_id: string }) =>
@@ -53,13 +83,15 @@ const addTeacherSubjects = async ({ schoolId, token, args }: IApiFuncParams) =>
 //   api.delete(`/${school_id}/teachers/subjects/`, { data });
 
 const removeTeacherSubject = async ({ schoolId, token, args }: IApiFuncParams) =>
-  (await api.delete(`/${schoolId}/subjects/user/`, { data: args, headers: { Authorization: `Bearer ${token}` } })).data;
+  (await api.delete(`/${schoolId}/teacher-classes/`, { data: args, headers: { Authorization: `Bearer ${token}` } }))
+    .data;
 
 const update = async (school_id: string, id: string, data: object) => api.put(`/${school_id}/teachers/` + id, data);
 
 const getById = async (school_id: string, id: object) => api.get(`/${school_id}/teachers/` + id);
 
 export const teachersService = {
+  getTeacherClasses,
   getAll,
   create,
   remove,
