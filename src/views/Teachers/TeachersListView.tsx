@@ -78,7 +78,6 @@ const TeachersListView = () => {
         return (
           <>
             <AppButton onClick={() => history.push(`/professores/disciplinas/${params.row.id}`)}>Matérias</AppButton>
-            <AppButton onClick={() => history.push(`/professores/turmas/${params.row.id}`)}>Turmas</AppButton>
           </>
         );
       },
