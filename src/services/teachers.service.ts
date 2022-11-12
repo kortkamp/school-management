@@ -25,7 +25,7 @@ interface IGetAllTeachersParams extends IApiFuncParams {
     filterBy?: string;
     filterType?: string;
     filterValue?: string;
-    filter?: 'all' | 'active' | 'inactive';
+    filter?: '' | 'active' | 'inactive';
   };
 }
 
@@ -54,7 +54,7 @@ const getAll = async ({ schoolId, token, args = {}, cancelToken }: IGetAllTeache
         !!args.filterValue
           ? `&filterBy=${args.filterBy}&filterValue=${args.filterValue}&filterType=${args.filterType}`
           : ''
-      }${args.filter !== 'all' ? '&active=' + (args.filter === 'active') : ''}`,
+      }${args.filter === 'active' ? '&active=true' : ''}${args.filter === 'inactive' ? '&active=false' : ''}`,
       { headers: { Authorization: `Bearer ${token}` }, cancelToken }
     )
   ).data as ITeachersList;
