@@ -10,11 +10,9 @@ import TeacherSubjectView from './TeacherSubjectView';
 const TeachersRoutes = () => {
   return (
     <Switch>
-      {/* <Route path="/professores/criar" component={TeachersListView} /> */}
       <Route path="/professores/disciplinas/:id" component={TeacherSubjectView} />
       <Route path="/professores/disciplinas" component={TeacherSubjectView} />
       <Route path="/professores/criar" component={CreateTeacherView} />
-
       <Route exact path="/professores" component={TeachersListView} />
     </Switch>
   );

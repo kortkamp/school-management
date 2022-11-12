@@ -108,7 +108,7 @@ export const SIDE_BAR_PRINCIPAL_ITEMS: Array<LinkToPage> = [
       },
       {
         title: 'Cadastrar Professor',
-        path: '/professores/criar',
+        path: '/funcionarios/criar/teacher',
         icon: 'search',
       },
       {

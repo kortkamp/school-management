@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/naming-convention */
 import { useEffect, useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 import { Grid, CardHeader, MenuItem, Divider, Theme, Typography } from '@mui/material';
 
 import Moment from 'moment';
@@ -87,6 +87,8 @@ const employeeRoles = [RoleTypes.SECRETARY, RoleTypes.PRINCIPAL, RoleTypes.TEACH
  * url: /funcionarios/criar
  */
 function CreateEmployeeView() {
+  const { roleNameParam } = useParams<{ roleNameParam: RoleTypes }>();
+
   const classes = useStyles();
 
   const history = useHistory();
@@ -133,6 +135,13 @@ function CreateEmployeeView() {
       toast.success('Funcionário cadastrado com sucesso');
     }
   };
+
+  useEffect(() => {
+    if (roleNameParam) {
+      const role = rolesData.find((r) => r.type === roleNameParam);
+      setValue('role_id', role?.id || '');
+    }
+  }, [rolesData, roleNameParam]);
 
   useEffect(() => {
     const fetchPerson = async (cpf: string) => {
