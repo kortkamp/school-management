@@ -180,11 +180,11 @@ const CreateExamView: React.FC<Props> = ({ getExamData }) => {
     <form onSubmit={handleSubmit(onSubmit)} style={{ padding: 24 }}>
       <AppView title={isUpdatingExam ? 'Editar Avaliação' : 'Nova Avaliação'} loading={loading}>
         <AppViewParams>
-          <Grid item md={6} sm={6} xs={4}>
+          <Grid item md={6} sm={6} xs={6}>
             <FormStandardInput
               name={'type'}
               select
-              label={'Type de Avaliação'}
+              label={'Tipo de Avaliação'}
               control={control}
               editable={isEditing}
               errorMessage={errors?.type?.message}
@@ -197,7 +197,7 @@ const CreateExamView: React.FC<Props> = ({ getExamData }) => {
               ))}
             </FormStandardInput>
           </Grid>
-          <Grid item md={6} sm={6} xs={4}>
+          <Grid item md={6} sm={6} xs={6}>
             <FormStandardInput
               name={'value'}
               label={'Valor'}
@@ -208,7 +208,7 @@ const CreateExamView: React.FC<Props> = ({ getExamData }) => {
               fullWidth
             />
           </Grid>
-          <Grid item md={4} sm={6} xs={6}>
+          <Grid item md={6} sm={6} xs={6}>
             <FormNumberFormat
               name={'date'}
               format="##/##/####"
@@ -220,7 +220,7 @@ const CreateExamView: React.FC<Props> = ({ getExamData }) => {
               fullWidth
             />
           </Grid>
-          <Grid item md={6} sm={6} xs={4}>
+          <Grid item md={6} sm={6} xs={6}>
             <FormStandardInput
               name={'term_id'}
               select
@@ -238,7 +238,7 @@ const CreateExamView: React.FC<Props> = ({ getExamData }) => {
             </FormStandardInput>
           </Grid>
 
-          <Grid item md={6} sm={6} xs={4}>
+          <Grid item md={6} sm={6} xs={6}>
             <FormStandardInput
               name={'class_group_id'}
               select
@@ -255,7 +255,7 @@ const CreateExamView: React.FC<Props> = ({ getExamData }) => {
               ))}
             </FormStandardInput>
           </Grid>
-          <Grid item md={6} sm={6} xs={4}>
+          <Grid item md={6} sm={6} xs={6}>
             <FormStandardInput
               name={'subject_id'}
               select
