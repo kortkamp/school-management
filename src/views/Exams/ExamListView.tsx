@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Grid, Box, TextField, MenuItem } from '@mui/material';
-import { DataGrid, GridColumns, GridOverlay } from '@mui/x-data-grid';
-import { useCallback, useState } from 'react';
+import { DataGrid, GridOverlay } from '@mui/x-data-grid';
+import { useCallback, useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
 import Moment from 'moment';
 import { AppButton } from '../../components';
@@ -16,34 +16,9 @@ import { useAppStore } from '../../store';
 import { RoleTypes } from '../../services/models/IRole';
 import { toast } from 'react-toastify';
 
-interface IExam {
-  id: string;
-  type: string;
-  status: string;
-  value: number;
-  weight: number;
-  teacher_id: string;
-  subject_id: string;
-  class_id: string;
-  date: Date;
-
-  subject: {
-    id: string;
-    name: string;
-  };
-  class_group: {
-    id: string;
-    name: string;
-  };
-  teacher: {
-    id: string;
-    name: string;
-  };
-}
-
 type ValueOf<T> = T[keyof T];
 
-const roleSpecificService = {
+const roleSpecificGetExamsService = {
   teacher: examsService.getAllByTeacherUser,
   admin: examsService.getAll,
   principal: examsService.getAll,
@@ -59,24 +34,23 @@ const roleSpecificService = {
  * url: /exames/*
  */
 function ExamListView() {
+  const history = useHistory();
   const [state, dispatch] = useAppStore();
 
+  const isTeacher = state?.currentSchool?.role === RoleTypes.TEACHER;
   const userRole = state.currentSchool?.role as ValueOf<typeof RoleTypes>;
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [classGroups, classGroupsError, loadingClassGroups] = useApi(classGroupsService.getAll, { defaultValue: [] });
-
-  const [removeExam, removing] = useRequestApi(examsService.remove);
-
   const [statusFilter, setStatusFilter] = useState('open');
   const [typeFilter, setTypeFilter] = useState('');
   const [classGroupFilter, setClassGroupFilter] = useState('');
-  const [examsData, errorOnExams, loading, , setExamsData] = useApi(roleSpecificService[userRole], {
+
+  const [removeExam, removing] = useRequestApi(examsService.remove);
+  const [classGroups, classGroupsError, loadingClassGroups] = useApi(classGroupsService.getAll, { defaultValue: [] });
+  const [examsData, errorOnExams, loading, , setExamsData] = useApi(roleSpecificGetExamsService[userRole], {
     args: { page, per_page: pageSize, status: statusFilter, type: typeFilter, class_group_id: classGroupFilter },
   });
-
-  const history = useHistory();
 
   const handleRemoveExam = useCallback(async (examId: string) => {
     const response = await removeExam({ id: examId });
@@ -90,15 +64,13 @@ function ExamListView() {
     }
   }, []);
 
-  const columns: GridColumns<IExam> = [
+  const columns = [
     { field: 'type', headerName: 'Tipo', width: 100 },
-
     {
       field: 'subject',
       headerName: 'Matéria',
       width: 150,
       cellClassName: 'xxxxxxxx',
-
       valueGetter: (params: any) => {
         return params.row.subject.name;
       },
@@ -107,7 +79,6 @@ function ExamListView() {
       field: 'class_group',
       headerName: 'Turma',
       width: 150,
-
       valueGetter: (params: any) => {
         return params.row.class_group.name;
       },
@@ -116,7 +87,6 @@ function ExamListView() {
       field: 'term',
       headerName: 'Bimestre',
       width: 150,
-
       valueGetter: (params: any) => {
         return params.row.term.name;
       },
@@ -126,7 +96,6 @@ function ExamListView() {
       field: 'date',
       headerName: 'Data',
       width: 100,
-
       valueGetter: (params: any) => params && Moment(params.row.date).utcOffset('+0300').format('DD-MM-YYYY'),
     },
 
@@ -134,7 +103,6 @@ function ExamListView() {
       field: 'status',
       headerName: 'Situação',
       width: 100,
-
       valueGetter: (params: any) => {
         switch (params.row.status) {
           case 'open':
@@ -152,7 +120,6 @@ function ExamListView() {
       headerName: 'Ações',
       sortable: false,
       width: 330,
-
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       renderCell: (params: any) => {
         return (
@@ -161,27 +128,30 @@ function ExamListView() {
             <AppButton color="default" onClick={() => {}}>
               Notas
             </AppButton>
-            {/* <AppButton color="info" onClick={() => history.push(`/exames/editar/${params.row.id}`)}> */}
-            <AppButton
-              color="info"
-              onClick={() => {
-                history.push('/exames/criar', {
-                  exam: params.row,
-                });
-              }}
-            >
-              Editar
-            </AppButton>
-            <AppButton
-              color="error"
-              onClick={(event) => {
-                event.stopPropagation();
-                handleRemoveExam(params.row.id);
-                // onConfirmDeleteExamOpen(params.row);
-              }}
-            >
-              CANCELAR
-            </AppButton>
+            {isTeacher && (
+              <>
+                <AppButton
+                  color="info"
+                  onClick={() => {
+                    history.push('/exames/criar', {
+                      exam: params.row,
+                    });
+                  }}
+                >
+                  Editar
+                </AppButton>
+                <AppButton
+                  color="error"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleRemoveExam(params.row.id);
+                    // onConfirmDeleteExamOpen(params.row);
+                  }}
+                >
+                  CANCELAR
+                </AppButton>
+              </>
+            )}
           </>
         );
       },
@@ -192,9 +162,11 @@ function ExamListView() {
     return (
       <Box sx={{ padding: '10px', display: 'flex', justifyContent: 'space-between' }}>
         <div>
-          <AppButton color="primary" onClick={() => history.push('/exames/criar')}>
-            Criar Avaliação
-          </AppButton>
+          {isTeacher && (
+            <AppButton color="primary" onClick={() => history.push('/exames/criar')}>
+              Criar Avaliação
+            </AppButton>
+          )}
         </div>
         <CustomPagination />
       </Box>
