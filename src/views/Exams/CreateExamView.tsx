@@ -65,10 +65,9 @@ interface LocationProps {
 const CreateExamView: React.FC<Props> = ({ getExamData }) => {
   const history = useHistory();
 
-  const { state } = useLocation();
-  const { exam } = state as LocationProps;
+  const { state } = useLocation() as { state: LocationProps };
   // eslint-disable-next-line @typescript-eslint/naming-convention
-  const { id, type, subject, class_group, term, value, date } = exam;
+  const { id, type, subject, class_group, term, value, date } = state?.exam || defaultValues;
   const isUpdatingExam = !!id;
   const formInitialValues = isUpdatingExam
     ? {
