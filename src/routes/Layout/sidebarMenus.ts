@@ -31,7 +31,7 @@ export const SIDE_BAR_STUDENT_ITEMS: Array<LinkToPage> = [
     subMenus: [
       {
         title: 'Listar Avaliações',
-        path: '/exames',
+        path: '/exames/aluno',
         icon: 'exams',
       },
       {

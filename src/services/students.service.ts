@@ -42,6 +42,9 @@ const getAll = async ({ schoolId, token, args = {}, cancelToken }: IGetAllStuden
 const create = async ({ schoolId, token, args }: IApiFuncParams) =>
   (await api.post(`/${schoolId}/students`, args, { headers: { Authorization: `Bearer ${token}` } })).data;
 
+const getByAuthUser = async ({ schoolId, token }: IApiFuncParams) =>
+  (await api.get(`/${schoolId}/students/user`, { headers: { Authorization: `Bearer ${token}` } })).data;
+
 const remove = async (id: object) => api.delete('/students/' + id);
 
 const update = async ({ schoolId, token, args }: IApiFuncParams) =>
@@ -75,5 +78,6 @@ export const studentsService = {
   remove,
   update,
   getById,
+  getByAuthUser,
   listResults,
 };
