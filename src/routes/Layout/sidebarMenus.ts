@@ -24,6 +24,23 @@ export const SIDE_BAR_STUDENT_ITEMS: Array<LinkToPage> = [
     path: '/user',
     icon: 'account',
   },
+  {
+    title: 'Avaliações',
+    path: '/exames',
+    icon: 'exams',
+    subMenus: [
+      {
+        title: 'Listar Avaliações',
+        path: '/exames',
+        icon: 'exams',
+      },
+      {
+        title: 'Notas',
+        path: '/exames/notas',
+        icon: 'exams',
+      },
+    ],
+  },
 ];
 export const SIDE_BAR_TEACHER_ITEMS: Array<LinkToPage> = [
   {
