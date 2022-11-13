@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import * as yup from 'yup';
-import { useHistory, useParams } from 'react-router-dom';
+import { useHistory, useLocation, useParams } from 'react-router-dom';
 
-import { examsService } from '../../services/exams.service';
+import { examsService, IExam } from '../../services/exams.service';
 
-import { useRequestApi } from '../../api/useApi';
+import Moment from 'moment';
+
+import { useApi, useRequestApi } from '../../api/useApi';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import AppView, { AppViewActions, AppViewParams } from '../../components/AppView';
@@ -12,9 +14,13 @@ import { AppSaveButton } from '../../components/AppCustomButton';
 import { toast } from 'react-toastify';
 import { Grid, MenuItem } from '@mui/material';
 import FormStandardInput from '../../components/HookFormInput/FormStandardInput';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { examType } from '../../services/IExam';
 import FormNumberFormat from '../../components/HookFormInput/FormNumberFormat';
+import { schoolYearsService } from '../../services/schoolYears.service';
+import { teachersService } from '../../services/teachers.service';
+import { removeDuplicateIDs } from '../../utils/array';
+import AppBackButton from '../../components/AppCustomButton/AppBackButton';
 
 interface FormValues {
   type: string;
@@ -39,19 +45,55 @@ interface Props {
   getExamData?: (data: FormValues) => void;
 }
 
-const schema = yup.object({});
+const schema = yup.object({
+  type: yup.string().required('O campo é obrigatório'),
+  subject_id: yup.string().required('O campo é obrigatório'),
+  class_group_id: yup.string().required('O campo é obrigatório'),
+  term_id: yup.string().required('O campo é obrigatório'),
+  value: yup.string().required('O campo é obrigatório'),
+  date: yup.string().length(8, 'Data inválida').required('O campo é obrigatório'),
+});
+
+interface LocationProps {
+  exam: IExam;
+}
 
 /**
  * Renders "Create Exam" view
  * url: /exames/criar
  */
-const CreateExamView: React.FC<Props> = ({ examId, getExamData }) => {
+const CreateExamView: React.FC<Props> = ({ getExamData }) => {
   const history = useHistory();
-  const { id: examIdParam } = useParams<{ id: string }>();
+
+  const { state } = useLocation();
+  const { exam } = state as LocationProps;
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  const { id, type, subject, class_group, term, value, date } = exam;
+  const isUpdatingExam = !!id;
+  const formInitialValues = isUpdatingExam
+    ? {
+        type,
+        subject_id: subject.id,
+        class_group_id: class_group.id,
+        term_id: term.id,
+        value: String(value),
+        date: Moment(date).format('DDMMYYYY'),
+      }
+    : defaultValues;
+
+  const [schoolYearData, error, loadingSchoolYear] = useApi(schoolYearsService.getBySchool);
+
+  const [teacherClassSubjects, , loadingTeacherClasses] = useApi(teachersService.getTeacherClassesByTeacher, {
+    defaultValue: [],
+  });
+
+  const [teacherClassGroups, setTeacherClassGroups] = useState<{ id: string; name: string }[]>([]);
+  const [teacherSubjects, setTeacherSubjects] = useState<{ id: string; name: string }[]>([]);
 
   const [isEditing, setIsEditing] = useState(true);
 
   const [createExam, creating] = useRequestApi(examsService.create);
+  const [updateExam, updating] = useRequestApi(examsService.update);
 
   const {
     setValue,
@@ -62,42 +104,82 @@ const CreateExamView: React.FC<Props> = ({ examId, getExamData }) => {
 
     formState: { errors },
   } = useForm<FormValues>({
-    defaultValues,
+    defaultValues: formInitialValues,
     resolver: yupResolver(schema),
   });
 
-  // autofill term based on chosen date
-  // useEffect(() => {
-  //   const date = values.date;
-  //   if (date) {
-  //     const examTerm = terms.find((term) => date >= term.start_at && date <= term.end_at);
-  //     if (examTerm) {
-  //       setFormState((formState) => ({
-  //         ...formState,
-  //         values: {
-  //           ...formState.values,
-  //           term_id: examTerm?.id,
-  //         },
-  //       }));
-  //       setTermError(null);
-  //     } else {
-  //       setTermError('A data não pertence a nenhum bimestre');
-  //     }
-  //   }
-  // }, [values.date]);
+  useEffect(() => {
+    const possibleDuplicatedTeacherClasses = teacherClassSubjects.map((t) => ({
+      id: t.classGroup.id,
+      name: t.classGroup.name,
+    }));
+    const teacherClasses = removeDuplicateIDs(possibleDuplicatedTeacherClasses);
+    setTeacherClassGroups(teacherClasses);
+    if (teacherClasses.length === 1) {
+      setValue('class_group_id', teacherClasses[0].id);
+    }
+
+    const possibleDuplicatedTeacherSubjects = teacherClassSubjects.map((t) => ({
+      id: t.subject.id,
+      name: t.subject.name,
+    }));
+
+    const subjects = removeDuplicateIDs(possibleDuplicatedTeacherSubjects);
+    setTeacherSubjects(subjects);
+  }, [teacherClassSubjects]);
+
+  useEffect(() => {
+    const possibleDuplicatedTeacherSubjects = teacherClassSubjects
+      .filter((t) => t.classGroup.id === watch('class_group_id'))
+      .map((t) => ({
+        id: t.subject.id,
+        name: t.subject.name,
+      }));
+
+    const subjects = removeDuplicateIDs(possibleDuplicatedTeacherSubjects);
+    setTeacherSubjects(subjects);
+    if (subjects.length === 1) {
+      setValue('subject_id', subjects[0].id);
+    }
+  }, [watch('class_group_id')]);
+
+  const handleChangeDate = useCallback(
+    (event: any) => {
+      const formDate = event.target.value as string;
+      const sanitizedDate = formDate.replace(/[ //]/g, '');
+      if (sanitizedDate.length !== 8) {
+        return;
+      }
+      const examDate = Moment(formDate, 'DDMMYYYY').toISOString() as any;
+      const terms = schoolYearData?.schoolYear.terms;
+      const examTerm = terms?.find((termItem) => termItem.start_at <= examDate && termItem.end_at >= examDate);
+      setValue('term_id', examTerm?.id || '');
+    },
+    [schoolYearData]
+  );
 
   const onSubmit = async (formData: FormValues) => {
     let response: any;
 
-    console.log(formData);
-    toast.success('Aluno cadastrado com sucesso');
+    const isoDate = Moment(formData.date, 'DDMMYYYY').toISOString();
+
+    if (isUpdatingExam) {
+      response = await updateExam({ id, data: { ...formData, date: isoDate } });
+    } else {
+      response = await createExam({ ...formData, date: isoDate });
+    }
+
+    if (response?.success) {
+      toast.success(isUpdatingExam ? 'Avaliação atualizada com sucesso' : 'Avaliação cadastrada com sucesso');
+      history.push('/exames');
+    }
   };
 
-  console.log(errors);
+  const loading = loadingSchoolYear || loadingTeacherClasses;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} style={{ padding: 24 }}>
-      <AppView title="Nova Avaliação">
+      <AppView title={isUpdatingExam ? 'Editar Avaliação' : 'Nova Avaliação'} loading={loading}>
         <AppViewParams>
           <Grid item md={6} sm={6} xs={4}>
             <FormStandardInput
@@ -109,9 +191,9 @@ const CreateExamView: React.FC<Props> = ({ examId, getExamData }) => {
               errorMessage={errors?.type?.message}
               fullWidth
             >
-              {Object.values(examType).map((type) => (
-                <MenuItem key={type} value={type}>
-                  {type}
+              {Object.values(examType).map((examTypeItem) => (
+                <MenuItem key={examTypeItem} value={examTypeItem}>
+                  {examTypeItem}
                 </MenuItem>
               ))}
             </FormStandardInput>
@@ -134,6 +216,7 @@ const CreateExamView: React.FC<Props> = ({ examId, getExamData }) => {
               label={'Data'}
               control={control}
               editable={isEditing}
+              onKeyUp={handleChangeDate}
               errorMessage={errors?.date?.message}
               fullWidth
             />
@@ -148,9 +231,27 @@ const CreateExamView: React.FC<Props> = ({ examId, getExamData }) => {
               errorMessage={errors?.term_id?.message}
               fullWidth
             >
-              {([] as any).map((term: any) => (
-                <MenuItem key={term.id} value={term.id}>
-                  {term.name}
+              {(schoolYearData?.schoolYear.terms || []).map((termItem: any) => (
+                <MenuItem key={termItem.id} value={termItem.id}>
+                  {termItem.name}
+                </MenuItem>
+              ))}
+            </FormStandardInput>
+          </Grid>
+
+          <Grid item md={6} sm={6} xs={4}>
+            <FormStandardInput
+              name={'class_group_id'}
+              select
+              label={'Turma'}
+              control={control}
+              editable={isEditing}
+              errorMessage={errors?.class_group_id?.message}
+              fullWidth
+            >
+              {teacherClassGroups.map((classGroup: any) => (
+                <MenuItem key={classGroup.id} value={classGroup.id}>
+                  {classGroup.name}
                 </MenuItem>
               ))}
             </FormStandardInput>
@@ -165,26 +266,9 @@ const CreateExamView: React.FC<Props> = ({ examId, getExamData }) => {
               errorMessage={errors?.subject_id?.message}
               fullWidth
             >
-              {([] as any).map((term: any) => (
-                <MenuItem key={term.id} value={term.id}>
-                  {term.name}
-                </MenuItem>
-              ))}
-            </FormStandardInput>
-          </Grid>
-          <Grid item md={6} sm={6} xs={4}>
-            <FormStandardInput
-              name={'class_group_id'}
-              select
-              label={'Turma'}
-              control={control}
-              editable={isEditing}
-              errorMessage={errors?.class_group_id?.message}
-              fullWidth
-            >
-              {([] as any).map((classGroup: any) => (
-                <MenuItem key={classGroup.id} value={classGroup.id}>
-                  {classGroup.name}
+              {teacherSubjects.map((subjectItem: any) => (
+                <MenuItem key={subjectItem.id} value={subjectItem.id}>
+                  {subjectItem.name}
                 </MenuItem>
               ))}
             </FormStandardInput>
@@ -192,6 +276,7 @@ const CreateExamView: React.FC<Props> = ({ examId, getExamData }) => {
         </AppViewParams>
         <AppViewActions>
           <AppSaveButton type="submit" loading={creating} disabled={creating}></AppSaveButton>
+          <AppBackButton />
         </AppViewActions>
       </AppView>
     </form>
