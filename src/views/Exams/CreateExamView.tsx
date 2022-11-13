@@ -65,6 +65,10 @@ interface LocationProps {
 const CreateExamView: React.FC<Props> = ({ getExamData }) => {
   const history = useHistory();
 
+  const [teacherClassGroups, setTeacherClassGroups] = useState<{ id: string; name: string }[]>([]);
+  const [teacherSubjects, setTeacherSubjects] = useState<{ id: string; name: string }[]>([]);
+  const [isEditing, setIsEditing] = useState(true);
+
   const { state } = useLocation() as { state: LocationProps };
   // eslint-disable-next-line @typescript-eslint/naming-convention
   const { id, type, subject, class_group, term, value, date } = state?.exam || defaultValues;
@@ -81,16 +85,9 @@ const CreateExamView: React.FC<Props> = ({ getExamData }) => {
     : defaultValues;
 
   const [schoolYearData, error, loadingSchoolYear] = useApi(schoolYearsService.getBySchool);
-
   const [teacherClassSubjects, , loadingTeacherClasses] = useApi(teachersService.getTeacherClassesByTeacher, {
     defaultValue: [],
   });
-
-  const [teacherClassGroups, setTeacherClassGroups] = useState<{ id: string; name: string }[]>([]);
-  const [teacherSubjects, setTeacherSubjects] = useState<{ id: string; name: string }[]>([]);
-
-  const [isEditing, setIsEditing] = useState(true);
-
   const [createExam, creating] = useRequestApi(examsService.create);
   const [updateExam, updating] = useRequestApi(examsService.update);
 
@@ -100,7 +97,6 @@ const CreateExamView: React.FC<Props> = ({ getExamData }) => {
     reset,
     control,
     watch,
-
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: formInitialValues,
