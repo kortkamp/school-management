@@ -1,18 +1,20 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Card, CardContent, CardHeader, Grid, Box, TextField, MenuItem } from '@mui/material';
-import { DataGrid, GridColumns, GridOverlay, GridPagination } from '@mui/x-data-grid';
-import { useState } from 'react';
+import { Grid, Box, TextField, MenuItem } from '@mui/material';
+import { DataGrid, GridColumns, GridOverlay } from '@mui/x-data-grid';
+import { useCallback, useState } from 'react';
 import { useHistory } from 'react-router';
 import Moment from 'moment';
 import { AppButton } from '../../components';
 import { examsService } from '../../services/exams.service';
 import { SHARED_CONTROL_PROPS } from '../../utils/form';
 
-import { useApi } from '../../api/useApi';
-import StudentAllocation, { IStudentAllocation } from '../Students/StudentAllocation';
+import { useApi, useRequestApi } from '../../api/useApi';
 import CustomPagination from '../../components/AppCustomPagination/CustomPagination';
 import AppView, { AppViewData, AppViewParams } from '../../components/AppView';
 import { classGroupsService } from '../../services/classGroups.service';
+import { useAppStore } from '../../store';
+import { RoleTypes } from '../../services/models/IRole';
+import { toast } from 'react-toastify';
 
 interface IExam {
   id: string;
@@ -38,24 +40,55 @@ interface IExam {
     name: string;
   };
 }
+
+type ValueOf<T> = T[keyof T];
+
+const roleSpecificService = {
+  teacher: examsService.getAllByTeacherUser,
+  admin: examsService.getAll,
+  principal: examsService.getAll,
+  secretary: examsService.getAll,
+  student: examsService.getAll,
+  parent: examsService.getAll,
+  register: examsService.getAll,
+  'system-admin': examsService.getAll,
+};
+
 /**
  * Renders "ExamsListView" view
  * url: /exames/*
  */
 function ExamListView() {
+  const [state, dispatch] = useAppStore();
+
+  const userRole = state.currentSchool?.role as ValueOf<typeof RoleTypes>;
+
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [classGroups, , loadingClassGroups] = useApi(classGroupsService.getAll, { defaultValue: [] });
+  const [classGroups, classGroupsError, loadingClassGroups] = useApi(classGroupsService.getAll, { defaultValue: [] });
+
+  const [removeExam, removing] = useRequestApi(examsService.remove);
 
   const [statusFilter, setStatusFilter] = useState('open');
   const [typeFilter, setTypeFilter] = useState('');
   const [classGroupFilter, setClassGroupFilter] = useState('');
-
-  const [examsData, , loading] = useApi(examsService.getAll, {
+  const [examsData, errorOnExams, loading, , setExamsData] = useApi(roleSpecificService[userRole], {
     args: { page, per_page: pageSize, status: statusFilter, type: typeFilter, class_group_id: classGroupFilter },
   });
 
   const history = useHistory();
+
+  const handleRemoveExam = useCallback(async (examId: string) => {
+    const response = await removeExam({ id: examId });
+
+    if (response?.success && examsData) {
+      toast.success('Avaliação cancelada com sucesso');
+      const filteredExams = examsData?.result.filter((exam) => exam.id !== examId);
+
+      const newExamsData = { ...examsData, result: filteredExams };
+      setExamsData(newExamsData);
+    }
+  }, []);
 
   const columns: GridColumns<IExam> = [
     { field: 'type', headerName: 'Tipo', width: 100 },
@@ -129,13 +162,21 @@ function ExamListView() {
               Notas
             </AppButton>
             {/* <AppButton color="info" onClick={() => history.push(`/exames/editar/${params.row.id}`)}> */}
-            <AppButton color="info" onClick={() => {}}>
+            <AppButton
+              color="info"
+              onClick={() => {
+                history.push('/exames/criar', {
+                  exam: params.row,
+                });
+              }}
+            >
               Editar
             </AppButton>
             <AppButton
               color="error"
               onClick={(event) => {
                 event.stopPropagation();
+                handleRemoveExam(params.row.id);
                 // onConfirmDeleteExamOpen(params.row);
               }}
             >
