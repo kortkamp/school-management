@@ -67,6 +67,15 @@ const getTeacherClasses = async ({ schoolId, token, args = {}, cancelToken }: IA
     })
   ).data.teacherClasses as ITeacherClassSubject[];
 
+// return the teacher classes of the logged user
+const getTeacherClassesByTeacher = async ({ schoolId, token, cancelToken }: IApiFuncParams) =>
+  (
+    await api.get(`/${schoolId}/teacher-classes/teacher`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cancelToken,
+    })
+  ).data.teacherClasses as ITeacherClassSubject[];
+
 const create = async ({ schoolId, token, args }: IApiFuncParams) =>
   (await api.post(`/${schoolId}/teachers`, args, { headers: { Authorization: `Bearer ${token}` } })).data;
 
@@ -92,6 +101,7 @@ const getById = async (school_id: string, id: object) => api.get(`/${school_id}/
 
 export const teachersService = {
   getTeacherClasses,
+  getTeacherClassesByTeacher,
   getAll,
   create,
   remove,
