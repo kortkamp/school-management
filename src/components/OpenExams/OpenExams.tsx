@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 import { AppLoading } from '../AppLoading';
-import { examsService, IExam } from '../../services/exams.service';
+import { IExam } from '../../services/exams.service';
 import Moment from 'moment';
 
 interface Props {}
@@ -20,16 +20,16 @@ const OpenExams: React.FC<Props> = () => {
     const fetchData = async () => {
       setLoading(true);
 
-      let filter = {
-        by: 'status',
-        value: 'open',
-        type: 'eq',
-      };
+      // let filter = {
+      //   by: 'status',
+      //   value: 'open',
+      //   type: 'eq',
+      // };
 
       let examResponse: IExam[] = [];
       try {
-        const response = await examsService.getAll(1000, 1, filter.by, filter.value, filter.type);
-        examResponse = response.result;
+        // const response = await examsService.getAll(1000, 1, filter.by, filter.value, filter.type);
+        examResponse = [];
       } catch (err: any) {
         console.log(err);
       }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-shadow */
 import { Button, Card, CardContent, CardHeader, Grid, Theme } from '@mui/material';
 import { DataGrid, GridColDef, GridOverlay } from '@mui/x-data-grid';
@@ -10,7 +11,7 @@ import AppSubjectClassSelector from '../../components/AppSubjectClassSelector';
 import { studentsService } from '../../services/students.service';
 import { sortByField } from '../../utils/sort';
 import { IListTerms, termsService } from '../../services/terms.service';
-import { examSubType, examType } from '../../services/IExam';
+import { examType } from '../../services/IExam';
 
 const passingNote = 7;
 
@@ -95,82 +96,82 @@ function ExamResultView() {
     const examTypesList = Object.values(examType);
 
     // generates an individual result for each exam type
-    examTypesList.forEach((type) => {
-      const typeExams = termExams.filter((exam) => exam.type === type);
-      //apply different weights according subtype of the exam
-      typeExams.forEach((exam) => {
-        switch (exam.sub_type) {
-          case examSubType.SUBSTITUTIVE:
-            const examResultValue = results.find((result) => result.exam_id === exam.id);
-            if (examResultValue) {
-              typeExams
-                .filter((anotherExam) => anotherExam.id !== exam.id)
-                .forEach((anotherExam) => {
-                  anotherExam.weight = 0;
-                  resultWeightModification.push({
-                    student_id: studentsResults.id,
-                    exam_id: anotherExam.id,
-                    weight: 0,
-                  });
-                });
-            }
-            break;
-          case examSubType.MEAN:
-            const examResult = results.find((result) => result.exam_id === exam.id);
-            if (examResult) {
-              typeExams.forEach((anotherExam) => {
-                anotherExam.weight = 0.5;
-                resultWeightModification.push({
-                  student_id: studentsResults.id,
-                  exam_id: anotherExam.id,
-                  weight: 0.5,
-                });
-              });
-            }
-            break;
-          case examSubType.GREATER:
-            typeExams
-              .filter((anotherExam) => anotherExam.id !== exam.id)
-              .forEach((anotherExam) => {
-                const examResultValue = results.find((result) => result.exam_id === exam.id)?.value || 0;
-                const anotherExamResultValue = results.find((result) => result.exam_id === anotherExam.id)?.value || 0;
+    // examTypesList.forEach((type) => {
+    //   const typeExams = termExams.filter((exam) => exam.type === type);
+    //   //apply different weights according subtype of the exam
+    //   typeExams.forEach((exam) => {
+    //     switch (exam.sub_type) {
+    //       case examSubType.SUBSTITUTIVE:
+    //         const examResultValue = results.find((result) => result.exam_id === exam.id);
+    //         if (examResultValue) {
+    //           typeExams
+    //             .filter((anotherExam) => anotherExam.id !== exam.id)
+    //             .forEach((anotherExam) => {
+    //               anotherExam.weight = 0;
+    //               resultWeightModification.push({
+    //                 student_id: studentsResults.id,
+    //                 exam_id: anotherExam.id,
+    //                 weight: 0,
+    //               });
+    //             });
+    //         }
+    //         break;
+    //       case examSubType.MEAN:
+    //         const examResult = results.find((result) => result.exam_id === exam.id);
+    //         if (examResult) {
+    //           typeExams.forEach((anotherExam) => {
+    //             anotherExam.weight = 0.5;
+    //             resultWeightModification.push({
+    //               student_id: studentsResults.id,
+    //               exam_id: anotherExam.id,
+    //               weight: 0.5,
+    //             });
+    //           });
+    //         }
+    //         break;
+    //       case examSubType.GREATER:
+    //         typeExams
+    //           .filter((anotherExam) => anotherExam.id !== exam.id)
+    //           .forEach((anotherExam) => {
+    //             const examResultValue = results.find((result) => result.exam_id === exam.id)?.value || 0;
+    //             const anotherExamResultValue = results.find((result) => result.exam_id === anotherExam.id)?.value || 0;
 
-                if (examResultValue >= anotherExamResultValue) {
-                  anotherExam.weight = 0;
-                  resultWeightModification.push({
-                    student_id: studentsResults.id,
-                    exam_id: anotherExam.id,
-                    weight: 0,
-                  });
-                }
-                if (examResultValue < anotherExamResultValue) {
-                  exam.weight = 0;
-                  resultWeightModification.push({
-                    student_id: studentsResults.id,
-                    exam_id: exam.id,
-                    weight: 0,
-                  });
-                }
-              });
-            break;
+    //             if (examResultValue >= anotherExamResultValue) {
+    //               anotherExam.weight = 0;
+    //               resultWeightModification.push({
+    //                 student_id: studentsResults.id,
+    //                 exam_id: anotherExam.id,
+    //                 weight: 0,
+    //               });
+    //             }
+    //             if (examResultValue < anotherExamResultValue) {
+    //               exam.weight = 0;
+    //               resultWeightModification.push({
+    //                 student_id: studentsResults.id,
+    //                 exam_id: exam.id,
+    //                 weight: 0,
+    //               });
+    //             }
+    //           });
+    //         break;
 
-          default:
-            break;
-        }
-      });
+    //       default:
+    //         break;
+    //     }
+    //   });
 
-      // sum all results for a type applying weights
+    // sum all results for a type applying weights
 
-      typeExams.forEach((exam) => {
-        let examResult = 0;
-        const result = results.find((item) => item.exam_id === exam.id);
-        if (result) {
-          examResult += result.value * exam.weight;
+    //   typeExams.forEach((exam) => {
+    //     let examResult = 0;
+    //     const result = results.find((item) => item.exam_id === exam.id);
+    //     if (result) {
+    //       examResult += result.value * exam.weight;
 
-          finalResultValues.push(examResult);
-        }
-      });
-    });
+    //       finalResultValues.push(examResult);
+    //     }
+    //   });
+    // });
 
     if (finalResultValues.length > 0) {
       mean = finalResultValues.reduce((total, result) => total + result, 0);
@@ -235,15 +236,7 @@ function ExamResultView() {
     async function fetchData() {
       setLoading(true);
       try {
-        const exams = (
-          await examsService.getAll(
-            undefined,
-            undefined,
-            'subject_id,class_id',
-            `${subjectId},${classGroupId}`,
-            'eq,eq'
-          )
-        ).result;
+        const exams = [] as IExam[];
 
         const columns: IDisplayColumnResults[] = exams.map((exam) => ({
           id: exam.id,

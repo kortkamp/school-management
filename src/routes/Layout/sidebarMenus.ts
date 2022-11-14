@@ -24,6 +24,23 @@ export const SIDE_BAR_STUDENT_ITEMS: Array<LinkToPage> = [
     path: '/user',
     icon: 'account',
   },
+  {
+    title: 'Avaliações',
+    path: '/exames',
+    icon: 'exams',
+    subMenus: [
+      {
+        title: 'Listar Avaliações',
+        path: '/exames/aluno',
+        icon: 'exams',
+      },
+      {
+        title: 'Notas',
+        path: '/exames/notas',
+        icon: 'exams',
+      },
+    ],
+  },
 ];
 export const SIDE_BAR_TEACHER_ITEMS: Array<LinkToPage> = [
   {
@@ -108,12 +125,7 @@ export const SIDE_BAR_PRINCIPAL_ITEMS: Array<LinkToPage> = [
       },
       {
         title: 'Cadastrar Professor',
-        path: '/professores/criar',
-        icon: 'search',
-      },
-      {
-        title: 'Associar Turma',
-        path: '/professores/turmas',
+        path: '/funcionarios/criar/teacher',
         icon: 'search',
       },
       {

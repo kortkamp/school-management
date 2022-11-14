@@ -11,6 +11,7 @@ const EmployeesRoutes = () => {
   return (
     <Switch>
       <Route path="/funcionarios/nova-funcao" component={CreateEmployeeRole} />
+      <Route path="/funcionarios/criar/:roleNameParam" component={CreateEmployeeView} />
       <Route path="/funcionarios/criar" component={CreateEmployeeView} />
       <Route path="/funcionarios/" component={ListEmployeesView} />
     </Switch>

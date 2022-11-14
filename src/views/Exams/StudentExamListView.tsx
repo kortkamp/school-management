@@ -15,30 +15,17 @@ import { classGroupsService } from '../../services/classGroups.service';
 import { useAppStore } from '../../store';
 import { RoleTypes } from '../../services/models/IRole';
 import { toast } from 'react-toastify';
-
-type ValueOf<T> = T[keyof T];
-
-const roleSpecificGetExamsService = {
-  teacher: examsService.getAllByTeacherUser,
-  admin: examsService.getAll,
-  principal: examsService.getAll,
-  secretary: examsService.getAll,
-  student: examsService.getAll,
-  parent: examsService.getAll,
-  register: examsService.getAll,
-  'system-admin': examsService.getAll,
-};
+import { studentsService } from '../../services/students.service';
 
 /**
  * Renders "ExamsListView" view
- * url: /exames/*
+ * url: /exames/aluno
  */
-function ExamListView() {
+function StudentExamListView() {
   const history = useHistory();
   const [state, dispatch] = useAppStore();
 
   const isTeacher = state?.currentSchool?.role === RoleTypes.TEACHER;
-  const userRole = state.currentSchool?.role as ValueOf<typeof RoleTypes>;
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -46,23 +33,17 @@ function ExamListView() {
   const [typeFilter, setTypeFilter] = useState('');
   const [classGroupFilter, setClassGroupFilter] = useState('');
 
-  const [removeExam, removing] = useRequestApi(examsService.remove);
-  const [classGroups, classGroupsError, loadingClassGroups] = useApi(classGroupsService.getAll, { defaultValue: [] });
-  const [examsData, errorOnExams, loading, , setExamsData] = useApi(roleSpecificGetExamsService[userRole], {
-    args: { page, per_page: pageSize, status: statusFilter, type: typeFilter, class_group_id: classGroupFilter },
+  const [studentData, studentError, loadingStudent] = useApi(studentsService.getByAuthUser);
+
+  const [examsData, errorOnExams, loadingExams, , setExamsData] = useApi(examsService.getAll, {
+    args: {
+      page,
+      per_page: pageSize,
+      status: statusFilter,
+      type: typeFilter,
+      class_group_id: studentData?.student?.class_group_id,
+    },
   });
-
-  const handleRemoveExam = useCallback(async (examId: string) => {
-    const response = await removeExam({ id: examId });
-
-    if (response?.success && examsData) {
-      toast.success('Avaliação cancelada com sucesso');
-      const filteredExams = examsData?.result.filter((exam) => exam.id !== examId);
-
-      const newExamsData = { ...examsData, result: filteredExams };
-      setExamsData(newExamsData);
-    }
-  }, []);
 
   const columns = [
     { field: 'type', headerName: 'Tipo', width: 100 },
@@ -119,7 +100,7 @@ function ExamListView() {
       field: 'actions',
       headerName: 'Ações',
       sortable: false,
-      width: 330,
+      width: 100,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       renderCell: (params: any) => {
         return (
@@ -128,30 +109,6 @@ function ExamListView() {
             <AppButton color="default" onClick={() => {}}>
               Notas
             </AppButton>
-            {isTeacher && (
-              <>
-                <AppButton
-                  color="info"
-                  onClick={() => {
-                    history.push('/exames/criar', {
-                      exam: params.row,
-                    });
-                  }}
-                >
-                  Editar
-                </AppButton>
-                <AppButton
-                  color="error"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    handleRemoveExam(params.row.id);
-                    // onConfirmDeleteExamOpen(params.row);
-                  }}
-                >
-                  CANCELAR
-                </AppButton>
-              </>
-            )}
           </>
         );
       },
@@ -160,23 +117,20 @@ function ExamListView() {
 
   function CustomFooterButtonsComponent() {
     return (
-      <Box sx={{ padding: '10px', display: 'flex', justifyContent: 'space-between' }}>
-        <div>
-          {isTeacher && (
-            <AppButton color="primary" onClick={() => history.push('/exames/criar')}>
-              Criar Avaliação
-            </AppButton>
-          )}
-        </div>
+      <Box sx={{ padding: '10px', display: 'flex', justifyContent: 'flex-end' }}>
         <CustomPagination />
       </Box>
     );
   }
 
+  const loading = loadingStudent;
+
+  const error = errorOnExams || studentError;
+
   return (
-    <AppView title="Avaliações">
+    <AppView title="Avaliações" loading={loading} error={error}>
       <AppViewParams>
-        <Grid item xs={12} sm={12} md={4}>
+        <Grid item xs={12} sm={12} md={6}>
           <TextField
             select
             label="Situação"
@@ -190,7 +144,7 @@ function ExamListView() {
             <MenuItem value={'closed'}>Encerradas</MenuItem>
           </TextField>
         </Grid>
-        <Grid item xs={12} sm={12} md={4}>
+        <Grid item xs={12} sm={12} md={6}>
           <TextField
             select
             label="Tipo"
@@ -207,29 +161,12 @@ function ExamListView() {
             <MenuItem value={'outros'}>Outros</MenuItem>
           </TextField>
         </Grid>
-        <Grid item xs={12} sm={12} md={4}>
-          <TextField
-            select
-            label="Turma"
-            name="classGroup"
-            value={classGroupFilter}
-            onChange={(e) => setClassGroupFilter(e.target.value)}
-            {...SHARED_CONTROL_PROPS}
-          >
-            <MenuItem value={''}>Todas</MenuItem>
-            {classGroups.map((classGroup) => (
-              <MenuItem key={classGroup.id} value={classGroup.id}>
-                {classGroup.name}
-              </MenuItem>
-            ))}
-          </TextField>
-        </Grid>
       </AppViewParams>
 
       <AppViewData>
         <DataGrid
           rows={examsData?.result || []}
-          columns={!loading ? columns : []}
+          columns={!loadingExams ? columns : []}
           onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
           onPageChange={(newPage) => setPage(newPage + 1)}
           pagination
@@ -238,7 +175,7 @@ function ExamListView() {
           rowCount={examsData?.total_filtered || 0}
           paginationMode="server"
           rowsPerPageOptions={[10, 20, 50]}
-          loading={loading}
+          loading={loadingExams}
           autoHeight
           disableSelectionOnClick
           initialState={{
@@ -261,4 +198,4 @@ function ExamListView() {
   );
 }
 
-export default ExamListView;
+export default StudentExamListView;
