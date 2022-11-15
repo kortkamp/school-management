@@ -9,8 +9,8 @@ import Moment from 'moment';
 import { useApi, useRequestApi } from '../../api/useApi';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import AppView, { AppViewActions, AppViewParams } from '../../components/AppView';
-import { AppSaveButton } from '../../components/AppCustomButton';
+import AppView, { AppViewActions, AppViewData, AppViewParams } from '../../components/AppView';
+import { AppAddButton, AppSaveButton } from '../../components/AppCustomButton';
 import { toast } from 'react-toastify';
 import { Grid, MenuItem } from '@mui/material';
 import FormStandardInput from '../../components/HookFormInput/FormStandardInput';
@@ -21,14 +21,17 @@ import { schoolYearsService } from '../../services/schoolYears.service';
 import { teachersService } from '../../services/teachers.service';
 import { removeDuplicateIDs } from '../../utils/array';
 import AppBackButton from '../../components/AppCustomButton/AppBackButton';
+import { studentsService } from '../../services/students.service';
+import ResultsTable from './components/ResultsTable';
 
-interface FormValues {
+export interface FormValues {
   type: string;
   value: string;
   subject_id: string;
   class_group_id: string;
   date: string;
   term_id: string;
+  results?: { student_id: string; name: string; achievement: string }[];
 }
 
 const defaultValues = {
@@ -42,7 +45,6 @@ const defaultValues = {
 
 interface Props {
   examId?: string;
-  getExamData?: (data: FormValues) => void;
 }
 
 const schema = yup.object({
@@ -50,8 +52,26 @@ const schema = yup.object({
   subject_id: yup.string().required('O campo é obrigatório'),
   class_group_id: yup.string().required('O campo é obrigatório'),
   term_id: yup.string().required('O campo é obrigatório'),
-  value: yup.string().required('O campo é obrigatório'),
+  value: yup
+    .number()
+    .typeError('Valor inválido')
+    .positive('O valor precisa ser positivo')
+    .required('Campo obrigatório'),
   date: yup.string().length(8, 'Data inválida').required('O campo é obrigatório'),
+  results: yup.array().of(
+    yup.object().shape({
+      achievement: yup
+        .number()
+        .typeError('Valor inválido')
+        // .positive('O valor precisa ser positivo')
+        // .integer('O valor precisa ser inteiro')
+        .min(0, 'A nota precisa ser maior que zero')
+        .max(1, 'A nota não pode ser maior que o valor da prova')
+        .required('Campo obrigatório'),
+
+      // .min(yup.ref('value'), 'A nota não pode ser maior que o valor da avaliação'),
+    })
+  ),
 });
 
 interface LocationProps {
@@ -62,7 +82,7 @@ interface LocationProps {
  * Renders "Create Exam" view
  * url: /exames/criar
  */
-const CreateExamView: React.FC<Props> = ({ getExamData }) => {
+const CreateExamView: React.FC<Props> = ({}) => {
   const history = useHistory();
 
   const [teacherClassGroups, setTeacherClassGroups] = useState<{ id: string; name: string }[]>([]);
@@ -71,7 +91,7 @@ const CreateExamView: React.FC<Props> = ({ getExamData }) => {
 
   const { state } = useLocation() as { state: LocationProps };
   // eslint-disable-next-line @typescript-eslint/naming-convention
-  const { id, type, subject, class_group, term, value, date } = state?.exam || defaultValues;
+  const { id, type, subject, class_group, term, value: examValue, date } = state?.exam || defaultValues;
   const isUpdatingExam = !!id;
   const formInitialValues = isUpdatingExam
     ? {
@@ -79,7 +99,7 @@ const CreateExamView: React.FC<Props> = ({ getExamData }) => {
         subject_id: subject.id,
         class_group_id: class_group.id,
         term_id: term.id,
-        value: String(value),
+        value: String(examValue),
         date: Moment(date).format('DDMMYYYY'),
       }
     : defaultValues;
@@ -88,8 +108,11 @@ const CreateExamView: React.FC<Props> = ({ getExamData }) => {
   const [teacherClassSubjects, , loadingTeacherClasses] = useApi(teachersService.getTeacherClassesByTeacher, {
     defaultValue: [],
   });
+  const [getExamData, loadingExam] = useRequestApi(examsService.getById);
+
   const [createExam, creating] = useRequestApi(examsService.create);
   const [updateExam, updating] = useRequestApi(examsService.update);
+  const [loadStudents, loadingStudents] = useRequestApi(studentsService.getAll);
 
   const {
     setValue,
@@ -97,11 +120,53 @@ const CreateExamView: React.FC<Props> = ({ getExamData }) => {
     reset,
     control,
     watch,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<FormValues>({
     defaultValues: formInitialValues,
     resolver: yupResolver(schema),
   });
+
+  const fetchStudents = async () => {
+    const studentsData = await loadStudents({
+      page: 1,
+      per_page: 1000,
+      class_group_id: class_group.id,
+      course_id: '',
+      grade_id: '',
+    });
+
+    if (studentsData?.success) {
+      const studentsResult = studentsData?.result.map((student) => ({
+        student_id: student.id,
+        name: student.person.name,
+        achievement: '',
+      }));
+
+      if (!studentsResult.length) {
+        toast.warning('Nenhum aluno encontrado na turma');
+        return;
+      }
+
+      setValue('results', studentsResult);
+    }
+  };
+
+  useEffect(() => {
+    const fetchExamData = async () => {
+      const examData = await getExamData({ id });
+      if (examData?.success) {
+        const studentsResult = examData.exam.results.map((result) => ({
+          student_id: result.student.id,
+          name: result.student.person.name,
+          achievement: String(result.achievement),
+        }));
+        setValue('results', studentsResult);
+      }
+    };
+    if (isUpdatingExam) {
+      fetchExamData();
+    }
+  }, [isUpdatingExam]);
 
   useEffect(() => {
     const possibleDuplicatedTeacherClasses = teacherClassSubjects.map((t) => ({
@@ -157,9 +222,15 @@ const CreateExamView: React.FC<Props> = ({ getExamData }) => {
     let response: any;
 
     const isoDate = Moment(formData.date, 'DDMMYYYY').toISOString();
-
     if (isUpdatingExam) {
-      response = await updateExam({ id, data: { ...formData, date: isoDate } });
+      response = await updateExam({
+        id,
+        data: {
+          ...formData,
+          date: isoDate,
+          results: formData.results?.map(({ student_id, achievement }) => ({ student_id, achievement })) || [],
+        },
+      });
     } else {
       response = await createExam({ ...formData, date: isoDate });
     }
@@ -170,13 +241,15 @@ const CreateExamView: React.FC<Props> = ({ getExamData }) => {
     }
   };
 
-  const loading = loadingSchoolYear || loadingTeacherClasses;
+  const loading = loadingSchoolYear || loadingTeacherClasses || loadingExam;
+
+  const studentsResults = watch('results');
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} style={{ padding: 24 }}>
-      <AppView title={isUpdatingExam ? 'Editar Avaliação' : 'Nova Avaliação'} loading={loading}>
+      <AppView title={isUpdatingExam ? 'Avaliação' : 'Nova Avaliação'} loading={loading}>
         <AppViewParams>
-          <Grid item md={6} sm={6} xs={6}>
+          <Grid item md={4} sm={6} xs={6}>
             <FormStandardInput
               name={'type'}
               select
@@ -193,7 +266,7 @@ const CreateExamView: React.FC<Props> = ({ getExamData }) => {
               ))}
             </FormStandardInput>
           </Grid>
-          <Grid item md={6} sm={6} xs={6}>
+          <Grid item md={4} sm={6} xs={6}>
             <FormStandardInput
               name={'value'}
               label={'Valor'}
@@ -204,7 +277,7 @@ const CreateExamView: React.FC<Props> = ({ getExamData }) => {
               fullWidth
             />
           </Grid>
-          <Grid item md={6} sm={6} xs={6}>
+          <Grid item md={4} sm={6} xs={6}>
             <FormNumberFormat
               name={'date'}
               format="##/##/####"
@@ -216,7 +289,7 @@ const CreateExamView: React.FC<Props> = ({ getExamData }) => {
               fullWidth
             />
           </Grid>
-          <Grid item md={6} sm={6} xs={6}>
+          <Grid item md={4} sm={6} xs={6}>
             <FormStandardInput
               name={'term_id'}
               select
@@ -234,7 +307,7 @@ const CreateExamView: React.FC<Props> = ({ getExamData }) => {
             </FormStandardInput>
           </Grid>
 
-          <Grid item md={6} sm={6} xs={6}>
+          <Grid item md={4} sm={6} xs={6}>
             <FormStandardInput
               name={'class_group_id'}
               select
@@ -251,7 +324,7 @@ const CreateExamView: React.FC<Props> = ({ getExamData }) => {
               ))}
             </FormStandardInput>
           </Grid>
-          <Grid item md={6} sm={6} xs={6}>
+          <Grid item md={4} sm={6} xs={6}>
             <FormStandardInput
               name={'subject_id'}
               select
@@ -269,8 +342,22 @@ const CreateExamView: React.FC<Props> = ({ getExamData }) => {
             </FormStandardInput>
           </Grid>
         </AppViewParams>
+        {isUpdatingExam && (
+          <AppViewData>
+            <ResultsTable
+              control={control}
+              results={studentsResults || []}
+              editable={true}
+              errors={errors.results}
+              examValue={Number(watch('value'))}
+            />
+          </AppViewData>
+        )}
         <AppViewActions>
-          <AppSaveButton type="submit" loading={creating} disabled={creating}></AppSaveButton>
+          <AppSaveButton type="submit" loading={creating} disabled={creating || !isDirty}></AppSaveButton>
+          {isUpdatingExam && !studentsResults?.length && (
+            <AppAddButton label="Informar Resultados" onClick={fetchStudents} />
+          )}
           <AppBackButton />
         </AppViewActions>
       </AppView>
