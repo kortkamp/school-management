@@ -2,10 +2,13 @@ import { IApiFuncParams } from '../api/useApi';
 import api from './api.service';
 
 export interface IStudentResult {
-  value: number;
+  achievement: number;
   student: {
     id: string;
-    name: string;
+    person: {
+      id: string;
+      name: string;
+    };
   };
 }
 
@@ -50,6 +53,11 @@ interface IExamListResponse {
   result: IExam[];
 }
 
+interface IGetExamResponse {
+  success: boolean;
+  exam: IExam;
+}
+
 const getAll = async ({ schoolId, token, args = {}, cancelToken }: IApiFuncParams) =>
   (
     await api.get(
@@ -88,7 +96,10 @@ const remove = async ({ schoolId, token, args: { id } }: IApiFuncParams) =>
 const update = async ({ schoolId, token, args: { data, id } }: IApiFuncParams) =>
   (await api.put(`/${schoolId}/exams/${id}`, data, { headers: { Authorization: `Bearer ${token}` } })).data;
 
-const getById = async (id: string) => (await api.get(`/exams/${id}`)).data.exam as IExam;
+// const getById = async (id: string) => (await api.get(`/exams/${id}`)).data.exam as IExam;
+const getById = async ({ schoolId, token, args: { id } }: IApiFuncParams) =>
+  (await api.get(`/${schoolId}/exams/${id}`, { headers: { Authorization: `Bearer ${token}` } }))
+    .data as IGetExamResponse;
 
 const saveResults = async (data: object) => api.post('/exams/results', data);
 
