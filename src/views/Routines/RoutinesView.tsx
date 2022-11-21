@@ -35,18 +35,18 @@ interface ISubjectsTotalTime {
   time: number;
 }
 
+const weekDays = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+
 /**
  * Renders "ListTermsView" view
  * url: /horarios/*
  */
 const RoutinesView = () => {
-  const weekDays = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
-
   const [subjects, , loadingSubjects] = useApi(subjectsService.getAll, { defaultValue: [] });
 
-  const [routines, setRoutines] = useState<IRoutine[]>([]);
+  const [routines] = useState<IRoutine[]>([]);
   const [routineSubjects, setRoutineSubjects] = useState<IRoutineSubject[]>([]);
-  const [defaultRoutineSubjects, setDefaultRoutineSubjects] = useState<IRoutineSubject[]>([]);
+  const [defaultRoutineSubjects] = useState<IRoutineSubject[]>([]);
   const [subjectsTime, setSubjectsTime] = useState<ISubjectsTotalTime[]>([]);
 
   const [allocation, setAllocation] = useState<IAllocation>({
@@ -73,13 +73,11 @@ const RoutinesView = () => {
 
   const loadData = useCallback(async () => {
     const fetchData = async () => {
-      const routinesResponse = await routinesService.getAll();
-
-      if (!mounted.current) {
-        return;
-      }
-
-      setRoutines(routinesResponse);
+      // const routinesResponse = await routinesService.getAll();
+      // if (!mounted.current) {
+      //   return;
+      // }
+      // setRoutines(routinesResponse);
     };
 
     fetchData();
@@ -89,10 +87,10 @@ const RoutinesView = () => {
     setMessage(undefined);
     setLoading(true);
 
-    const data = await routinesService.getRoutineSubjectsByClassGroup(selectedClassGroup.id);
+    // const data = await routinesService.getRoutineSubjectsByClassGroup(selectedClassGroup.id);
 
-    setRoutineSubjects([...data]);
-    setDefaultRoutineSubjects([...data]);
+    // setRoutineSubjects([...data]);
+    // setDefaultRoutineSubjects([...data]);
     setLoading(false);
   }, [selectedClassGroup]);
 

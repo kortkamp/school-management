@@ -45,7 +45,7 @@ const ClassGroupsView = () => {
       field: 'actions',
       headerName: 'Ações',
       sortable: false,
-      width: 80,
+      width: 100,
       renderCell: (params: any) => (
         <>
           <AppIconButton
@@ -55,6 +55,16 @@ const ClassGroupsView = () => {
               history.push('/turmas/' + params.row.id);
             }}
             title="Mostrar Turma"
+          />
+          <AppIconButton
+            icon="clock"
+            onClick={(e: any) => {
+              e.stopPropagation(); // don't select this row after clicking
+              history.push('/turnos/turma/', {
+                classGroup: params.row,
+              });
+            }}
+            title="Horários"
           />
         </>
       ),
