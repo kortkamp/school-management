@@ -45,6 +45,10 @@ export interface ITeacherClassSubject {
     id: string;
     name: string;
   };
+  routines: {
+    routine_id: string;
+    week_day: number;
+  }[];
 }
 
 const getAll = async ({ schoolId, token, args = {}, cancelToken }: IGetAllTeachersParams) =>
