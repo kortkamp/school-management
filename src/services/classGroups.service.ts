@@ -1,7 +1,7 @@
 import { IApiFuncParams } from '../api/useApi';
 import api from './api.service';
 
-interface IClassGroup {
+export interface IClassGroup {
   id: string;
   name: string;
   grade: {

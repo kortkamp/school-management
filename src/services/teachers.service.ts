@@ -61,10 +61,15 @@ const getAll = async ({ schoolId, token, args = {}, cancelToken }: IGetAllTeache
 
 const getTeacherClasses = async ({ schoolId, token, args = {}, cancelToken }: IApiFuncParams) =>
   (
-    await api.get(`/${schoolId}/teacher-classes?${args.teacher_id ? 'teacher_id=' + args.teacher_id : ''}`, {
-      headers: { Authorization: `Bearer ${token}` },
-      cancelToken,
-    })
+    await api.get(
+      `/${schoolId}/teacher-classes?${args.teacher_id ? 'teacher_id=' + args.teacher_id : ''}${
+        args.class_group_id ? '&class_group_id=' + args.class_group_id : ''
+      }`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        cancelToken,
+      }
+    )
   ).data.teacherClasses as ITeacherClassSubject[];
 
 // return the teacher classes of the logged user
