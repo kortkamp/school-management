@@ -44,6 +44,14 @@ export const timeToMinutes = (time: string) => {
 };
 
 /**
+ * Return a value of hours from a given number of minutes
+ * @param {string} [minutes] - integer number of minutes
+ */
+export const minutesToHours = (minutes: number) => {
+  return minutes / 60;
+};
+
+/**
  * Return duration between two times in format HH:MM
  * @param {string} [time1] - time in format HH:MM:SS or simple MM
  * @param {string} [time2] - time in format HH:MM:SS or simple MM
