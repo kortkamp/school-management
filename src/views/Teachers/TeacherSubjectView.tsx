@@ -105,6 +105,7 @@ const TeacherSubjectView = () => {
     const classGroup = classGroups.find((item) => item.id === selectedClassGroupId);
 
     const teacherClassSubject = {
+      id: '',
       subject,
       classGroup: {
         id: selectedClassGroupId,
