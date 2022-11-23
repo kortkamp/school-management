@@ -73,7 +73,7 @@ function CreateClassView() {
   const onSubmit = async (formData: FormValues) => {
     const response = await createClassGroup(formData);
 
-    if (response.success) {
+    if (response?.success) {
       toast.success('Turma criada com sucesso');
       history.goBack();
     }

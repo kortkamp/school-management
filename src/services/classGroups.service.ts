@@ -40,7 +40,14 @@ const create = async ({ schoolId, token, args }: IApiFuncParams) =>
 
 const remove = async (id: object) => api.delete('/class-groups/' + id);
 
-const update = async (id: string, data: object) => api.put('/class-groups/' + id, data);
+// const update = async (id: string, data: object) => api.put('/class-groups/' + id, data);
+
+const update = async ({ schoolId, token, args }: IApiFuncParams) =>
+  (
+    await api.put(`/${schoolId}/class-groups/${args.id}`, args.data, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+  ).data;
 
 // const getById = async (id: string) => api.get('/class-groups/' + id);
 

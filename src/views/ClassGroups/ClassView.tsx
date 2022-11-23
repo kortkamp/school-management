@@ -1,5 +1,5 @@
 import { useParams } from 'react-router';
-import { useApi } from '../../api/useApi';
+import { useApi, useRequestApi } from '../../api/useApi';
 import { useForm } from 'react-hook-form';
 
 import AppView, { AppViewActions, AppViewData, AppViewParams } from '../../components/AppView';
@@ -14,6 +14,9 @@ import { FormOutlinedInput } from '../../components/HookFormInput';
 import { coursesService, ICourse } from '../../services/courses.service';
 import { routinesService } from '../../services/routines.service';
 import StudentsTable from './components/StudentsTable';
+import { toast } from 'react-toastify';
+import { useHistory } from 'react-router-dom';
+import { routePaths } from '../../routes/RoutePaths';
 
 const schema = yup
   .object({
@@ -51,6 +54,8 @@ const defaultValues: FormValues = {
 const ClassView = () => {
   const { id } = useParams<{ id: string }>();
 
+  const history = useHistory();
+
   const [isEditing, setIsEditing] = useState(false);
 
   const [classGroup, classGroupError, loadingClassGroup] = useApi(classGroupsService.getById, { args: { id } });
@@ -60,6 +65,8 @@ const ClassView = () => {
   const [routineGroups, routineGroupsError, loadingRoutineGroups] = useApi(routinesService.getAllRoutineGroups, {
     defaultValue: [],
   });
+
+  const [updateClassGroup, updatingClassGroup] = useRequestApi(classGroupsService.update);
 
   const [grades, setGrades] = useState<ICourse['grades']>([]);
 
@@ -103,7 +110,17 @@ const ClassView = () => {
   }, [classGroup, courses]);
 
   const onSubmit = async (formData: FormValues) => {
-    console.log(formData);
+    const { name, courseId, gradeId } = formData;
+
+    const updateResponse = await updateClassGroup({
+      id,
+      data: { name, course_id: courseId, grade_id: gradeId },
+    });
+
+    if (updateResponse?.success) {
+      toast.success('Dados da turma salvos com sucesso');
+      history.push(routePaths.classGroups.path);
+    }
   };
 
   const handleSelectCourse = useCallback((event: any) => {
@@ -198,7 +215,7 @@ const ClassView = () => {
         </AppViewData>
 
         <AppViewActions>
-          <AppSaveButton type="submit" disabled={!isDirty} />
+          <AppSaveButton type="submit" loading={updatingClassGroup} disabled={!isDirty || updatingClassGroup} />
         </AppViewActions>
       </AppView>
     </form>
