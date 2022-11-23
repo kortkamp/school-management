@@ -9,7 +9,7 @@ import { AppClearButton, AppSaveButton } from '../../components/AppCustomButton'
 import AppView, { AppViewActions, AppViewData, AppViewParams } from '../../components/AppView';
 import WeekRoutines from '../../components/WeekRoutines';
 import { ITableCell } from '../../components/WeekRoutines/WeekRoutines';
-import { IClassGroup } from '../../services/classGroups.service';
+import { classGroupsService, IClassGroup } from '../../services/classGroups.service';
 import { routinesService } from '../../services/routines.service';
 import { teachersService } from '../../services/teachers.service';
 import { timeToMinutes } from '../../utils/time';
@@ -32,9 +32,7 @@ interface LocationProps {
 interface IClassGroupRoutine {
   routine_id: string;
   week_day: number;
-  subject_id: string;
-  teacher_id: string;
-  class_group_id: string;
+  teacher_class_group_id: string;
 }
 
 const ClassGroupRoutinesView = () => {
@@ -48,8 +46,6 @@ const ClassGroupRoutinesView = () => {
 
   const [selectedRoutineGroup, setSelectedRoutineGroup] = useState(classGroup.routineGroup?.id || '');
 
-  const [classGroupRoutinesTest, setClassGroupRoutinesTest] = useState<Record<string, number[]>>({});
-
   const [teacherSubjectTotalTime, setTeacherSubjectTotalTime] = useState<string[]>([]);
 
   const [selectedSubjectButton, setSelectedSubjectButton] = useState<number | null>(null);
@@ -58,77 +54,56 @@ const ClassGroupRoutinesView = () => {
     defaultValue: [],
   });
 
-  const [routines, error, loadingRoutines, , setRoutines] = useApi(routinesService.getRoutineSubjectsByClassGroup, {
-    args: { id: classGroup?.id },
-    defaultValue: [],
-  });
-
-  const [teacherClasses, , loadingTeacherClasses] = useApi(teachersService.getTeacherClasses, {
+  const [teacherClasses, , loadingTeacherClasses, , setTeacherClasses] = useApi(teachersService.getTeacherClasses, {
     args: { class_group_id: classGroup?.id },
     defaultValue: [],
   });
 
-  const loading = loadingRoutines || loadingTeacherClasses || loadingRoutinesGroups;
+  const loading = loadingTeacherClasses || loadingRoutinesGroups;
 
-  const [createRoutineSubjects, creating] = useRequestApi(routinesService.createRoutineSubject);
+  const [updateClassGroup, isUpdatingClassGroup] = useRequestApi(classGroupsService.update);
+  const [updateTeacherClasses, isUpdatingTeacherClasses] = useRequestApi(teachersService.updateTeacherClasses);
 
-  useEffect(() => {
-    if (routines.length && teacherClasses.length) {
-      const newClassGroupRoutineSubjects: Record<string, number[]> = {};
-      for (const routine of routines) {
-        const routineId = routine.id;
+  const clearRoutineSubjects = () => {
+    setTeacherClasses((prevTeacherClasses) =>
+      prevTeacherClasses.map((teacherClass) => ({ ...teacherClass, routines: [] }))
+    );
+  };
 
-        newClassGroupRoutineSubjects[routineId] = Array(7);
-
-        for (const routineSubject of routine.routineSubjects) {
-          const weekDay = routineSubject?.week_day;
-          const teacherSubjectIndex = teacherClasses.findIndex(
-            (teacherClass) => teacherClass.subject.id === routineSubject?.subject.id
-          );
-
-          newClassGroupRoutineSubjects[routineId][weekDay] = teacherSubjectIndex;
-        }
-      }
-      setClassGroupRoutinesTest(newClassGroupRoutineSubjects);
-    }
-  }, [routines, teacherClasses]);
-
+  // clear routineSubjects when change classGroupId
   useEffect(() => {
     if (selectedRoutineGroup !== classGroup.routineGroup?.id) {
-      setClassGroupRoutinesTest({});
+      clearRoutineSubjects();
     }
   }, [selectedRoutineGroup]);
 
+  //calculate total time for each teacherClassSubject
   useEffect(() => {
     if (loading) {
       return;
     }
 
     let totalTime = teacherClasses.map(() => 0);
-    console.log('calculate total time');
 
     let routinesDuration: Record<string, string>;
-    if (routines.length) {
-      routinesDuration = routines.reduce(
-        (total, routine) => ({ ...total, [routine.id]: routine.duration }),
-        {} as Record<string, string>
-      );
-    } else {
-      const selectedRoutines =
-        routineGroupsData.find((routineGroup) => routineGroup.id === selectedRoutineGroup)?.routines || [];
-      routinesDuration = selectedRoutines.reduce(
-        (total, routine) => ({ ...total, [routine.id]: routine.duration }),
-        {} as Record<string, string>
-      );
-    }
-    Object.entries(classGroupRoutinesTest).forEach(([routineId, teacherSubjectIndexes]) => {
-      teacherSubjectIndexes.forEach((teacherSubjectIndex) => {
-        const routineDuration = timeToMinutes(routinesDuration[routineId] || '00:00');
-        totalTime[teacherSubjectIndex] += routineDuration;
+
+    const selectedRoutines =
+      routineGroupsData.find((routineGroup) => routineGroup.id === selectedRoutineGroup)?.routines || [];
+
+    routinesDuration = selectedRoutines.reduce(
+      (total, routine) => ({ ...total, [routine.id]: routine.duration }),
+      {} as Record<string, string>
+    );
+
+    teacherClasses.forEach((teacherClass, index) => {
+      teacherClass.routines.forEach((routine) => {
+        const routineDuration = timeToMinutes(routinesDuration[routine.routine_id] || '00:00');
+        totalTime[index] += routineDuration;
       });
     });
+
     setTeacherSubjectTotalTime(totalTime.map((i) => String(i)));
-  }, [loading, classGroupRoutinesTest, selectedRoutineGroup]);
+  }, [loading, selectedRoutineGroup]);
 
   const handleCellClick = useCallback(
     ({ routine_id, week_day }: { routine_id: string; week_day: number }) => {
@@ -136,68 +111,98 @@ const ClassGroupRoutinesView = () => {
         return;
       }
 
-      if (!classGroupRoutinesTest[routine_id]) {
-        classGroupRoutinesTest[routine_id] = Array(7);
+      const isInterval = routineGroupsData
+        .find((routineGroup) => routineGroup.id === selectedRoutineGroup)
+        ?.routines.find((routine) => routine.id === routine_id && routine.type === 'intervalo');
+
+      if (isInterval) {
+        return;
       }
-      if (classGroupRoutinesTest[routine_id][week_day] === selectedSubjectButton) {
-        classGroupRoutinesTest[routine_id][week_day] = undefined as any;
-      } else {
-        classGroupRoutinesTest[routine_id][week_day] = selectedSubjectButton;
+
+      let teacherClassRoutineIDWeeDayExists = false;
+
+      // clear previous routine_id/week_day combination on any teacherClass
+      const clearedTeacherClass = teacherClasses.map((teacherClass, index) => ({
+        ...teacherClass,
+        routines: teacherClass.routines.filter((routine) => {
+          // if (index === selectedSubjectButton) return true;
+          const matches = routine.routine_id === routine_id && routine.week_day === week_day;
+
+          if (index === selectedSubjectButton && matches) {
+            teacherClassRoutineIDWeeDayExists = true;
+          }
+          return !matches;
+        }),
+      }));
+
+      // if we clicked in a cell with current selected subject, just clear it
+      if (teacherClassRoutineIDWeeDayExists) {
+        setTeacherClasses(clearedTeacherClass);
+        return;
       }
-      setClassGroupRoutinesTest({ ...classGroupRoutinesTest });
+
+      // set a cell to the new subject
+      const newTeacherClasses = clearedTeacherClass.map((teacherClass, index) => {
+        if (index !== selectedSubjectButton) {
+          return teacherClass;
+        }
+        return { ...teacherClass, routines: teacherClass.routines.concat({ routine_id, week_day }) };
+      });
+
+      setTeacherClasses(newTeacherClasses);
     },
-    [selectedSubjectButton]
+    [selectedSubjectButton, teacherClasses]
   );
 
   const handleClearButtonClick = useCallback(() => {
-    setClassGroupRoutinesTest({});
+    clearRoutineSubjects();
   }, []);
 
   // console.log(classGroupRoutinesTest);
 
   const handleSubmit = async () => {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    const routine_subjects: IClassGroupRoutine[] = [];
+    const updateResponse = await updateClassGroup({
+      id: classGroup.id,
+      data: { routine_group_id: selectedRoutineGroup },
+    });
 
-    const routineIds = Object.keys(classGroupRoutinesTest);
-    for (const routineId of routineIds) {
-      classGroupRoutinesTest[routineId].forEach((teacherSubjectIndex, week_day) => {
-        if (teacherSubjectIndex === undefined) {
-          return;
-        }
-        const teacherSubject = teacherClasses[teacherSubjectIndex];
-        const classGroupRoutine: IClassGroupRoutine = {
-          class_group_id: classGroup.id,
-          routine_id: routineId,
-          week_day,
-          subject_id: teacherSubject?.subject.id,
-          teacher_id: teacherSubject.teacher.id,
-        };
-        routine_subjects.push(classGroupRoutine);
-      });
+    if (!updateResponse?.success) {
+      // toast.error('Não foi possível atualizar o turno');
+      return;
     }
 
-    const response = await createRoutineSubjects({ data: { routine_subjects } });
+    const teacherClassesData = teacherClasses.map(({ id, routines }) => ({ id, routines }));
+
+    const response = await updateTeacherClasses({ data: { teacherClasses: teacherClassesData } });
 
     if (response?.success) {
       toast.success('Horário de turma salvo com sucesso');
       history.push(routePaths.classGroups.path);
     }
-    console.log(response);
   };
 
   const Cell: ITableCell = ({ data: { week_day, routine_id } }) => {
-    const teacherSubjectIndex = classGroupRoutinesTest[routine_id]
-      ? classGroupRoutinesTest[routine_id][week_day]
-      : undefined;
+    for (const teacherClass in teacherClasses) {
+      for (const routine of teacherClasses[teacherClass].routines) {
+        if (routine.routine_id === routine_id && routine.week_day === week_day) {
+          return (
+            <span className={clsx('', Number(teacherClass) === selectedSubjectButton && classes.selectedCell)}>
+              {teacherClasses[teacherClass]?.subject.name}
+            </span>
+          );
+        }
+      }
+    }
 
-    const teacherSubject = teacherSubjectIndex !== undefined ? teacherClasses[teacherSubjectIndex] : undefined;
+    const isInterval = routineGroupsData
+      .find((routineGroup) => routineGroup.id === selectedRoutineGroup)
+      ?.routines.find((routine) => routine.id === routine_id && routine.type === 'intervalo');
 
-    return (
-      <span className={clsx('', teacherSubjectIndex === selectedSubjectButton && classes.selectedCell)}>
-        {teacherSubject?.subject.name}
-      </span>
-    );
+    if (isInterval) {
+      return <span>Intervalo</span>;
+    }
+
+    return <span></span>;
   };
 
   return (
@@ -248,7 +253,7 @@ const ClassGroupRoutinesView = () => {
         />
       </AppViewData>
       <AppViewActions>
-        <AppSaveButton onClick={handleSubmit} loading={creating} />
+        <AppSaveButton onClick={handleSubmit} loading={isUpdatingClassGroup || isUpdatingTeacherClasses} />
         <AppClearButton onClick={handleClearButtonClick}></AppClearButton>
       </AppViewActions>
     </AppView>
