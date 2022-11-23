@@ -30,6 +30,7 @@ interface IGetAllTeachersParams extends IApiFuncParams {
 }
 
 export interface ITeacherClassSubject {
+  id: string;
   classGroup: {
     id: string;
     name: string;
@@ -45,6 +46,10 @@ export interface ITeacherClassSubject {
     id: string;
     name: string;
   };
+  routines: {
+    routine_id: string;
+    week_day: number;
+  }[];
 }
 
 const getAll = async ({ schoolId, token, args = {}, cancelToken }: IGetAllTeachersParams) =>
@@ -61,11 +66,23 @@ const getAll = async ({ schoolId, token, args = {}, cancelToken }: IGetAllTeache
 
 const getTeacherClasses = async ({ schoolId, token, args = {}, cancelToken }: IApiFuncParams) =>
   (
-    await api.get(`/${schoolId}/teacher-classes?${args.teacher_id ? 'teacher_id=' + args.teacher_id : ''}`, {
-      headers: { Authorization: `Bearer ${token}` },
-      cancelToken,
-    })
+    await api.get(
+      `/${schoolId}/teacher-classes?${args.teacher_id ? 'teacher_id=' + args.teacher_id : ''}${
+        args.class_group_id ? '&class_group_id=' + args.class_group_id : ''
+      }`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        cancelToken,
+      }
+    )
   ).data.teacherClasses as ITeacherClassSubject[];
+
+const updateTeacherClasses = async ({ schoolId, token, args }: IApiFuncParams) =>
+  (
+    await api.put(`/${schoolId}/teacher-classes/`, args.data, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+  ).data;
 
 // return the teacher classes of the logged user
 const getTeacherClassesByTeacher = async ({ schoolId, token, cancelToken }: IApiFuncParams) =>
@@ -102,6 +119,7 @@ const getById = async (school_id: string, id: object) => api.get(`/${school_id}/
 export const teachersService = {
   getTeacherClasses,
   getTeacherClassesByTeacher,
+  updateTeacherClasses,
   getAll,
   create,
   remove,

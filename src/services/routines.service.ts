@@ -4,9 +4,10 @@ import { RoutineType } from './models/IRoutine';
 
 export interface IRoutine {
   id: string;
+  type: string;
   day_time: string;
   start_at: string;
-  end_at: string;
+  duration: string;
 }
 
 export interface IRoutineSubject {
@@ -30,7 +31,7 @@ export interface IRoutineData {
 export interface IClassGroupRoutine {
   id: string;
   start_at: string;
-  end_at: string;
+  duration: string;
   routineSubjects: IRoutineData[];
 }
 
@@ -79,14 +80,23 @@ interface ICreateRoutineResponse {
   };
 }
 
-const getAll = async () => (await api.get(`/routines`)).data.routines as IRoutine[];
+const getAll = async ({ schoolId, token, cancelToken }: IApiFuncParams) =>
+  (await api.get(`/${schoolId}/routines`, { headers: { Authorization: `Bearer ${token}` }, cancelToken })).data
+    .routines as IRoutine[];
 
 const getAllRoutineGroups = async ({ schoolId, token, cancelToken }: IApiFuncParams) =>
   (await api.get(`/${schoolId}/routine-groups`, { headers: { Authorization: `Bearer ${token}` }, cancelToken })).data
     .routineGroups as IRoutineGroup[];
 
-const getRoutineSubjectsByClassGroup = async (id: string) =>
-  (await api.get('/routines/subjects/class-group/' + id)).data.routineSubjects as IRoutineSubject[];
+// const getRoutineSubjectsByClassGroup = async (id: string) =>
+//   (await api.get('/routines/subjects/class-group/' + id)).data.routineSubjects as IRoutineSubject[];
+
+const getRoutineSubjectsByClassGroup = async ({ schoolId, token, args }: IDeleteRoutineGroupProps) =>
+  (
+    await api.get(`/${schoolId}/routines/subjects/class-group/` + args?.id, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+  ).data.routineSubjects as IClassGroupRoutine[];
 
 const saveRoutineSubjects = async (data: { routine_subjects: IRoutineSubject[] }) =>
   api.post('/routines/subjects', data);
@@ -100,6 +110,9 @@ const getRoutinesByUser = async (id: string) =>
 const createRoutineGroup = async ({ schoolId, token, args }: IApiFuncParams) =>
   (await api.post(`/${schoolId}/routine-groups`, args.data, { headers: { Authorization: `Bearer ${token}` } }))
     .data as ICreateRoutineGroupResponse;
+
+const createRoutineSubject = async ({ schoolId, token, args }: IApiFuncParams) =>
+  (await api.post(`/${schoolId}/routines/subjects`, args.data, { headers: { Authorization: `Bearer ${token}` } })).data;
 
 const removeRoutineGroup = async ({ schoolId, token, args }: IDeleteRoutineGroupProps) =>
   (await api.delete(`/${schoolId}/routine-groups/` + args?.id, { headers: { Authorization: `Bearer ${token}` } }))
@@ -140,6 +153,7 @@ export const routinesService = {
   updateRoutineGroup,
   createRoutine,
   removeRoutine,
+  createRoutineSubject,
   // create,
   // remove,
   // update,

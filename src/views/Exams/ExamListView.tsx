@@ -52,17 +52,23 @@ function ExamListView() {
     args: { page, per_page: pageSize, status: statusFilter, type: typeFilter, class_group_id: classGroupFilter },
   });
 
-  const handleRemoveExam = useCallback(async (examId: string) => {
-    const response = await removeExam({ id: examId });
+  const handleRemoveExam = useCallback(
+    async (examId: string) => {
+      if (!window.confirm('Deseja cancelar a avaliação')) {
+        return;
+      }
+      const response = await removeExam({ id: examId });
 
-    if (response?.success && examsData) {
-      toast.success('Avaliação cancelada com sucesso');
-      const filteredExams = examsData?.result.filter((exam) => exam.id !== examId);
+      if (response?.success && examsData) {
+        toast.success('Avaliação cancelada com sucesso');
+        const filteredExams = examsData?.result.filter((exam) => exam.id !== examId);
 
-      const newExamsData = { ...examsData, result: filteredExams };
-      setExamsData(newExamsData);
-    }
-  }, []);
+        const newExamsData = { ...examsData, result: filteredExams };
+        setExamsData(newExamsData);
+      }
+    },
+    [examsData]
+  );
 
   const columns = [
     { field: 'type', headerName: 'Tipo', width: 100 },
@@ -124,16 +130,12 @@ function ExamListView() {
       renderCell: (params: any) => {
         return (
           <>
-            {/* <AppButton color="default" onClick={() => history.push(`/exames/${params.row.id}`)}> */}
-            <AppButton color="default" onClick={() => {}}>
-              Notas
-            </AppButton>
             {isTeacher && (
               <>
                 <AppButton
                   color="info"
                   onClick={() => {
-                    history.push('/exames/criar', {
+                    history.push('/exames/visualizar/', {
                       exam: params.row,
                     });
                   }}

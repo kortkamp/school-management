@@ -1,18 +1,20 @@
 import { Route, Switch } from 'react-router-dom';
+import ClassGroupRoutinesView from './ClassGroupRoutinesView';
 import ListRoutinesView from './ListRoutinesView';
-import RoutinesView from './RoutinesView';
+// import RoutinesView from './RoutinesView';
 
 /**
  * Routes for "ClassGroups" view
  * url: /horarios/*
  */
-const TermsRoutes = () => {
+const RoutinesRoutes = () => {
   return (
     <Switch>
-      <Route path="/horarios/turma" component={RoutinesView} />
+      <Route path="/turnos/turma" component={ClassGroupRoutinesView} />
+      {/* <Route path="/turnos/turma" component={RoutinesView} /> */}
       <Route component={ListRoutinesView} />
     </Switch>
   );
 };
 
-export default TermsRoutes;
+export default RoutinesRoutes;

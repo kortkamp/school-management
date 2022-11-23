@@ -5,10 +5,25 @@ interface IStudentsList {
   success: boolean;
   result: {
     id: string;
-    name: string;
     enroll_id: string;
-    phone: string;
-    avatar_url: string;
+    person: {
+      id: string;
+      name: string;
+      sex: string;
+      birth: string;
+    };
+    course: {
+      id: string;
+      name: string;
+    };
+    grade: {
+      id: string;
+      name: string;
+    };
+    classGroup: {
+      id: string;
+      name: string;
+    };
   }[];
   total_filtered: number;
   page: number;

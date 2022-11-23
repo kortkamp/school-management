@@ -30,7 +30,7 @@ const TeacherSubjectView = () => {
   const [selectedClassGroupId, setSelectedClassGroupId] = useState('');
   const [selectedTeacherId, setSelectedTeacherId] = useState(teacherIdPAram || '');
   const [filteredSubjects, setFilteredSubjects] = useState<ISubject[]>([]);
-  const [teacherSubjects, setTeacherSubjects] = useState<ITeacherClassSubject[]>([]);
+  const [teacherSubjects, setTeacherSubjects] = useState<Omit<ITeacherClassSubject, 'routines'>[]>([]);
 
   const loadTeacherSubjectsList = useCallback(async () => {
     if (!selectedTeacherId) {
@@ -105,6 +105,7 @@ const TeacherSubjectView = () => {
     const classGroup = classGroups.find((item) => item.id === selectedClassGroupId);
 
     const teacherClassSubject = {
+      id: '',
       subject,
       classGroup: {
         id: selectedClassGroupId,

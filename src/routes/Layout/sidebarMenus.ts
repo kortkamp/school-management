@@ -112,6 +112,11 @@ export const SIDE_BAR_PRINCIPAL_ITEMS: Array<LinkToPage> = [
         path: `${routePaths.routines.path}`,
         icon: 'clock',
       },
+      {
+        title: 'Ano Letivo',
+        path: `${routePaths.schoolYear.path}`,
+        icon: 'clock',
+      },
     ],
   },
   {
