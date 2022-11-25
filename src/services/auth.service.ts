@@ -10,6 +10,9 @@ export interface IAuthSchool {
   role_name: string;
   id: string;
   name: string;
+  teacher_id?: string;
+  student_id?: string;
+  class_group_id?: string;
 }
 
 export interface IAuthUserResult {
