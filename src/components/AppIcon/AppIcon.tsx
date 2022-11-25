@@ -38,6 +38,7 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import ClearIcon from '@mui/icons-material/Clear';
 import SchoolIcon from '@mui/icons-material/School';
 import ManageSearchIcon from '@mui/icons-material/ManageSearch';
+import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 
 /**
  * How to use:
@@ -90,6 +91,7 @@ const ICONS: Record<string, React.ComponentType> = {
   clear: ClearIcon,
   course: SchoolIcon,
   details: ManageSearchIcon,
+  attendance: PlaylistAddCheckIcon,
 };
 
 /**
