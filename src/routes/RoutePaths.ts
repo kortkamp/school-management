@@ -39,4 +39,8 @@ export const routePaths = {
     view: { path: '/pessoa/:id' },
     path: '/pessoa/',
   },
+
+  attendance: {
+    path: '/chamadas',
+  },
 };

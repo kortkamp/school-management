@@ -1,7 +1,7 @@
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 
 export const FORMAT_DATE_TIME = 'yyyy-MM-dd HH:mm:ss';
-export const FORMAT_DATE_ONLY = 'yyyy-MM-dd';
+export const FORMAT_DATE_ONLY = 'ddMMyyyy';
 export const FORMAT_TIME_ONLY = 'HH:mm:ss';
 
 /**
@@ -19,4 +19,19 @@ export function dateToString(dateOrString: string | Date, dateFormat = FORMAT_DA
     result = fallbackValue;
   }
   return result;
+}
+
+export function stringToDate(dateOrString: string, dateFormat = FORMAT_DATE_TIME): Date | string {
+  let result;
+  try {
+    result = parse(dateOrString, dateFormat, new Date());
+  } catch (error) {
+    result = '';
+  }
+  return result;
+}
+
+export function getWeekDay(dateOrString: string | Date) {
+  const date = typeof dateOrString === 'object' ? dateOrString : new Date(dateOrString);
+  return Number(format(date, 'e')) - 1;
 }

@@ -54,6 +54,11 @@ export const SIDE_BAR_TEACHER_ITEMS: Array<LinkToPage> = [
     icon: 'account',
   },
   {
+    title: 'Chamadas',
+    path: routePaths.attendance.path,
+    icon: 'attendance',
+  },
+  {
     title: 'Avaliações',
     path: '/exames',
     icon: 'exams',

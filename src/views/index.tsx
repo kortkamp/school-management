@@ -16,6 +16,7 @@ import Courses from './Courses';
 import Employees from './Employees';
 import Person from './Person';
 import SchoolYears from './SchoolYears';
+import Attendances from './Attendances';
 
 export {
   NotFound,
@@ -36,4 +37,5 @@ export {
   Employees,
   Person,
   SchoolYears,
+  Attendances,
 };

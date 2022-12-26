@@ -17,6 +17,7 @@ import {
   Welcome,
   Person,
   SchoolYears,
+  Attendances,
 } from '../views';
 import { PrivateLayout } from './Layout';
 import { routePaths } from './RoutePaths';
@@ -43,6 +44,7 @@ const PrivateRoutes = () => {
         <Route path={routePaths.employees.path} component={Employees} />,
         <Route path={routePaths.person.path} component={Person} />,
         <Route path={routePaths.schoolYear.path} component={SchoolYears} />,
+        <Route path={routePaths.attendance.path} component={Attendances} />,
         <Route path="/mensagens" component={Messages} />,
         <Route component={NotFound} />
       </Switch>
